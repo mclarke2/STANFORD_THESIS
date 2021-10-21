@@ -1,0 +1,1254 @@
+# Stopped_Rotor_CRM.py
+# 
+# Created: May 2019, M Clarke
+#          Sep 2020, M. Clarke 
+
+#----------------------------------------------------------------------
+#   Imports
+# ---------------------------------------------------------------------
+import SUAVE
+from SUAVE.Core import Units, Data  
+import os
+import pickle
+from SUAVE.Plots.Performance.Mission_Plots import *  
+from SUAVE.Plots.Geometry   import * 
+from SUAVE.Components.Energy.Networks.Lift_Cruise              import Lift_Cruise
+from SUAVE.Methods.Power.Battery.Sizing                        import initialize_from_mass 
+from SUAVE.Methods.Power.Battery.Sizing                        import initialize_from_circuit_configuration 
+from SUAVE.Methods.Weights.Correlations.Propulsion             import nasa_motor
+from SUAVE.Methods.Propulsion.electric_motor_sizing            import size_optimal_motor
+from SUAVE.Methods.Propulsion                                  import propeller_design   
+from SUAVE.Methods.Weights.Buildups.eVTOL.empty                import empty
+from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import compute_component_centers_of_gravity
+from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
+import vsp 
+from SUAVE.Input_Output.OpenVSP.vsp_write import write
+import time 
+import numpy as np
+import pylab as plt
+from copy import deepcopy 
+
+
+# ----------------------------------------------------------------------
+#   Main
+# ----------------------------------------------------------------------
+def main():
+
+    ti               = time.time() 
+    simulated_days   = 1
+    flights_per_day  = 1 
+    aircraft_range   = 70 *Units.nmi
+    reserve_segment  = False 
+    control_points   = 30
+    recharge_battery = False
+    N_gm_x           =  10
+    N_gm_y           =  10
+    
+    # build the vehicle, configs, and analyses 
+    configs, analyses = full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y )  
+    configs.finalize()
+    analyses.finalize()   
+     
+    breakdown = empty(configs.base,contingency_factor=1.0)
+    print(breakdown)     
+
+    # mission analysis
+    mission = analyses.missions.base
+    results = mission.evaluate() 
+
+    tf = time.time()
+    print ('time taken: ' + str(round(((tf-ti)/60),3)) + ' mins')     
+    
+
+    print(results.segments[-1].conditions.frames.inertial.position_vector[:,0] / Units.nmi)
+    
+    # save results  
+    save_results(results)
+    
+    # plot the results
+    plot_results(results) 
+    return 
+
+# ----------------------------------------------------------------------
+#   Analysis Setup
+# ----------------------------------------------------------------------
+def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y):  
+    
+    # vehicle data
+    vehicle  = vehicle_setup()
+    #write(vehicle, "Stopped_Rotor") 
+    configs  = configs_setup(vehicle)
+    plt.show()
+
+    # vehicle analyses
+    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y)
+
+    # mission analyses
+    mission  = mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery )
+    missions_analyses = missions_setup(mission)
+
+    analyses = SUAVE.Analyses.Analysis.Container()
+    analyses.configs  = configs_analyses
+    analyses.missions = missions_analyses
+    
+    
+    return configs, analyses
+
+# ----------------------------------------------------------------------
+#   Build the Vehicle
+# ----------------------------------------------------------------------
+def vehicle_setup():
+     
+    # ------------------------------------------------------------------
+    #   Initialize the Vehicle
+    # ------------------------------------------------------------------    
+    vehicle               = SUAVE.Vehicle()
+    vehicle.tag           = 'Stopped_Rotor_CRM'
+    vehicle.configuration = 'eVTOL'
+    
+    # ------------------------------------------------------------------
+    #   Vehicle-level Properties
+    # ------------------------------------------------------------------    
+    # mass properties
+    vehicle.mass_properties.takeoff           = 2800
+    vehicle.mass_properties.operating_empty   = 2800     
+    vehicle.mass_properties.max_takeoff       = 2800 
+    vehicle.envelope.ultimate_load            = 5.7   
+    vehicle.envelope.limit_load               = 3.  
+    vehicle.passengers                        = 6
+    
+    # ------------------------------------------------------------------    
+    # WINGS                                    
+    # ------------------------------------------------------------------    
+    # WING PROPERTIES           
+    wing                          = SUAVE.Components.Wings.Main_Wing()
+    wing.tag                      = 'main_wing'  
+    wing.aspect_ratio             = 12.27422 
+    wing.sweeps.quarter_chord     = 0.0  
+    wing.thickness_to_chord       = 0.14 
+    wing.taper                    = 0.292
+    wing.spans.projected          = 14.11 
+    wing.chords.root              = 1.796
+    wing.total_length             = 1.796 
+    wing.chords.tip               = 0.525 
+    wing.chords.mean_aerodynamic  = 1.089 
+    wing.dihedral                 = 0.0  
+    wing.areas.reference          = 16.097 
+    wing.areas.wetted             = 16.097 * 2 
+    wing.areas.exposed            = 16.097 * 2 
+    wing.twists.root              = 4. * Units.degrees
+    wing.twists.tip               = 0. 
+    wing.origin                   = [[1.5, 0.,  1.1]]
+    wing.aerodynamic_center       = [ 1.567, 0.,  1.1]    
+    wing.winglet_fraction         = 0.0  
+    wing.symmetric                = True
+    wing.vertical                 = False
+    
+    # Segment                                  
+    segment                       = SUAVE.Components.Wings.Segment()
+    segment.tag                   = 'Section_1'   
+    segment.percent_span_location = 0.  
+    segment.twist                 = 4. * Units.degrees 
+    segment.root_chord_percent    = 1. 
+    segment.dihedral_outboard     = 0 * Units.degrees
+    segment.sweeps.quarter_chord  = 3.18 * Units.degrees 
+    segment.thickness_to_chord    = 0.18  
+    wing.Segments.append(segment)               
+    
+    # Segment                                   
+    segment                       = SUAVE.Components.Wings.Segment()
+    segment.tag                   = 'Section_2'    
+    segment.percent_span_location = 0.2465
+    segment.twist                 = 0. 
+    segment.root_chord_percent    = 0.664  
+    segment.dihedral_outboard     = 3.00 * Units.degrees
+    segment.sweeps.quarter_chord  = 0. 
+    segment.thickness_to_chord    = 0.16  
+    wing.Segments.append(segment)               
+     
+    # Segment                                  
+    segment                       = SUAVE.Components.Wings.Segment()
+    segment.tag                   = 'Section_3'   
+    segment.percent_span_location = 0.9468
+    segment.twist                 = 1.00 * Units.degrees 
+    segment.root_chord_percent    = 0.5089086
+    segment.dihedral_outboard     = 20   * Units.degrees 
+    segment.sweeps.quarter_chord  = 26.45 * Units.degrees 
+    segment.thickness_to_chord    = 0.16  
+    wing.Segments.append(segment)                
+    
+    # Segment                                   
+    segment                       = SUAVE.Components.Wings.Segment()
+    segment.tag                   = 'Section_4'   
+    segment.percent_span_location = 1.0 
+    segment.twist                 = 0.  
+    segment.root_chord_percent    = 0.292
+    segment.dihedral_outboard     = 1.0  * Units.degrees
+    segment.sweeps.quarter_chord  = 0.0 * Units.degrees
+    segment.thickness_to_chord    = 0.16 
+    wing.Segments.append(segment)   
+    
+
+    # compute reference properties 
+    wing_segmented_planform(wing, overwrite_reference = True ) 
+    vehicle.reference_area                = wing.areas.reference   
+        
+    # add to vehicle 
+    vehicle.append_component(wing)       
+    
+    # WING PROPERTIES 
+    wing                          = SUAVE.Components.Wings.Wing()
+    wing.tag                      = 'horizontal_tail'  
+    wing.aspect_ratio             = 4.44533 
+    wing.sweeps.quarter_chord     = 20. * Units.degrees
+    wing.thickness_to_chord       = 0.12
+    wing.taper                    = 0.5
+    wing.spans.projected          = 2.52
+    wing.chords.root              = 0.9494
+    wing.total_length             = 0.9494
+    wing.chords.tip               = 0.67
+    wing.chords.mean_aerodynamic  = 0.809 
+    wing.dihedral                 = 35.*Units.degrees
+    wing.areas.reference          = 2.915
+    wing.areas.wetted             = 2.915 * 2
+    wing.areas.exposed            = 2.915 * 2
+    wing.twists.root              = 0.0
+    wing.twists.tip               = 0.0
+    wing.origin                   = [[  5.7 ,0.0 , 0.27]]
+    wing.aerodynamic_center       = [  5.7, 0.0, 0.27] 
+    wing.winglet_fraction         = 0.0 
+    wing.symmetric                = True    
+    
+    # add to vehicle 
+    vehicle.append_component(wing)       
+    
+    # ---------------------------------------------------------------   
+    # FUSELAGE                
+    # ---------------------------------------------------------------   
+    # FUSELAGE PROPERTIES
+    fuselage                                    = SUAVE.Components.Fuselages.Fuselage()
+    fuselage.tag                                = 'fuselage' 
+    fuselage.seats_abreast                      = 2.  
+    fuselage.seat_pitch                         = 3.  
+    fuselage.fineness.nose                      = 0.88   
+    fuselage.fineness.tail                      = 1.13   
+    fuselage.lengths.nose                       = 0.5  
+    fuselage.lengths.tail                       = 1.5
+    fuselage.lengths.cabin                      = 4.46 
+    fuselage.lengths.total                      = 6.46
+    fuselage.width                              = 5.85 * Units.feet      # change 
+    fuselage.heights.maximum                    = 4.65 * Units.feet      # change 
+    fuselage.heights.at_quarter_length          = 3.75 * Units.feet      # change 
+    fuselage.heights.at_wing_root_quarter_chord = 4.65 * Units.feet      # change 
+    fuselage.heights.at_three_quarters_length   = 4.26 * Units.feet      # change 
+    fuselage.areas.wetted                       = 236. * Units.feet**2   # change 
+    fuselage.areas.front_projected              = 0.14 * Units.feet**2   # change 
+    fuselage.effective_diameter                 = 1.276     # change 
+    fuselage.differential_pressure              = 0. 
+    
+    # Segment  
+    segment                                     = SUAVE.Components.Fuselages.Segment() 
+    segment.tag                                 = 'segment_0'    
+    segment.percent_x_location                  = 0.0 
+    segment.percent_z_location                  = 0.     # change  
+    segment.height                              = 0.049 
+    segment.width                               = 0.032 
+    fuselage.Segments.append(segment)                     
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_1'   
+    segment.percent_x_location                  = 0.026  
+    segment.percent_z_location                  = 0.00849
+    segment.height                              = 0.481 
+    segment.width                               = 0.553 
+    fuselage.Segments.append(segment)           
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_2'   
+    segment.percent_x_location                  = 0.074
+    segment.percent_z_location                  = 0.02874
+    segment.height                              = 1.00
+    segment.width                               = 0.912 
+    fuselage.Segments.append(segment)                     
+                                                
+    # Segment                                            
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_3'   
+    segment.percent_x_location                  = 0.161  
+    segment.percent_z_location                  = 0.04348  
+    segment.height                              = 1.41
+    segment.width                               = 1.174  
+    fuselage.Segments.append(segment)                     
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_4'   
+    segment.percent_x_location                  = 0.284 
+    segment.percent_z_location                  = 0.05435 
+    segment.height                              = 1.62
+    segment.width                               = 1.276  
+    fuselage.Segments.append(segment)              
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_5'   
+    segment.percent_x_location                  = 0.531 
+    segment.percent_z_location                  = 0.04669 
+    segment.height                              = 1.409
+    segment.width                               = 1.121 
+    fuselage.Segments.append(segment)                     
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_6'   
+    segment.percent_x_location                  = 0.651
+    segment.percent_z_location                  = 0.03875 
+    segment.height                              = 1.11
+    segment.width                               = 0.833
+    fuselage.Segments.append(segment)                  
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_7'   
+    segment.percent_x_location                  = 0.773
+    segment.percent_z_location                  = 0.03612 
+    segment.height                              = 0.78
+    segment.width                               = 0.512 
+    fuselage.Segments.append(segment)                  
+                                                
+    # Segment                                             
+    segment                                     = SUAVE.Components.Fuselages.Segment()
+    segment.tag                                 = 'segment_8'   
+    segment.percent_x_location                  = 1.
+    segment.percent_z_location                  = 0.03234 
+    segment.height                              = 0.195  
+    segment.width                               = 0.130 
+    fuselage.Segments.append(segment)                   
+                                                
+    vehicle.append_component(fuselage) 
+    
+    #-------------------------------------------------------------------
+    # INNER BOOMS   
+    #-------------------------------------------------------------------   
+    boom                                    = SUAVE.Components.Fuselages.Fuselage()
+    boom.tag                                = 'boom_1r'
+    boom.configuration                      = 'boom'  
+    boom.origin                             = [[ 0.227,  1.413,   0.9]]  
+    boom.seats_abreast                      = 0.  
+    boom.seat_pitch                         = 0.0 
+    boom.fineness.nose                      = 0.950   
+    boom.fineness.tail                      = 1.029   
+    boom.lengths.nose                       = 0.2 
+    boom.lengths.tail                       = 0.2
+    boom.lengths.cabin                      = 4.15
+    boom.lengths.total                      = 4.55
+    boom.width                              = 0.15 
+    boom.heights.maximum                    = 0.15  
+    boom.heights.at_quarter_length          = 0.15  
+    boom.heights.at_three_quarters_length   = 0.15 
+    boom.heights.at_wing_root_quarter_chord = 0.15 
+    boom.areas.wetted                       = 0.018
+    boom.areas.front_projected              = 0.018 
+    boom.effective_diameter                 = 0.15  
+    boom.differential_pressure              = 0.  
+    boom.symmetric                          = True 
+    boom.index                              = 1
+    
+    # Segment  
+    segment                           = SUAVE.Components.Fuselages.Segment() 
+    segment.tag                       = 'segment_1'   
+    segment.percent_x_location        = 0.
+    segment.percent_z_location        = 0.0 
+    segment.height                    = 0.05  
+    segment.width                     = 0.05   
+    boom.Segments.append(segment)           
+    
+    # Segment                                   
+    segment                           = SUAVE.Components.Fuselages.Segment()
+    segment.tag                       = 'segment_2'   
+    segment.percent_x_location        = 0.03
+    segment.percent_z_location        = 0. 
+    segment.height                    = 0.15 
+    segment.width                     = 0.15 
+    boom.Segments.append(segment) 
+    
+    # Segment                                   
+    segment                           = SUAVE.Components.Fuselages.Segment()
+    segment.tag                       = 'segment_3'    
+    segment.percent_x_location        = 0.97
+    segment.percent_z_location        = 0. 
+    segment.height                    = 0.15
+    segment.width                     = 0.15
+    boom.Segments.append(segment)           
+    
+    # Segment                                  
+    segment                           = SUAVE.Components.Fuselages.Segment()
+    segment.tag                       = 'segment_4'   
+    segment.percent_x_location        = 1.   
+    segment.percent_z_location        = 0.   
+    segment.height                    = 0.05   
+    segment.width                     = 0.05   
+    boom.Segments.append(segment)           
+    
+    # add to vehicle
+    vehicle.append_component(boom)   
+    
+    # add left long boom 
+    boom              = deepcopy(vehicle.fuselages.boom_1r)
+    boom.origin[0][1] = -boom.origin[0][1]
+    boom.tag          = 'boom_1l' 
+    vehicle.append_component(boom)         
+     
+    # add left long boom 
+    boom              = deepcopy(vehicle.fuselages.boom_1r)
+    boom.origin       = [[ 0.409,  4.022,  1.0]] 
+    boom.tag          = 'boom_2r' 
+    boom.lengths.total                      = 4.16
+    vehicle.append_component(boom)  
+    
+    # add outer right boom 
+    boom              = deepcopy(vehicle.fuselages.boom_1r)
+    boom.origin       = [[ 0.409, 6.631,   1.2 ]]    
+    boom.lengths.total                      = 4.16
+    boom.tag          = 'boom_3r' 
+    vehicle.append_component(boom)  
+    
+    # add inner left boom 
+    boom              = deepcopy(vehicle.fuselages.boom_1r)
+    boom.origin       = [[ 0.409, -4.022,  1.0 ]]   
+    boom.lengths.total                      = 4.16
+    boom.tag          = 'boom_2l' 
+    vehicle.append_component(boom)     
+    
+    boom              = deepcopy(vehicle.fuselages.boom_1r)
+    boom.origin       =  [[ 0.409, -6.631,  1.2 ]]    
+    boom.lengths.total                      = 4.16
+    boom.tag          = 'boom_3l' 
+    vehicle.append_component(boom)  
+    
+ 
+    # ------------------------------------------------------------------
+    #   Nacelles
+    # ------------------------------------------------------------------ 
+    nacelle                = SUAVE.Components.Nacelles.Nacelle()
+    nacelle.tag            = 'rotor_nacelle'
+    nacelle.length         = 0.45
+    nacelle.diameter       = 0.3
+    nacelle.orientation_euler_angles  = [0,-90*Units.degrees,0.]    
+    nacelle.flow_through   = False  
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_1'
+    nac_segment.percent_x_location = 0.0  
+    nac_segment.height             = 0.2
+    nac_segment.width              = 0.2
+    nacelle.append_segment(nac_segment)    
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_2'
+    nac_segment.percent_x_location = 0.25  
+    nac_segment.height             = 0.25
+    nac_segment.width              = 0.25
+    nacelle.append_segment(nac_segment)    
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_3'
+    nac_segment.percent_x_location = 0.5 
+    nac_segment.height             = 0.3
+    nac_segment.width              = 0.3
+    nacelle.append_segment(nac_segment)    
+
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_4'
+    nac_segment.percent_x_location = 0.75
+    nac_segment.height             = 0.25
+    nac_segment.width              = 0.25
+    nacelle.append_segment(nac_segment)        
+
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_5'
+    nac_segment.percent_x_location = 1.0
+    nac_segment.height             = 0.2
+    nac_segment.width              = 0.2
+    nacelle.append_segment(nac_segment)      
+ 
+    lift_rotor_nacelle_origins   = [[ 0.226, 1.413, 1.3] ,[ 0.226, -1.413 , 1.3],
+                           [ 4.630 , 1.413 , 1.3] ,[ 4.630 , -1.413 , 1.3],
+                           [ 0.409 , 4.022 , 1.4] ,[ 0.409 , -4.022 , 1.4],
+                           [ 4.413 , 4.022 , 1.4] ,[ 4.413 , -4.022 , 1.4],
+                           [ 0.409 , 6.630 , 1.5] , [0.409 , -6.630 , 1.5],
+                           [ 4.413 , 6.630 , 1.5] ,[ 4.413 , -6.630 , 1.5]]
+ 
+    for ii in range(12):
+        rotor_nacelle          = deepcopy(nacelle)
+        rotor_nacelle.tag      = 'rotor_nacelle_' + str(ii+1) 
+        rotor_nacelle.origin   = [lift_rotor_nacelle_origins[ii]]
+        vehicle.append_component(rotor_nacelle)   
+    
+    
+    
+    nacelle                = SUAVE.Components.Nacelles.Nacelle()
+    nacelle.tag            = 'rotor_nacelle'
+    nacelle.length         = 1.0
+    nacelle.diameter       = 0.4
+    nacelle.orientation_euler_angles  = [0.,0.,0.]    
+    nacelle.flow_through   = False  
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_1'
+    nac_segment.percent_x_location = 0.0  
+    nac_segment.height             = 0.0
+    nac_segment.width              = 0.0
+    nacelle.append_segment(nac_segment)    
+
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_2'
+    nac_segment.percent_x_location = 0.10  
+    nac_segment.height             = 0.3
+    nac_segment.width              = 0.3
+    nacelle.append_segment(nac_segment)    
+    
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_3'
+    nac_segment.percent_x_location = 0.25  
+    nac_segment.height             = 0.35
+    nac_segment.width              = 0.35
+    nacelle.append_segment(nac_segment)    
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_4'
+    nac_segment.percent_x_location = 0.5 
+    nac_segment.height             = 0.4
+    nac_segment.width              = 0.4
+    nacelle.append_segment(nac_segment)    
+
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_5'
+    nac_segment.percent_x_location = 0.75
+    nac_segment.height             = 0.35
+    nac_segment.width              = 0.35
+    nacelle.append_segment(nac_segment)        
+
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_5'
+    nac_segment.percent_x_location = 0.9
+    nac_segment.height             = 0.3
+    nac_segment.width              = 0.3
+    nacelle.append_segment(nac_segment)    
+    
+    nac_segment                    = SUAVE.Components.Nacelles.Segment()
+    nac_segment.tag                = 'segment_7'
+    nac_segment.percent_x_location = 1.0  
+    nac_segment.height             = 0.0
+    nac_segment.width              = 0.0
+    nacelle.append_segment(nac_segment)     
+
+    propeller_nacelle_origins   = [[  6.235, 1.3  ,  1.250] ,[  6.235, -1.3  ,  1.250]]
+
+    for ii in range(2):
+        propeller_nacelle          = deepcopy(nacelle)
+        propeller_nacelle.tag      = 'propeller_nacelle_' + str(ii+1) 
+        propeller_nacelle.origin   = [propeller_nacelle_origins[ii]]
+        vehicle.append_component(propeller_nacelle)   
+            
+    #------------------------------------------------------------------
+    # network
+    #------------------------------------------------------------------
+    net                              = Lift_Cruise()
+    net.number_of_lift_rotor_engines = 12
+    net.number_of_propeller_engines  = 2
+    net.nacelle_diameter             = 0.6 * Units.feet
+    net.engine_length                = 0.5 * Units.feet
+    net.areas                        = Data()
+    net.areas.wetted                 = np.pi*net.nacelle_diameter*net.engine_length + 0.5*np.pi*net.nacelle_diameter**2 
+    net.identical_propellers = True
+    net.identical_rotors     = True
+
+
+    #------------------------------------------------------------------
+    # Design Electronic Speed Controller
+    #------------------------------------------------------------------
+    lift_rotor_esc              = SUAVE.Components.Energy.Distributors.Electronic_Speed_Controller()
+    lift_rotor_esc.efficiency   = 0.95
+    net.lift_rotor_esc          = lift_rotor_esc
+
+    propeller_esc            = SUAVE.Components.Energy.Distributors.Electronic_Speed_Controller()
+    propeller_esc.efficiency = 0.95
+    net.propeller_esc        = propeller_esc
+
+    #------------------------------------------------------------------
+    # Design Payload
+    #------------------------------------------------------------------
+    payload                        = SUAVE.Components.Energy.Peripherals.Avionics()
+    payload.power_draw             = 10. # Watts 
+    payload.mass_properties.mass   = 1.0 * Units.kg
+    net.payload                    = payload
+
+    #------------------------------------------------------------------
+    # Design Avionics
+    #------------------------------------------------------------------
+    avionics                       = SUAVE.Components.Energy.Peripherals.Avionics()
+    avionics.power_draw            = 20. # Watts  
+    net.avionics                   = avionics  
+
+    #------------------------------------------------------------------
+    # Miscellaneous Systems 
+    #------------------------------------------------------------------ 
+    sys                            = SUAVE.Components.Systems.System()
+    sys.mass_properties.mass       = 5 # kg      
+    
+    #------------------------------------------------------------------
+    # Design Battery
+    #------------------------------------------------------------------  
+    bat                            = SUAVE.Components.Energy.Storages.Batteries.Constant_Mass.Lithium_Ion_LiNiMnCoO2_18650()    
+    bat.pack_config.series         =  140 
+    bat.pack_config.parallel       =  100 
+    initialize_from_circuit_configuration(bat)   
+    net.voltage                    = bat.max_voltage   
+    
+    # Here we, are going to assume a battery pack module shape. This step is optional but
+    # required for thermal analysis of tge pack
+    number_of_modules                = 10
+    bat.module_config.total          = int(np.ceil(bat.pack_config.total/number_of_modules))
+    bat.module_config.normal_count   = int(np.ceil(bat.module_config.total/bat.pack_config.series))
+    bat.module_config.parallel_count = int(np.ceil(bat.module_config.total/bat.pack_config.parallel))
+    net.battery                      = bat      
+    
+    #------------------------------------------------------------------
+    # Design Rotors and Propellers
+    #------------------------------------------------------------------
+    # atmosphere and flight conditions for propeller/rotor design  
+    g              = 9.81                                   # gravitational acceleration 
+    S              = vehicle.reference_area                 # reference area 
+    speed_of_sound = 340                                    # speed of sound 
+    rho            = 1.22                                   # reference density
+    fligth_CL      = 0.75                                   # cruise target lift coefficient 
+    AR             = vehicle.wings.main_wing.aspect_ratio   # aspect ratio 
+    Cd0            = 0.06                                   # profile drag
+    Cdi            = fligth_CL**2/(np.pi*AR*0.98)           # induced drag
+    Cd             = Cd0 + Cdi                              # total drag
+    V_inf          = 175.* Units['mph']                     # freestream velocity 
+    Drag           = S * (0.5*rho*V_inf**2 )*Cd             # cruise drag
+    Hover_Load     = vehicle.mass_properties.takeoff*g      # hover load  
+    
+    # Thrust Propeller        
+    propeller                        = SUAVE.Components.Energy.Converters.Propeller()
+    propeller.number_of_blades       = 3
+    propeller.tag                    = 'propeller_1'
+    propeller.freestream_velocity    = V_inf
+    propeller.tip_radius             = 1.15
+    propeller.hub_radius             = 0.1 * propeller.tip_radius  
+    propeller.design_tip_mach        = 0.5
+    propeller.angular_velocity       = propeller.design_tip_mach *speed_of_sound/propeller.tip_radius
+    propeller.design_Cl              = 0.7
+    propeller.design_altitude        = 2500 * Units.feet
+    propeller.design_thrust          = 2500 #7000
+    propeller.rotation               = 1
+    propeller.variable_pitch         = True
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator  
+    propeller.airfoil_geometry       =  [rel_path + '/Airfoils/NACA_4412.txt']
+    propeller.airfoil_polars         = [[rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]] 
+    propeller.airfoil_polar_stations = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    propeller                        = propeller_design(propeller)
+    
+    propeller_origins                = [[   7.126, 1.3  ,  1.250 ] ,[  7.126, -1.3  ,  1.250 ]]
+    propeller.origin                 = [propeller_origins[0]]
+    net.propellers.append(propeller)  
+
+    propeller_2          = deepcopy(propeller)
+    propeller_2.tag      = 'propeller_2'
+    propeller_2.rotation = -1
+    propeller_2.origin   = [propeller_origins[1]]
+    net.propellers.append(propeller_2)  
+
+    # Lift Rotors
+    rotor                            = SUAVE.Components.Energy.Converters.Lift_Rotor() 
+    rotor.tip_radius                 = 1.15
+    rotor.hub_radius                 = 0.1 * rotor.tip_radius  
+    rotor.number_of_blades           = 5
+    rotor.design_tip_mach            = 0.65   
+    rotor.freestream_velocity        = 500. * Units['ft/min']  
+    rotor.angular_velocity           = rotor.design_tip_mach* speed_of_sound /rotor.tip_radius   
+    rotor.design_Cl                  = 0.8
+    rotor.design_altitude            = 20 * Units.feet                     
+    rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition
+    rotor.variable_pitch             = True 
+    rotor.airfoil_geometry           =  [rel_path + 'Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars             = [[rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]
+
+    rotor.airfoil_polar_stations     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    rotor                            = propeller_design(rotor)
+
+
+    lift_rotor_origins   = [[ 0.226, 1.413, 1.1] ,[  0.226, -1.413 , 1.1],
+                           [ 4.630 , 1.413 , 1.1] ,[ 4.630 , -1.413 , 1.1],
+                           [0.409 , 4.022 , 1.2] ,[ 0.409 , -4.022 , 1.2],
+                           [ 4.413 , 4.022 , 1.2] ,[ 4.413 , -4.022 , 1.2],
+                           [ 0.409 , 6.630 , 1.3] ,[ 0.409 , -6.630 , 1.3],
+                           [ 4.413 , 6.630 , 1.3] ,[ 4.413 , -6.630 , 1.3]]
+    
+    # Appending rotors with different origins
+    rotations = [-1,1,-1,1,-1,1,-1,1,-1,1,-1,1] 
+    angle_offsets        = np.random.rand(12)*(np.pi)    
+    for ii in range(12):
+        lift_rotor                        = deepcopy(rotor)
+        lift_rotor.tag                    = 'lift_rotor_' + str(ii+1)
+        lift_rotor.rotation               = rotations[ii]
+        lift_rotor.origin                 = [lift_rotor_origins[ii]]
+        lift_rotor.azimuthal_offset_angle = angle_offsets[ii]
+        net.lift_rotors.append(lift_rotor)   
+    
+    #------------------------------------------------------------------
+    # Design Motors
+    #------------------------------------------------------------------
+    # Propeller (Thrust) motor
+    propeller_motor                      = SUAVE.Components.Energy.Converters.Motor()
+    propeller_motor.efficiency           = 0.9 
+    propeller_motor.origin               = propeller.origin
+    propeller_motor.nominal_voltage      = bat.max_voltage 
+    propeller_motor.origin               = propeller.origin
+    propeller_motor.propeller_radius     = propeller.tip_radius
+    propeller_motor.no_load_current      = 2.0
+    propeller_motor                      = size_optimal_motor(propeller_motor,propeller)
+    propeller_motor.mass_properties.mass = nasa_motor(propeller_motor.design_torque) 
+    net.propeller_motors.append(propeller_motor) 
+
+    propeller_motor_2          = deepcopy(propeller_motor)
+    propeller_motor_2.tag      = 'propeller_motor_2' 
+    propeller_motor_2.origin   = propeller_2.origin
+    net.propeller_motors.append(propeller_motor)
+    
+        
+    # Rotor (Lift) Motor     
+    lift_rotor_motor                         = SUAVE.Components.Energy.Converters.Motor()
+    lift_rotor_motor.efficiency              = 0.9
+    lift_rotor_motor.nominal_voltage         = bat.max_voltage *0.75
+    lift_rotor_motor.origin                  = rotor.origin 
+    lift_rotor_motor.propeller_radius        = rotor.tip_radius   
+    lift_rotor_motor.no_load_current         = 0.01 
+    lift_rotor_motor                         = size_optimal_motor(lift_rotor_motor,rotor)
+    lift_rotor_motor.mass_properties.mass    = nasa_motor(lift_rotor_motor.design_torque)    
+
+    # Appending motors with different origins
+    for _ in range(12):
+        motor = deepcopy(lift_rotor_motor)
+        motor.tag = 'motor_' + str(ii+1)
+        net.lift_rotor_motors.append(motor) 
+
+    # append motor origin spanwise locations onto wing data structure
+    vehicle.append_component(net)
+
+    # Add extra drag sources from motors, props, and landing gear. All of these hand measured
+    motor_height                     = .25 * Units.feet
+    motor_width                      = 1.6 * Units.feet
+    propeller_width                  = 1. * Units.inches
+    propeller_height                 = propeller_width *.12
+    main_gear_width                  = 1.5 * Units.inches
+    main_gear_length                 = 2.5 * Units.feet
+    nose_gear_width                  = 2. * Units.inches
+    nose_gear_length                 = 2. * Units.feet
+    nose_tire_height                 = (0.7 + 0.4) * Units.feet
+    nose_tire_width                  = 0.4 * Units.feet
+    main_tire_height                 = (0.75 + 0.5) * Units.feet
+    main_tire_width                  = 4. * Units.inches
+    total_excrescence_area_spin      = 12.*motor_height*motor_width + 2.*main_gear_length*main_gear_width \
+        + nose_gear_width*nose_gear_length + 2*main_tire_height*main_tire_width\
+        + nose_tire_height*nose_tire_width
+    total_excrescence_area_no_spin   = total_excrescence_area_spin + 12*propeller_height*propeller_width
+    vehicle.excrescence_area_no_spin = total_excrescence_area_no_spin
+    vehicle.excrescence_area_spin    = total_excrescence_area_spin
+ 
+    rotor_motor_origins                   = np.array(lift_rotor_origins)
+    propeller_motor_origins               = np.array(propeller_origins) 
+    vehicle.wings['main_wing'].motor_spanwise_locations       = rotor_motor_origins[:,1]/vehicle.wings['main_wing'].spans.projected
+    vehicle.wings['horizontal_tail'].motor_spanwise_locations = propeller_motor_origins[:,1]/vehicle.wings['horizontal_tail'].spans.projected 
+     
+
+    vehicle.weight_breakdown  = empty(vehicle)
+    compute_component_centers_of_gravity(vehicle)
+    vehicle.center_of_gravity()
+
+    
+    # ------------------------------------------------------------------
+    #   Vehicle Definition Complete
+    # ------------------------------------------------------------------
+    # plot vehicle 
+    #plot_vehicle(vehicle, elevation_angle = 40,azimuthal_angle = 230,axis_limits =8,plot_control_points = False)  
+    #plot_vehicle(vehicle, axis_limits =8,plot_control_points = False)  
+    #plt.show()   
+
+    
+    return vehicle
+
+
+# ----------------------------------------------------------------------
+#   Define the Vehicle Analyses
+# ----------------------------------------------------------------------
+
+def analyses_setup(configs,N_gm_x,N_gm_y):
+
+    analyses = SUAVE.Analyses.Analysis.Container()
+
+    # build a base analysis for each config
+    for tag,config in configs.items():
+        analysis = base_analysis(config,N_gm_x,N_gm_y)
+        analyses[tag] = analysis
+
+    return analyses
+
+def base_analysis(vehicle,N_gm_x,N_gm_y):
+
+    # ------------------------------------------------------------------
+    #   Initialize the Analyses
+    # ------------------------------------------------------------------     
+    analyses = SUAVE.Analyses.Vehicle()
+
+    # ------------------------------------------------------------------
+    #  Basic Geometry Relations
+    sizing = SUAVE.Analyses.Sizing.Sizing()
+    sizing.features.vehicle = vehicle
+    analyses.append(sizing)
+
+    # ------------------------------------------------------------------
+    #  Weights
+    weights = SUAVE.Analyses.Weights.Weights_eVTOL()
+    weights.vehicle = vehicle
+    analyses.append(weights)
+
+    # ------------------------------------------------------------------
+    #  Aerodynamics Analysis
+    aerodynamics = SUAVE.Analyses.Aerodynamics.Fidelity_Zero()
+    aerodynamics.geometry = vehicle  
+    aerodynamics.settings.model_fuselage = True 
+    analyses.append(aerodynamics)
+
+    # ------------------------------------------------------------------
+    #  Noise Analysis
+    noise = SUAVE.Analyses.Noise.Fidelity_One()   
+    noise.geometry = vehicle
+    noise.settings.level_ground_microphone_x_resolution = N_gm_x
+    noise.settings.level_ground_microphone_y_resolution = N_gm_y
+    noise.settings.level_ground_microphone_min_y        = 1E-6
+    noise.settings.level_ground_microphone_max_y        = 2500
+    noise.settings.level_ground_microphone_min_x        = 1E-6  
+    noise.settings.level_ground_microphone_max_x        = 70 * Units.nmi # 12.8587771 * Units.nmi 
+    analyses.append(noise)
+    
+    # ------------------------------------------------------------------
+    #  Energy
+    energy= SUAVE.Analyses.Energy.Energy()
+    energy.network = vehicle.networks
+    analyses.append(energy)
+
+    # ------------------------------------------------------------------
+    #  Planet Analysis
+    planet = SUAVE.Analyses.Planets.Planet()
+    analyses.append(planet)
+
+    # ------------------------------------------------------------------
+    #  Atmosphere Analysis
+    atmosphere = SUAVE.Analyses.Atmospheric.US_Standard_1976()
+    atmosphere.features.planet = planet.features
+    analyses.append(atmosphere)   
+
+    return analyses    
+
+# ----------------------------------------------------------------------
+#   Define the Configurations
+# ---------------------------------------------------------------------
+
+def configs_setup(vehicle):
+
+    # ------------------------------------------------------------------
+    #   Initialize Configurations
+    # ------------------------------------------------------------------
+
+    configs = SUAVE.Components.Configs.Config.Container()
+
+    base_config = SUAVE.Components.Configs.Config(vehicle)
+    base_config.tag = 'base'
+    base_config.networks.lift_cruise.pitch_command = 0
+    configs.append(base_config)
+
+
+    config = SUAVE.Components.Configs.Config(vehicle)
+    config.tag = 'transition'
+    #config.networks.lift_cruise.propeller_pitch_command = 2 * Units.degrees
+    configs.append(config)
+    
+
+    config = SUAVE.Components.Configs.Config(vehicle)
+    config.tag = 'descent'
+    config.networks.lift_cruise.propeller_pitch_command = 2 * Units.degrees
+    configs.append(config)
+    
+    return configs
+
+def mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery ):
+
+
+    starting_elevation = 100*Units.feet
+    
+    # ------------------------------------------------------------------
+    #   Initialize the Mission
+    # ------------------------------------------------------------------
+
+    mission = SUAVE.Analyses.Mission.Sequential_Segments()
+    mission.tag = 'the_mission'
+
+    # airport
+    airport           = SUAVE.Attributes.Airports.Airport()
+    airport.altitude   =  100.0  * Units.ft
+    airport.delta_isa  =  0.0
+    airport.atmosphere = SUAVE.Attributes.Atmospheres.Earth.US_Standard_1976() 
+    mission.airport    = airport      
+
+    atmosphere         = SUAVE.Analyses.Atmospheric.US_Standard_1976() 
+    atmo_data          = atmosphere.compute_values(altitude = airport.altitude,temperature_deviation= 1.)     
+
+    # unpack Segments module
+    Segments = SUAVE.Analyses.Mission.Segments
+
+    # base segment           
+    base_segment                                             = Segments.Segment() 
+    base_segment.battery_discharge                           = True  
+    base_segment.state.numerics.number_control_points        = control_points
+    ones_row                                                 = base_segment.state.ones_row
+    base_segment.process.iterate.initials.initialize_battery = SUAVE.Methods.Missions.Segments.Common.Energy.initialize_battery
+    base_segment.process.finalize.post_process.update_battery_state_of_health = SUAVE.Methods.Missions.Segments.Common.Energy.update_battery_state_of_health  
+    base_segment.process.finalize.post_process.stability  = SUAVE.Methods.skip
+
+
+    # VSTALL Calculation
+    m      = vehicle.mass_properties.max_takeoff
+    g      = 9.81
+    S      = vehicle.reference_area
+    atmo   = SUAVE.Analyses.Atmospheric.US_Standard_1976()
+    rho    = atmo.compute_values(1000.*Units.feet,0.).density
+    CLmax  = 1.2 
+    Vstall = float(np.sqrt(2.*m*g/(rho*S*CLmax))) 
+
+
+    for day in range(simulated_days):
+        print(' ***********  Day ' + str(day) + ' ***********  ')
+        for f_idx in range(flights_per_day):
+        
+            flight_no = f_idx + 1
+            # ------------------------------------------------------------------
+            #   First Climb Segment: Constant Speed, Constant Rate
+            # ------------------------------------------------------------------
+            segment     = Segments.Hover.Climb(base_segment)
+            segment.tag = "Vertical_Climb"  + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base )  
+            segment.altitude_start                          = 0.0  * Units.ft + starting_elevation 
+            segment.altitude_end                            = 40.  * Units.ft + starting_elevation 
+            segment.climb_rate                              = 500. * Units['ft/min'] 
+            if day == 0:        
+                segment.battery_energy                         = vehicle.networks.lift_cruise.battery.max_energy   
+            segment.battery_pack_temperature                   = atmo_data.temperature[0,0]             
+            segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+            segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+            segment.process.finalize.post_process.stability = SUAVE.Methods.skip
+            segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment,\
+                                                                                    initial_lift_rotor_power_coefficient = 0.02,
+                                                                                    initial_throttle_lift = 0.7)
+            mission.append_segment(segment)
+            
+            # ------------------------------------------------------------------
+            #   First Cruise Segment: Transition
+            # ------------------------------------------------------------------
+         
+            segment                                    = Segments.Transition.Constant_Acceleration_Constant_Pitchrate_Constant_Altitude(base_segment)
+            segment.tag                                = "Vertical_Transition" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.transition ) 
+            segment.altitude                           = 40.  * Units.ft  + starting_elevation 
+            segment.air_speed_start                    = 500. * Units['ft/min']
+            segment.air_speed_end                      = 0.8 * Vstall
+            segment.acceleration                       = 0.75
+            segment.pitch_initial                      = 0.0 * Units.degrees
+            segment.pitch_final                        = 7. * Units.degrees  
+            segment.state.unknowns.throttle            = 0.70    *  ones_row(1) 
+            segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+            segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+            segment.process.finalize.post_process.stability = SUAVE.Methods.skip
+            segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment,
+                                                                 initial_prop_power_coefficient = 0.1, 
+                                                                 initial_lift_rotor_power_coefficient = 0.016,
+                                                                 initial_throttle_lift = 0.9) 
+            mission.append_segment(segment)
+            
+            # ------------------------------------------------------------------
+            #   First Cruise Segment: Transition
+            # ------------------------------------------------------------------ 
+            segment                                      = Segments.Transition.Constant_Acceleration_Constant_Angle_Linear_Climb(base_segment)
+            segment.tag                                  = "Climb_Transition"+ "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base ) 
+            segment.altitude_start                       = 40.0 * Units.ft + starting_elevation 
+            segment.altitude_end                         = 100.0 * Units.ft + starting_elevation 
+            segment.air_speed                            = 0.8   * Vstall
+            segment.climb_angle                          = 2     * Units.degrees
+            segment.acceleration                         = 0.25   * Units['m/s/s']    
+            segment.pitch_initial                        = 7.    * Units.degrees  
+            segment.pitch_final                          = 5.    * Units.degrees   
+            segment.state.unknowns.throttle              = 0.70   *  ones_row(1)
+            segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+            segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+            segment.process.finalize.post_process.stability = SUAVE.Methods.skip 
+            segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment,
+                                                                 initial_prop_power_coefficient = 0.1,
+                                                                 initial_lift_rotor_power_coefficient = 0.016,
+                                                                 initial_throttle_lift = 0.9) 
+            mission.append_segment(segment) 
+          
+            # ------------------------------------------------------------------
+            #   Second Climb Segment: Constant Speed, Constant Rate
+            # ------------------------------------------------------------------ 
+            segment                                          = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+            segment.tag                                      = "Climb_1" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base ) 
+            segment.altitude_start                           = 100.0 * Units.ft + starting_elevation 
+            segment.altitude_end                             = 300. * Units.ft + starting_elevation 
+            segment.climb_rate                               = 200.  * Units['ft/min']
+            segment.air_speed_start                          = 95.   * Units['mph']
+            segment.air_speed_end                            = 160.  * Units['mph']    
+            segment.state.unknowns.throttle                  = 0.9   *  ones_row(1)  
+            segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment)   
+            mission.append_segment(segment)
+        
+            # ------------------------------------------------------------------
+            #   Third Climb Segment: Constant Acceleration, Constant Rate
+            # ------------------------------------------------------------------ 
+            segment                                          = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+            segment.tag                                      = "Climb_2" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base ) 
+            segment.altitude_start                           = 300.0 * Units.ft + starting_elevation 
+            segment.altitude_end                             = 2500. * Units.ft
+            segment.climb_rate                               = 500.  * Units['ft/min']
+            segment.air_speed_start                          = 160.   * Units['mph']
+            segment.air_speed_end                            = 175.  * Units['mph']    
+            segment.state.unknowns.throttle                  = 0.90    *  ones_row(1)
+            segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment)    
+            mission.append_segment(segment)  
+        
+            # ------------------------------------------------------------------
+            #   Third Cruise Segment: Constant Acceleration, Constant Altitude
+            # ------------------------------------------------------------------ 
+            segment                                          = Segments.Cruise.Constant_Speed_Constant_Altitude(base_segment)
+            segment.tag                                      = "Cruise" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base )
+            segment.altitude                                 = 2500.0 * Units.ft
+            segment.air_speed                                = 175.   * Units['mph']
+            cruise_distance                                  = aircraft_range - 30.96013837*Units.nmi     
+            segment.distance                                 = cruise_distance  
+            segment.state.unknowns.throttle                  = 0.9    *  ones_row(1)
+            segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment)    
+            mission.append_segment(segment) 
+           
+            # ------------------------------------------------------------------
+            #   First Descent Segment: Constant Acceleration, Constant Rate
+            # ------------------------------------------------------------------
+        
+            segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+            segment.tag = "Descent_1"+ "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.descent)  
+            segment.altitude_start                           = 2500.0 * Units.ft
+            segment.altitude_end                             = 100. * Units.ft  + starting_elevation 
+            segment.climb_rate                               = -300.  * Units['ft/min']
+            segment.air_speed_start                          = 175.  * Units['mph']
+            segment.air_speed_end                            = 1.1*Vstall    
+            segment.state.unknowns.throttle                  = 0.8   *  ones_row(1)  
+            segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment,initial_prop_power_coefficient = 0.016)    
+            mission.append_segment(segment) 
+          
+            if reserve_segment: 
+                # ------------------------------------------------------------------
+                #   Reserve Segment: Constant Acceleration, Constant Rate
+                # ------------------------------------------------------------------
+            
+                segment     = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+                segment.tag = "Reserve_Climb" + "_F_" + str(flight_no) + "_D" + str (day) 
+                segment.analyses.extend( analyses.base ) 
+                segment.altitude_start           = 100.0 * Units.ft + starting_elevation 
+                segment.altitude_end             = 1000. * Units.ft
+                segment.climb_rate               = 500.  * Units['ft/min']
+                segment.air_speed_start          = 1.1   * Vstall
+                segment.air_speed_end            = 150.  * Units['mph']  
+                segment.state.unknowns.throttle   = 0.9   *  ones_row(1)   
+                segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment) 
+                mission.append_segment(segment) 
+              
+            
+                # ------------------------------------------------------------------
+                #   Reserve Cruise Segment: Constant Acceleration, Constant Altitude
+                # ------------------------------------------------------------------
+            
+                segment                                    = Segments.Cruise.Constant_Speed_Constant_Altitude(base_segment)
+                segment.tag                                = "Reserve_Cruise" + "_F_" + str(flight_no) + "_D" + str (day) 
+                segment.analyses.extend( analyses.base ) 
+                segment.altitude                           = 1000.0 * Units.ft
+                segment.air_speed                          = 150.   * Units['mph']
+                segment.distance                           = cruise_distance*0.1  + 6.6*Units.nmi
+                segment.state.unknowns.throttle            = 0.9    *  ones_row(1)
+                segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment)    
+                mission.append_segment(segment)   
+              
+            
+                # ------------------------------------------------------------------
+                #   Reserve Descent Segment: Constant Acceleration, Constant Rate
+                # ------------------------------------------------------------------ 
+                segment                                  = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+                segment.tag                              = "Reserve_Descent" + "_F_" + str(flight_no) + "_D" + str (day) 
+                segment.analyses.extend( analyses.base )  
+                segment.altitude_start                   = 1000.0 * Units.ft
+                segment.altitude_end                     = 100. * Units.ft + starting_elevation 
+                segment.climb_rate                       = -300.  * Units['ft/min']
+                segment.air_speed_start                  = 150.  * Units['mph']
+                segment.air_speed_end                    = 1.1*Vstall    
+                segment.state.unknowns.throttle          = 0.80    *  ones_row(1)
+                segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment,initial_prop_power_coefficient = 0.016)   
+                mission.append_segment(segment)        
+             
+            
+            # ------------------------------------------------------------------
+            #   First Cruise Segment: Transition
+            # ------------------------------------------------------------------ 
+            segment                                          = Segments.Transition.Constant_Acceleration_Constant_Angle_Linear_Climb(base_segment)
+            segment.tag                                      = "Approach_Transition" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base ) 
+            segment.altitude_start                           = 100.0 * Units.ft + starting_elevation 
+            segment.altitude_end                             = 40.0 * Units.ft + starting_elevation 
+            segment.air_speed                                = 1.1*Vstall 
+            segment.climb_angle                              = 1 * Units.degrees
+            segment.acceleration                             = -0.3 * Units['m/s/s']    
+            segment.pitch_initial                            = 4. * Units.degrees     
+            segment.pitch_final                              = 1. * Units.degrees    
+            segment.state.unknowns.throttle                  = 0.70   *  ones_row(1) 
+            segment.process.iterate.unknowns.mission         = SUAVE.Methods.skip
+            segment.process.iterate.conditions.stability     = SUAVE.Methods.skip
+            segment.process.finalize.post_process.stability  = SUAVE.Methods.skip          
+            segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment) 
+            mission.append_segment(segment)  
+        
+            ## ------------------------------------------------------------------
+            ##   Fifth Cuise Segment: Transition
+            ## ------------------------------------------------------------------ 
+            segment                                         = Segments.Transition.Constant_Acceleration_Constant_Pitchrate_Constant_Altitude(base_segment)
+            segment.tag                                     = "Descent_Transition" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base ) 
+            segment.altitude                                = 40.  * Units.ft     + starting_elevation 
+            segment.air_speed_start                         = 103.5  * Units['mph']
+            segment.air_speed_end                           = 300. * Units['ft/min'] 
+            segment.acceleration                            = -0.5
+            segment.pitch_initial                           = 1. * Units.degrees   
+            segment.pitch_final                             = 8. * Units.degrees 
+            segment.state.unknowns.throttle                 = 0.80 *  ones_row(1)  
+            segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+            segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+            segment.process.finalize.post_process.stability = SUAVE.Methods.skip   
+            segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment)
+                                                                 
+            mission.append_segment(segment)       
+         
+            # ------------------------------------------------------------------
+            #   Third Descent Segment: Constant Speed, Constant Rate
+            # ------------------------------------------------------------------ 
+            segment                                         = Segments.Hover.Descent(base_segment)
+            segment.tag                                     = "Vertical_Descent" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.analyses.extend( analyses.base )     
+            segment.altitude_start                          = 40.0  * Units.ft + starting_elevation 
+            segment.altitude_end                            = 0.   * Units.ft + starting_elevation 
+            segment.descent_rate                            = 300. * Units['ft/min']   
+            segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+            segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+            segment.process.finalize.post_process.stability = SUAVE.Methods.skip 
+            segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment,\
+                                                                                            initial_lift_rotor_power_coefficient = 0.02,
+                                                                                            initial_throttle_lift = 0.7)
+            mission.append_segment(segment)
+             
+            if recharge_battery:
+                # ------------------------------------------------------------------
+                #  Charge Segment: 
+                # ------------------------------------------------------------------  
+                # Charge Model 
+                segment                                                  = Segments.Ground.Battery_Charge_Discharge(base_segment)     
+                segment.tag                                              = 'Charge Day ' + "_F_" + str(flight_no) + "_D" + str (day)  
+                segment.analyses.extend(analyses.base)           
+                segment.battery_discharge                                = False   
+                if flight_no  == flights_per_day:  
+                    segment.increment_battery_cycle_day=True         
+                segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment)    
+                mission.append_segment(segment)       
+            
+  
+    return mission
+
+def missions_setup(base_mission):
+
+    # the mission container
+    missions = SUAVE.Analyses.Mission.Mission.Container()
+
+    # ------------------------------------------------------------------
+    #   Base Mission
+    # ------------------------------------------------------------------
+
+    missions.base = base_mission
+
+
+    # done!
+    return missions  
+
+
+
+# ----------------------------------------------------------------------
+#   Plot Results
+# ----------------------------------------------------------------------
+def plot_results(results,line_style='bo-'): 
+    
+    # Plot Flight Conditions 
+    plot_flight_conditions(results, line_style) 
+    
+    # Plot Aerodynamic Coefficients
+    plot_aerodynamic_coefficients(results, line_style)  
+    
+    # Plot Aircraft Flight Speed
+    plot_aircraft_velocities(results, line_style) 
+    
+    # Plot Electric Motor and Propeller Efficiencies  of Lift Cruise Network
+    plot_lift_cruise_network(results, line_style)   
+
+    # Plot Battery Degradation  
+    plot_battery_degradation(results, line_style)    
+    
+    # Plot noise level
+    plot_ground_noise_levels(results)
+    
+    # Plot noise contour
+    plot_flight_profile_noise_contours(results) 
+    return     
+
+def save_results(results):
+
+    # Store data (serialize)
+    with open('Stopped_Rotor.pkl', 'wb') as file:
+        pickle.dump(results, file)
+        
+    return  
+
+if __name__ == '__main__': 
+    main()    
+    plt.show()
+     

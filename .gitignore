@@ -1,0 +1,23 @@
+# IDEs
+.mr.developer.cfg
+.project
+.pydevproject
+*.wpu
+
+# local directories
+/workspace
+*.pkl
+*.mp4
+*.mp3 
+*.xls
+*.xlsx
+*.aux
+*.log
+
+# archives
+*.gz
+*.zip
+*.tar
+
+# Mac
+.DS_Store
