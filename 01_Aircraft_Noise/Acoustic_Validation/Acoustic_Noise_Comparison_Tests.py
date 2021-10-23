@@ -6,6 +6,12 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoi
 from SUAVE.Methods.Noise.Fidelity_One.Propeller.propeller_mid_fidelity                    import propeller_mid_fidelity
 from SUAVE.Analyses.Mission.Segments.Conditions                                           import Aerodynamics
 from SUAVE.Analyses.Mission.Segments.Segment                                              import Segment 
+from SUAVE.Methods.Aerodynamics.Airfoil_Panel_Method.airfoil_analysis      import airfoil_analysis 
+import matplotlib.pyplot as plt   
+from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_naca_4series \
+     import  compute_naca_4series
+from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry\
+     import import_airfoil_geometry
 
 # Python Imports 
 import numpy as np 
@@ -44,17 +50,21 @@ def main():
     Test Case 3.1 | Comparisons of predicted propeller noise with windtunnel ...         | Weir, D Powers, J.
     
     Test Case 4.1 | Cruise Noise of the SR-2 Propeller Model in a Wind Tunnel            | Dittmar, James H 
+    
+    Test Case 5.1 | Prediction of rotorcraft broadband trailing-edge noise and parameter | Sicheng Li & Seongkyu Lee
     ''' 
-    Test_Cases_Group_1()
+    #Test_Cases_Group_1()
     #Test_Cases_Group_2() 
-    Test_Cases_Group_3()    
+    #Test_Cases_Group_3()    
     #Test_Cases_Group_4() 
+    Test_Cases_Group_5()
      
     return
 # ----------------------------------------------------------------------
 #   Test Cases 
 # ----------------------------------------------------------------------
 def Test_Cases_Group_1():
+    '''Harmonic Noise Validation'''
     
     ''' Acoustic and Aerodynamic Study of a Pusher-Propeller Aircraft Model by Soderman and Horne '''   
     Test_Case_1_1()    # OK 
@@ -80,12 +90,38 @@ def Test_Cases_Group_2():
     return  
 
 def Test_Cases_Group_3():  
+    '''Harmonic Noise Validation'''
     Test_Case_3_1()    # GREAT
     return   
 
 def Test_Cases_Group_4():  
     Test_Case_4_1()   # OK 
     return  
+
+def Test_Cases_Group_5():
+    '''These tests are to validate the broadband noise '''
+    
+    '''Test for Figure 4, Prediction of rotorcraft broadband trailing-edge
+    noise and parameter sensitivity study by  Sicheng Li & Seongkyu Lee'''
+    Test_Case_5_1() 
+    
+
+    #'''Test for Figure 5, Prediction of rotorcraft broadband trailing-edge
+    #noise and parameter sensitivity study by  Sicheng Li & Seongkyu Lee'''
+    #Test_Case_5_2() 
+    
+
+    #'''Test for Figure 6, Prediction of rotorcraft broadband trailing-edge
+    #noise and parameter sensitivity study by  Sicheng Li & Seongkyu Lee'''
+    #Test_Case_5_3() 
+    
+     
+    #'''Test for Figure 7, Prediction of rotorcraft broadband trailing-edge
+    #noise and parameter sensitivity study by  Sicheng Li & Seongkyu Lee'''
+    #Test_Case_5_4() 
+                
+    
+    return 
 
 def Test_Case_1_1(): 
     # Define Network
@@ -1282,6 +1318,299 @@ def Test_Case_4_1():
         
     return 
 
+
+def Test_Case_5_1():
+    
+    ''' NACA 0012 test Broadband trailing-edge noise predictions— overview of BANC-III results
+    
+    Equations from Prediction of rotorcraft broadband trailing-edge noise and parameter sensitivity study'''
+    
+    # ****** DEFINE INPUTS ****** 
+
+    import scipy.special as sc
+    
+    pi       = np.pi
+    U_inf    = np.array([[53]])
+    U        = U_inf
+    rho      = 1.21  
+    c_0      = np.array([[343.]])  # speed of sound 
+    M        = U_inf/c_0
+    mu       = np.array([[1.81E-5]])
+    beta_sq  = 1 - M**2
+    num_sec  = 10 # number of sections 
+    B        = 1  # number of blades 
+    N_r      = 1
+    ctrl_pts = 1
+    Re       = np.array([[1.5E6]]) 
+    alpha    = np.array([[6.]]) *Units.degrees
+    nu       = mu/rho # kinematic viscousity  
+    r_0      = np.linspace(0,1,num_sec+1) # coordinated of blade corners 
+    chords   = np.ones(num_sec)*0.4 
+    r        = (r_0[:-1] + r_0[1:])/2 # centerpoints where noise/forces are computed 
+    delta_r  = np.diff(r_0)
+    
+    # chord length     
+    c        = np.ones_like(r)*0.4  
+    
+    
+    omega    = np.array([[0]])     # angular velocity 
+    theta_0  = np.array([[0]])  # collective pitch angle that varies wih rotor thrust
+    theta    = np.array([[6.]]) * Units.degrees   # twist angle
+    phi      = np.array([[0]])   # azimuth angle  
+    t        = np.array([[0]]) # tile angle   
+    beta_p   = np.array([[0]])   # blade flaping angle 
+    t_v      = np.array([[0]]) # negative body angle    vehicle tilt angle between the vehicle hub plane and the geographical ground 
+    t_r      = np.array([[0]])# prop.orientation_euler_angles # rotor tilt angle between the rotor hub plane and the vehicle hub plane
+    
+    
+    
+    # Update dimensions for computation   
+    r        = vectorize_1(r,N_r,B,ctrl_pts) 
+    c        = vectorize_1(c,N_r,B,ctrl_pts) 
+    delta_r  = vectorize_1(delta_r,N_r,B,ctrl_pts) 
+    theta_0  = vectorize_2(theta_0,N_r,B,num_sec) 
+    theta    = vectorize_2(theta,N_r,B,num_sec) 
+    M        = vectorize_2(M,N_r,B,num_sec)   
+    phi      = vectorize_2(phi,N_r,B,num_sec)  
+    beta_p   = vectorize_2(beta_p,N_r,B,num_sec)  
+    t        = vectorize_2(t,N_r,B,num_sec)   
+    t_v      = vectorize_2(t_v,N_r,B,num_sec)  
+    t_r      = vectorize_2(t_r,N_r,B,num_sec)   
+    c_0      = vectorize_3(c_0,N_r,B,num_sec)  
+    beta_sq  = vectorize_3(beta_sq,N_r,B,num_sec) 
+    omega    = vectorize_3(omega,N_r,B,num_sec)
+    U_inf    = vectorize_3(U_inf,N_r,B,num_sec)
+    nu       = vectorize_3(nu,N_r,B,num_sec)
+     
+   
+    vehicle_position = np.array([[0,0,1]])
+    prop_origin      = np.array([[0,0,0]]) 
+    vehicle_position = vehicle_position[:,:,np.newaxis]    
+    POS_2            = vectorize_2(vehicle_position,N_r,B,num_sec) 
+    M_hub            = vectorize_4(prop_origin,ctrl_pts,B,num_sec)        
+    
+    
+    # for this problem 
+    theta   = np.zeros_like( theta)#  REMOVE !!! 
+    M_hub   = np.zeros_like(POS_2) 
+    
+    delta        = np.zeros((ctrl_pts,N_r,B,num_sec,2)) #  control points ,  number rotors, number blades , number sections , sides of airfoil   
+    delta_star   = np.zeros_like(delta)
+    dp_dx        = np.zeros_like(delta)
+    tau_w        = np.zeros_like(delta)
+    Ue           = np.zeros_like(delta)
+    Theta        = np.zeros_like(delta)
+    
+    # ------------------------------------------------------------
+    # ****** TRAILING EDGE BOUNDARY LAYER PROPERTY CALCULATIONS  ****** 
+    for i in range(ctrl_pts) : 
+        npanel               = 50
+        Re_batch             = np.atleast_2d(np.ones(num_sec)*Re[i,0]).T
+        AoA_batch            = np.atleast_2d(np.ones(num_sec)*alpha[i,0]).T       
+        airfoil_geometry     = compute_naca_4series(0.0,0.0,0.12,npoints=npanel) 
+        airfoil_stations     = [0] * num_sec
+        AP                   = airfoil_analysis(airfoil_geometry,AoA_batch,Re_batch, npanel, batch_analysis = False, airfoil_stations = airfoil_stations)  
+        # first is lower surface TE, last is upper surface TE
+   
+        
+        delta[i,:,:,:,0]        = AP.delta[:,0]       # lower surface boundary layer thickness 
+        delta[i,:,:,:,1]        = AP.delta[:,-1]      # upper surface boundary layer thickness 
+        delta_star[i,:,:,:,0]   = AP.delta_star[:,0]  # lower surfacedisplacement thickness 
+        delta_star[i,:,:,:,1]   = AP.delta_star[:,-1] # upper surface displacement thickness  
+        P                       = AP.Cp*(0.5*rho*U[i,0]**2)
+        blade_chords            = np.repeat(chords[:,np.newaxis],npanel, axis = 1)
+        x_surf                  = AP.x*blade_chords 
+        dp_dx_surf              = np.diff(P)/np.diff(x_surf) # pressure gradient 
+        dp_dx[i,:,:,:,0]        = dp_dx_surf[:,0]   # lower surface pressure differential 
+        dp_dx[i,:,:,:,1]        = dp_dx_surf[:,-1]  # upper surface pressure differential 
+        tau_w[i,:,:,:,0]        = AP.Cf[:,0]*(0.5*rho*U[i,0]**2)# lower surface wall shear stress
+        tau_w[i,:,:,:,1]        = AP.Cf[:,-1]*(0.5*rho*U[i,0]**2)# upper surface wall shear stress 
+        Ue[i,:,:,:,0]           = AP.Ue_Vinf[:,0]*U[i,0] # lower surface boundary layer edge velocity 
+        Ue[i,:,:,:,-1]          = AP.Ue_Vinf[:,-1]*U[i,0]# upper surface boundary layer edge velocity 
+        Theta[i,:,:,:,0]        = AP.theta[:,0]  # lower surface momentum thickness     
+        Theta[i,:,:,:,1]        = AP.theta[:,-1] # upper surface momentum thickness   
+            
+    
+    # ------------------------------------------------------------
+    # ****** COORDINATE TRANSFOMRATIONS ****** 
+    M_beta_p = np.zeros((ctrl_pts,N_r,B,num_sec,3,1))
+    M_t      = np.zeros((ctrl_pts,N_r,B,num_sec,3,3))
+    M_phi    = np.zeros((ctrl_pts,N_r,B,num_sec,3,3))
+    M_theta  = np.zeros((ctrl_pts,N_r,B,num_sec,3,3))
+    M_tv     = np.zeros((ctrl_pts,N_r,B,num_sec,3,3))
+
+    M_tv[:,:,:,:,0,0]    = np.cos(t_v[:,:,:,:,0])
+    M_tv[:,:,:,:,0,2]    = np.sin(t_v[:,:,:,:,0])
+    M_tv[:,:,:,:,1,1]    = 1
+    M_tv[:,:,:,:,2,0]    = -np.sin(t_v[:,:,:,:,0])
+    M_tv[:,:,:,:,2,2]    = np.cos(t_v[:,:,:,:,0]) 
+    
+    POS_1   = np.matmul(M_tv,(POS_2 + M_hub)) # rotor hub position relative to center of aircraft 
+       
+    # twist angle matrix
+    M_theta[:,:,:,:,0,0] = np.cos(theta_0[:,:,:,:,0] + theta[:,:,:,:,0])
+    M_theta[:,:,:,:,0,2] = np.sin(theta_0[:,:,:,:,0] + theta[:,:,:,:,0])
+    M_theta[:,:,:,:,1,1] = 1
+    M_theta[:,:,:,:,2,0] = -np.sin(theta_0[:,:,:,:,0] + theta[:,:,:,:,0])
+    M_theta[:,:,:,:,2,2] = np.cos(theta_0[:,:,:,:,0] + theta[:,:,:,:,0])
+        
+    # azimuth motion matrix
+    M_phi[:,:,:,:,0,0] = np.sin(phi[:,:,:,:,0])       
+    M_phi[:,:,:,:,0,1] = -np.cos(phi[:,:,:,:,0])  
+    M_phi[:,:,:,:,1,0] = np.cos(phi[:,:,:,:,0])  
+    M_phi[:,:,:,:,1,1] = np.sin(phi[:,:,:,:,0])     
+    M_phi[:,:,:,:,2,2] = 1 
+    
+    # tilt motion matrix 
+    M_t[:,:,:,:,0,0] =  np.cos(t[:,:,:,:,0]) 
+    M_t[:,:,:,:,0,2] =  np.sin(t[:,:,:,:,0]) 
+    M_t[:,:,:,:,1,1] =  1 
+    M_t[:,:,:,:,2,0] =  -np.sin(t[:,:,:,:,0]) 
+    M_t[:,:,:,:,2,2] =  np.cos(t[:,:,:,:,0]) 
+
+    # flapping motion matrix
+    M_beta_p[:,:,:,:,0,0]  = -r*np.cos(beta_p[:,:,:,:,0])*np.cos(phi[:,:,:,:,0]) #-r*np.sin(beta_p)*np.cos(phi)
+    M_beta_p[:,:,:,:,1,0]  = -r*np.cos(beta_p[:,:,:,:,0])*np.sin(phi[:,:,:,:,0]) #-r*np.sin(beta_p)*np.sin(phi)
+    M_beta_p[:,:,:,:,2,0]  = -r*np.sin(beta_p[:,:,:,:,0])             # r*np.cos(beta_p)  
+    
+    # transformation of geographical global reference frame to the sectional local coordinate 
+    mat0    = np.matmul(M_t,POS_1)  + M_beta_p
+    mat1    = np.matmul(M_phi,mat0) 
+    POS     = np.matmul(M_theta,mat1) 
+    
+    
+    #***************************************************
+    # For this specific test     
+    POS[:,:,:,:,0,:] = 0
+    POS[:,:,:,:,1,:] = 0
+    POS[:,:,:,:,2,:] = 1
+    #***************************************************
+    
+    X   = np.repeat(POS[:,:,:,:,0,:],2,axis = 4)
+    Y   = np.repeat(POS[:,:,:,:,1,:],2,axis = 4)
+    Z   = np.repeat(POS[:,:,:,:,2,:],2,axis = 4)
+    X_1 = np.repeat(POS_1[:,:,:,:,0,:],2,axis = 4)
+    Y_1 = np.repeat(POS_1[:,:,:,:,1,:],2,axis = 4)
+    Z_1 = np.repeat(POS_1[:,:,:,:,2,:],2,axis = 4)    
+    X_2 = np.repeat(POS_2[:,:,:,:,0,:],2,axis = 4)
+    Y_2 = np.repeat(POS_2[:,:,:,:,1,:],2,axis = 4)
+    Z_2 = np.repeat(POS_2[:,:,:,:,2,:],2,axis = 4)
+    
+    R_s = np.repeat(np.linalg.norm(POS,axis = 4),2,axis = 4) 
+    
+    # ------------------------------------------------------------
+    # ****** BLADE MOTION CALCULATIONS ****** 
+    # the rotational Mach number of the blade section 
+    r       = np.repeat(r[:,:,:,:,np.newaxis],2,axis = 4)
+    c       = np.repeat(c[:,:,:,:,np.newaxis],2,axis = 4)
+    delta_r = np.repeat(delta_r[:,:,:,:,np.newaxis],2,axis = 4)
+    M       = np.repeat(M,2,axis = 4)
+    M_r     = omega*r/c_0 
+    
+    epsilon = X**2 + (beta_sq)*(Y**2 + Z**2)
+    U_c     = 0.8*U_inf
+    k_x     = omega/U_inf
+    l_r     = 1.6*U_c/omega
+    mu      = k_x*M/beta_sq 
+    bar_mu  = mu/(c/2) # mu  normalized by the semi chord 
+    bar_k_x = k_x/(c/2)
+    omega_d = omega/(1 +  M_r*(X/R_s)) # dopler shifted frequency
+    
+    # ------------------------------------------------------------
+    # ****** LOADING TERM CALCULATIONS ******   
+    # equation 7 
+    triangle      = bar_k_x - bar_mu*X/epsilon + bar_mu*M
+    K             = omega_d/U_c 
+    gamma         = np.sqrt(((mu/epsilon)**2)*(X**2 + beta_sq[i,0]*Z**2)) 
+    bar_K         = K /(c/2)
+    bar_gamma     = gamma/(c/2)
+    S_1 ,C_1      = sc.fresnel(2*(bar_K + bar_mu*M + bar_gamma)) #Fresnel integrals
+    E_star_1      = C_1  - 1j*S_1     # CODE comples conjugate combination of Fresnel integrals
+    S_2 ,C_2      = sc.fresnel(2*(bar_mu*X/epsilon + bar_gamma))  #Fresnel integrals
+    E_star_2      =  C_2  - 1j*S_2       # CODE comples conjugate combination of Fresnel integrals
+    expression_A  = 1 - (1 + 1j)*E_star_1
+    expression_B  = np.exp(-1j*2*triangle)*np.sqrt((K + mu*M + gamma)/(mu*X/epsilon + Y)) *(1 + 1j)*E_star_2   
+    norm_L        = (1/triangle)*abs(np.exp(1j*2*triangle)*(expression_A + expression_B ))
+    
+    # ------------------------------------------------------------
+    # ****** EMPIRICAL WALL PRESSURE SPECTRUM ******  
+    # equation 8 
+    mu_tau              = (tau_w/rho)**0.5 # friction velocity 
+    R_T                 = (delta/Ue)*(nu/mu_tau**2)
+    beta_c              = (Theta/tau_w)*abs(dp_dx)
+    e                   = 3.7 + 1.5*beta_c
+    Delta               = delta/delta_star
+    d                   =  4.76*((1.4/Delta)**0.75)*(0.375*3 - 1)
+    a                   = 2.28*(Delta**2)*(6.13*Delta**(-.75) + d)**e  
+    h_star              = np.minimum(3,(0.139 + 3.1043*beta_c)) + 7  
+    d_star              = d
+    ones                = np.ones_like(d)
+    d_star[beta_c<0.5]  = np.maximum(ones,1.5*d)[beta_c<0.5]
+    expression_F        = (omega/delta_star/Ue)
+    expression_C        = np.maximum(a, (0.25*beta_c - 0.52)*a*expression_F**2) 
+    expression_D        = (4.76*expression_F**0.75 + d_star)**e
+    expression_E        = (8.8*(R_T**(0.57))*expression_F)**h_star
+    Phi_pp_expression   =  expression_C/( expression_D + expression_E)  
+    Phi_pp              = (tau_w**2)*delta_star*Phi_pp_expression/Ue
+    
+    
+    # ------------------------------------------------------------
+    # ****** DIRECTIVITY ******      
+    #  equation A1 to A5 in Prediction of Urban Air Mobility Multirotor VTOL Broadband Noise Using UCD-QuietFly
+    D_phi  = (Z/epsilon**2)**2
+    
+    #l_x    = M_hub[:,:,:,:,0,:]
+    #l_y    = M_hub[:,:,:,:,1,:]
+    #l_z    = M_hub[:,:,:,:,2,:] 
+    #
+    #A4    = l_y + Y_2 - r*np.sin(beta_p)*np.sin(phi)
+    #A3    = (np.cos(t_r + t_v))*((np.cos(t_v))*(l_z + Z_2) - (np.sin(t_v))*(l_x + X_2))\
+    #        - np.sin(t_r+ t_v)*((np.cos(t_v))*(l_x + X_2) + (np.sin(t_v))*l_z + Z_2) + r*np.cos(beta_p)
+    #A2    =  (np.cos(t_r + t_v))*((np.cos(t_v))*(l_x + X_2) + (np.sin(t_v))*(l_z + Z_2))\
+    #        + np.sin(t_r+ t_v)*((np.cos(t_v))*(l_z + Z_2) - (np.sin(t_v))*l_x + X_2) - r*np.cos(phi)*np.cos(beta_p)
+    #A1    = (np.cos(theta_0+theta)*A3 + np.sin(theta_0+theta)*np.cos(beta_p)*A4 - np.sin(theta_0+theta)*np.sin(beta_p)*A2)**2
+    #D_phi = A1/( (np.sin(theta_0+theta)*A3 - np.cos(theta_0+theta)*np.cos(beta_p)*A4 \
+    #              + np.cos(theta_0+theta)*np.sin(beta_p)*A2**2)\
+    #             + (np.sin(beta_p)*A4 + np.cos(beta_p)*A2)**2)**2 
+                         
+    # Acousic Power Spectrial Density from each blade - equation 6 
+    #S_pp   = ((omega/c_0 )**2)*c**2*delta_r*(1/(32*pi**2))*(B/(2*pi))*np.trapz(D_phi*norm_L*l_r*Phi_pp)
+    
+    # Amiets PSD model - equation 1
+    S_pp_bar   = (1/(32*pi**2))*((omega_d*c*Z) /(c_0*epsilon**2)**2) *delta_r*norm_L*l_r*Phi_pp
+    
+    # equation 9 
+    SPL = 10*np.log((2*pi*S_pp_bar)/(2E-5))
+    
+    # equation 10
+    summation  = 10**(SPL[:,:,:,:,0]) + 10**(SPL[:,:,:,:,1])
+    SPL_rotor = 10*np.log(np.sum(summation,axis=3))
+    
+    return 
+
+def vectorize_1(vec,N_r,B,ctrl_pts):
+    
+    vec_x = np.repeat(np.repeat(np.repeat(np.atleast_2d(vec),B,axis = 0)[np.newaxis,:,:],N_r,axis = 0)[np.newaxis,:,:,:],ctrl_pts,axis = 0)    
+     
+    return vec_x
+ 
+def vectorize_2(vec,N_r,B,num_sec):
+    
+    vec_x = np.repeat(np.repeat(np.repeat(vec[:,np.newaxis,:],N_r,axis = 1)[:,:,np.newaxis],B,axis = 2)[:,:,:,np.newaxis],num_sec,axis = 3)
+    
+    return  vec_x 
+
+def vectorize_3(vec,N_r,B,num_sec):
+    
+    vec_x = np.repeat(np.repeat(np.repeat(np.repeat(vec[:,np.newaxis,:],N_r,axis = 1)[:,:,np.newaxis],B,axis = 2)[:,:,:,np.newaxis],num_sec,axis = 3),2,axis = 4)
+     
+    return vec_x
+
+def vectorize_4(vec,ctrl_pts,B,num_sec):
+    
+    vec_x = np.repeat(np.repeat(np.repeat(vec[np.newaxis,:,:],ctrl_pts,axis = 0)[:,:,np.newaxis,:],B,axis = 2)[:,:,:,np.newaxis,:],num_sec,axis = 3)[:,:,:,:,:,np.newaxis]
+    
+    return vec_x 
 
 def realign_polar_xticks(ax):
     for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):

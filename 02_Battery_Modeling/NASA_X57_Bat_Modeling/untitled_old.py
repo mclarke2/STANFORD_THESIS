@@ -1,11 +1,20 @@
 import numpy as np
 import matplotlib.pylab as plt
 from scipy.interpolate import interp1d, interp2d
-from scipy.integrate import odeint
-
+from scipy.integrate import odeint 
 import time
-st = time.time()
 
+def main():
+    
+    
+    return 
+
+
+if __name__ == '__main__': 
+    main()    
+    plt.show()
+    
+st = time.time() 
 fig, ax = plt.subplots()
 
 with open('MPT battery Data/X57_MPT_1C_lot1_030_0C.csv', 'r') as data_file:
