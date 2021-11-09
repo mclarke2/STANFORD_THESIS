@@ -21,40 +21,46 @@ from SUAVE.Plots.Geometry import plot_propeller
 from SUAVE.Methods.Propulsion import propeller_design
 from SUAVE.Components.Energy.Networks.Battery_Propeller import Battery_Propeller
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_boundary_layer_properties\
-     import evaluate_boundary_layer_surrogates
+     import evaluate_boundary_layer_surrogates ,  build_boundary_layer_surrogates
 import matplotlib.pyplot as plt  
 import matplotlib.cm as cm
 import os 
 import numpy as np
+import time 
 
 # ----------------------------------------------------------------------
 #   Main
 # ----------------------------------------------------------------------
 
 def main():    
-    # Define Panelization 
-    npanel   = 300 
+    #airfoil_test() 
+    propeller_bl_test()
     
+    return 
+
+def airfoil_test():
+    
+    # Define Panelization 
+
+    npanel   = 400  
     # Batch analysis of single airfoil - NACA 4412 
     Re_batch             = np.atleast_2d(np.array([1E4, 1E5, 1E6])).T
     AoA_batch            = np.atleast_2d(np.array([0.,4.,8.])*Units.degrees).T       
-    airfoil_geometry     = compute_naca_4series(0.4,0.4,0.12,npoints=npanel)
+    airfoil_geometry     = compute_naca_4series(0.04,0.4,0.12,npoints=npanel)
     SUAVE_data = airfoil_analysis(airfoil_geometry,AoA_batch,Re_batch, npanel)   
     
     # X foil
     Re_tags  = ['1E4','1E5','1E6']
     AoA_tags = ['0','4','8']
-    Xfoil_data = import_NACA_4412_xfoil_results(Re_tags,AoA_tags,npanel)  
+    xfoil_npanel   = 300 
+    Xfoil_data = import_NACA_4412_xfoil_results(Re_tags,AoA_tags,xfoil_npanel)  
      
     # Plot trailing edge properties  
     plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags)   
     
     plot_full_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags) 
-    
-    #airfoil_bl_surs = compute_airfoil_boundary_layer_properties(airfoil_geometry,npanel=100)
-    
+     
     return 
-
  
 def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags):   
     
@@ -68,6 +74,7 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     markers = ['o','v','s','P','p','^','D','X','*']
     
     fig1  = plt.figure('Airfoil_Polars') 
+    fig1.set_size_inches(10, 8) 
     axis11 = fig1.add_subplot(3,3,1)     
     axis12 = fig1.add_subplot(3,3,2)     
     axis13 = fig1.add_subplot(3,3,3)     
@@ -83,12 +90,13 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     axis17.set_xlabel('AoA')
     axis18.set_xlabel('AoA')
     axis19.set_xlabel('AoA')
-    axis11.set_xlabel('Cl')
-    axis14.set_xlabel('Cd')
-    axis17.set_xlabel('Cm')  
+    axis11.set_ylabel('Cl')
+    axis14.set_ylabel('Cd')
+    axis17.set_ylabel('Cm')  
     
 
     fig2  = plt.figure('Airfoil_BL_TE_1') 
+    fig2.set_size_inches(10, 8) 
     axis21 = fig2.add_subplot(3,3,1)     
     axis22 = fig2.add_subplot(3,3,2)     
     axis23 = fig2.add_subplot(3,3,3)     
@@ -104,12 +112,13 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     axis27.set_xlabel('AoA')
     axis28.set_xlabel('AoA')
     axis29.set_xlabel('AoA')
-    axis21.set_xlabel(r'$Ue/V_{inf}$')
-    axis24.set_xlabel(r'$\theta$')
-    axis27.set_xlabel(r'$\delta$ *')   
+    axis21.set_ylabel(r'$Ue/V_{inf}$')
+    axis24.set_ylabel(r'$\theta$')
+    axis27.set_ylabel(r'$\delta$ *')   
     
 
     fig3  = plt.figure('Airfoil_BL_TE_2') 
+    fig3.set_size_inches(10, 8) 
     axis31 = fig3.add_subplot(3,3,1)     
     axis32 = fig3.add_subplot(3,3,2)     
     axis33 = fig3.add_subplot(3,3,3)     
@@ -125,118 +134,118 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     axis37.set_xlabel('AoA')
     axis38.set_xlabel('AoA')
     axis39.set_xlabel('AoA')
-    axis31.set_xlabel(r'Cf')
-    axis34.set_xlabel(r'H')
-    axis37.set_xlabel(r'Cp')   
+    axis31.set_ylabel(r'Cf')
+    axis34.set_ylabel(r'H')
+    axis37.set_ylabel(r'Cp')   
      
     
     # Cl
     axis11.plot(AoA_range ,  SUAVE_data.Cl[:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0] , label = 'SUAVE'  )  
-    axis11.plot(AoA_range ,  Xfoil_data.Cl[:,0] ,color = colors[1], linestyle = '--' ,marker =   markers[1] , label = 'Xfoil')   
+    axis11.plot(AoA_range ,  Xfoil_data.Cl[:,0] ,color = colors2[0], linestyle = '--' ,marker =   markers[1] , label = 'Xfoil')   
     axis12.plot(AoA_range,   SUAVE_data.Cl[:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis12.plot(AoA_range,   Xfoil_data.Cl[:,1]  ,color = colors[1], linestyle = '--' ,marker =   markers[1])    
+    axis12.plot(AoA_range,   Xfoil_data.Cl[:,1]  ,color = colors2[0], linestyle = '--' ,marker =   markers[1])    
     axis13.plot(AoA_range,   SUAVE_data.Cl[:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis13.plot(AoA_range,   Xfoil_data.Cl[:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])              
+    axis13.plot(AoA_range,   Xfoil_data.Cl[:,2] ,color = colors2[0], linestyle = '--' ,marker =   markers[1])              
      
     # CdAoA_range
     axis14.plot(AoA_range ,  SUAVE_data.Cd[:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis14.plot(AoA_range ,  Xfoil_data.Cd[:,0] ,color = colors[1], linestyle = '--' ,marker =   markers[1]  )  
+    axis14.plot(AoA_range ,  Xfoil_data.Cd[:,0] ,color = colors2[0], linestyle = '--' ,marker =   markers[1]  )  
     axis15.plot(AoA_range,   SUAVE_data.Cd[:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis15.plot(AoA_range,   Xfoil_data.Cd[:,1]  ,color = colors[1], linestyle = '--' ,marker =   markers[1])     
+    axis15.plot(AoA_range,   Xfoil_data.Cd[:,1]  ,color = colors2[0], linestyle = '--' ,marker =   markers[1])     
     axis16.plot(AoA_range,   SUAVE_data.Cd[:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis16.plot(AoA_range,   Xfoil_data.Cd[:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])             
+    axis16.plot(AoA_range,   Xfoil_data.Cd[:,2] ,color = colors2[0], linestyle = '--' ,marker =   markers[1])             
   
     # CmAoA_range
-    axis17.plot(AoA_range ,  SUAVE_data.Cm[:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0]  )  
-    axis17.plot(AoA_range ,  SUAVE_data.Cm[:,0] ,color = colors[1], linestyle = '--' ,marker =   markers[1]  )   
-    axis18.plot(AoA_range,   SUAVE_data.Cm[:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis18.plot(AoA_range,   SUAVE_data.Cm[:,1]  ,color = colors[1], linestyle = '--' ,marker =   markers[1])    
-    axis19.plot(AoA_range,   SUAVE_data.Cm[:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis19.plot(AoA_range,   SUAVE_data.Cm[:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])   
+    axis17.plot(AoA_range , SUAVE_data.Cm[:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0]  )  
+    axis17.plot(AoA_range , Xfoil_data.Cm[:,0] ,color = colors2[0], linestyle = '--' ,marker =   markers[1]  )   
+    axis18.plot(AoA_range,  SUAVE_data.Cm[:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
+    axis18.plot(AoA_range,  Xfoil_data.Cm[:,1]  ,color = colors2[0], linestyle = '--' ,marker =   markers[1])    
+    axis19.plot(AoA_range,  SUAVE_data.Cm[:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
+    axis19.plot(AoA_range,  Xfoil_data.Cm[:,2] ,color = colors2[0], linestyle = '--' ,marker =   markers[1])   
      
     # Ue/V_inf
-    axis21.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.Ue_Vinf[Te_idx ,:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0] , label = 'SUAVE'   )  
-    axis21.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.Ue_Vinf[Te_idx ,:,0] ,color = colors[1], linestyle = '--' ,marker =   markers[1] , label = 'Xfoil') 
-    axis21.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.Ue_Vinf[-Te_idx,:,0] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis21.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.Ue_Vinf[-Te_idx,:,0] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])     
-    axis22.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.Ue_Vinf[Te_idx ,:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis22.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.Ue_Vinf[Te_idx ,:,1]  ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis22.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.Ue_Vinf[-Te_idx,:,1]  ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis22.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.Ue_Vinf[-Te_idx,:,1]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1])   
-    axis23.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.Ue_Vinf[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis23.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.Ue_Vinf[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])         
-    axis23.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.Ue_Vinf[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )          
-    axis23.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.Ue_Vinf[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])   
+    axis21.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.Ue_Vinf[Te_idx ,:,0]  ,color = colors[0] , linestyle = '-' ,marker =    markers[0]  , label = 'SUAVE Lower Surf'  )  
+    axis21.plot(Xfoil_data.x[Te_idx ,:,0] ,  -Xfoil_data.Ue_Vinf[Te_idx ,:,0] ,color = colors2[0], linestyle = '--' ,marker =   markers[1] , label = 'Xfoil Lower Surf')  
+    axis21.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.Ue_Vinf[-Te_idx,:,0]  ,color = colors[1] , linestyle = '-' ,marker =  markers[0]  , label = 'SUAVE Upper Surf'  )     
+    axis21.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.Ue_Vinf[-Te_idx,:,0]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1] , label = 'Xfoil Upper Surf' )        
+    axis22.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.Ue_Vinf[Te_idx ,:,1]  ,color = colors[0]  , linestyle = '-' ,marker =    markers[0]   )  
+    axis22.plot(Xfoil_data.x[Te_idx ,:,1],   -Xfoil_data.Ue_Vinf[Te_idx ,:,1] ,color = colors2[0] , linestyle = '--' ,marker =   markers[1]) 
+    axis22.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.Ue_Vinf[-Te_idx,:,1]  ,color = colors[1]  , linestyle = '-' ,marker =  markers[0]  )  
+    axis22.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.Ue_Vinf[-Te_idx,:,1]  ,color = colors2[1] , linestyle = '--' ,marker =  markers[1])   
+    axis23.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.Ue_Vinf[Te_idx ,:,2]  ,color = colors[0]  , linestyle = '-' ,marker =    markers[0]   )  
+    axis23.plot(Xfoil_data.x[Te_idx ,:,2],   -Xfoil_data.Ue_Vinf[Te_idx ,:,2] ,color = colors2[0] , linestyle = '--' ,marker =   markers[1])         
+    axis23.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.Ue_Vinf[-Te_idx,:,2]  ,color = colors[1]  , linestyle = '-' ,marker =  markers[0]  )          
+    axis23.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.Ue_Vinf[-Te_idx,:,2]  ,color = colors2[1] , linestyle = '--' ,marker =  markers[1])   
     
     # theta
-    axis24.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.theta[Te_idx ,:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0]    )  
-    axis24.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.theta[Te_idx ,:,0] ,color = colors[1], linestyle = '--' ,marker =   markers[1] ) 
-    axis24.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.theta[-Te_idx,:,0] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis24.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.theta[-Te_idx,:,0] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])  
-    axis25.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.theta[Te_idx ,:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis25.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.theta[Te_idx ,:,1]  ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis25.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.theta[-Te_idx,:,1]  ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis25.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.theta[-Te_idx,:,1]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1])     
-    axis26.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.theta[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis26.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.theta[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])         
-    axis26.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.theta[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )          
-    axis26.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.theta[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])            
+    axis24.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.theta[Te_idx ,:,0],color = colors[0] , linestyle = '-' ,marker =    markers[0]    )  
+    axis24.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.theta[Te_idx ,:,0],color = colors2[0], linestyle = '--' ,marker =   markers[1] ) 
+    axis24.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.theta[-Te_idx,:,0],color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  )  
+    axis24.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.theta[-Te_idx,:,0],color = colors2[1],  linestyle = '--' ,marker =  markers[1])  
+    axis25.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.theta[Te_idx ,:,1],color = colors[0] ,   linestyle = '-' ,marker =    markers[0]   )  
+    axis25.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.theta[Te_idx ,:,1],color = colors2[0],  linestyle = '--' ,marker =   markers[1]) 
+    axis25.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.theta[-Te_idx,:,1],color = colors[1] ,   linestyle = '-' ,marker =  markers[0]  )  
+    axis25.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.theta[-Te_idx,:,1],color = colors2[1],   linestyle = '--' ,marker =  markers[1])     
+    axis26.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.theta[Te_idx ,:,2],color = colors[0] , linestyle = '-' ,marker =    markers[0]   )  
+    axis26.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.theta[Te_idx ,:,2],color = colors2[0], linestyle = '--' ,marker =   markers[1])         
+    axis26.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.theta[-Te_idx,:,2],color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  )          
+    axis26.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.theta[-Te_idx,:,2],color = colors2[1],  linestyle = '--' ,marker =  markers[1])            
     
     # Delta Star 
-    axis27.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.delta_star[Te_idx ,:,0] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis27.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.delta_star[Te_idx ,:,0] ,color = colors[1], linestyle = '--' ,marker =   markers[1]  ) 
-    axis27.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.delta_star[-Te_idx,:,0] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis27.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.delta_star[-Te_idx,:,0] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])    
-    axis28.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.delta_star[Te_idx ,:,1]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis28.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.delta_star[Te_idx ,:,1]  ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis28.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.delta_star[-Te_idx,:,1]  ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis28.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.delta_star[-Te_idx,:,1]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1])   
-    axis29.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.delta_star[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis29.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.delta_star[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])         
-    axis29.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.delta_star[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )          
-    axis29.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.delta_star[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])   
+    axis27.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.delta_star[Te_idx ,:,0],color = colors[0] , linestyle = '-' ,marker =    markers[0]   )  
+    axis27.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.delta_star[Te_idx ,:,0],color = colors2[0], linestyle = '--' ,marker =   markers[1]  ) 
+    axis27.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.delta_star[-Te_idx,:,0],color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  )  
+    axis27.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.delta_star[-Te_idx,:,0],color = colors2[1],  linestyle = '--' ,marker =  markers[1])    
+    axis28.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.delta_star[Te_idx ,:,1],color = colors[0] ,   linestyle = '-' ,marker =    markers[0]   )  
+    axis28.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.delta_star[Te_idx ,:,1],color = colors2[0],  linestyle = '--' ,marker =   markers[1]) 
+    axis28.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.delta_star[-Te_idx,:,1],color = colors[1] ,   linestyle = '-' ,marker =  markers[0]  )  
+    axis28.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.delta_star[-Te_idx,:,1],color = colors2[1],  linestyle = '--' ,marker =  markers[1])   
+    axis29.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.delta_star[Te_idx ,:,2],color = colors[0] , linestyle = '-' ,marker =    markers[0]   )  
+    axis29.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.delta_star[Te_idx ,:,2],color = colors2[0], linestyle = '--' ,marker =   markers[1])         
+    axis29.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.delta_star[-Te_idx,:,2],color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  )          
+    axis29.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.delta_star[-Te_idx,:,2],color = colors2[1],  linestyle = '--' ,marker =  markers[1])   
     
 
     # Cf
-    axis31.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.Cf[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]  , label = 'SUAVE'  )  
-    axis31.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.Cf[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1] , label = 'Xfoil') 
-    axis31.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.Cf[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis31.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.Cf[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])   
-    axis32.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.Cf[Te_idx ,:,2]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis32.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.Cf[Te_idx ,:,2]  ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis32.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.Cf[-Te_idx,:,2]  ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis32.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.Cf[-Te_idx,:,2]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1])  
-    axis33.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.Cf[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis33.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.Cf[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])         
-    axis33.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.Cf[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )          
-    axis33.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.Cf[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])            
+    axis31.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.Cf[Te_idx ,:,2],color = colors[0] , linestyle = '-' ,marker =    markers[0]  , label = 'SUAVE Lower Surf'  )  
+    axis31.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.Cf[Te_idx ,:,2],color = colors2[0], linestyle = '--' ,marker =   markers[1] , label = 'Xfoil Lower Surf') 
+    axis31.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.Cf[-Te_idx,:,2],color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  , label = 'SUAVE Upper Surf'  )  
+    axis31.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.Cf[-Te_idx,:,2],color = colors2[1],  linestyle = '--' ,marker =  markers[1] , label = 'Xfoil Upper Surf' )   
+    axis32.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.Cf[Te_idx ,:,2],color = colors[0] ,   linestyle = '-' ,marker =    markers[0]   )  
+    axis32.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.Cf[Te_idx ,:,2],color = colors2[0],  linestyle = '--' ,marker =   markers[1]) 
+    axis32.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.Cf[-Te_idx,:,2],color = colors[1] ,   linestyle = '-' ,marker =  markers[0]  )  
+    axis32.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.Cf[-Te_idx,:,2],color = colors2[1],   linestyle = '--' ,marker =  markers[1])  
+    axis33.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.Cf[Te_idx ,:,2],color = colors[0] , linestyle = '-' ,marker =    markers[0]   )  
+    axis33.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.Cf[Te_idx ,:,2],color = colors2[0], linestyle = '--' ,marker =   markers[1])         
+    axis33.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.Cf[-Te_idx,:,2],color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  )          
+    axis33.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.Cf[-Te_idx,:,2],color = colors2[1],  linestyle = '--' ,marker =  markers[1])            
      
     # H
-    axis34.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.H[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0])  
-    axis34.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.H[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1] ) 
-    axis34.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.H[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis34.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.H[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])    
-    axis35.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.H[Te_idx ,:,2]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis35.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.H[Te_idx ,:,2]  ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis35.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.H[-Te_idx,:,2]  ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis35.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.H[-Te_idx,:,2]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1])    
-    axis36.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.H[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis36.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.H[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])         
-    axis36.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.H[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )          
-    axis36.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.H[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])            
+    axis34.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.H[Te_idx ,:,2],color = colors[0] ,linestyle = '-' ,marker =    markers[0])  
+    axis34.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.H[Te_idx ,:,2],color = colors2[0],linestyle = '--' ,marker =   markers[1] ) 
+    axis34.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.H[-Te_idx,:,2],color = colors[1] , linestyle = '-' ,marker =  markers[0]  )  
+    axis34.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.H[-Te_idx,:,2],color = colors2[1], linestyle = '--' ,marker =  markers[1])    
+    axis35.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.H[Te_idx ,:,2],color = colors[0] , linestyle = '-' ,marker =    markers[0]   )  
+    axis35.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.H[Te_idx ,:,2],color = colors2[0], linestyle = '--' ,marker =   markers[1]) 
+    axis35.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.H[-Te_idx,:,2],color = colors[1] , linestyle = '-' ,marker =  markers[0]  )  
+    axis35.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.H[-Te_idx,:,2],color = colors2[1], linestyle = '--' ,marker =  markers[1])    
+    axis36.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.H[Te_idx ,:,2],color = colors[0] ,linestyle = '-' ,marker =    markers[0]   )  
+    axis36.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.H[Te_idx ,:,2],color = colors2[0],linestyle = '--' ,marker =   markers[1])         
+    axis36.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.H[-Te_idx,:,2],color = colors[1] , linestyle = '-' ,marker =  markers[0]  )          
+    axis36.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.H[-Te_idx,:,2],color = colors2[1], linestyle = '--' ,marker =  markers[1])            
     
     # Cp
-    axis37.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.Cp[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0] )  
-    axis37.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.Cp[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis37.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.Cp[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
+    axis37.plot(SUAVE_data.x[Te_idx ,:,0] ,  SUAVE_data.Cp[Te_idx ,:,2] ,color = colors[0] ,linestyle = '-' ,marker =    markers[0] )  
+    axis37.plot(Xfoil_data.x[Te_idx ,:,0] ,  Xfoil_data.Cp[Te_idx ,:,2] ,color = colors2[0],linestyle = '--' ,marker =   markers[1]) 
+    axis37.plot(SUAVE_data.x[-Te_idx,:,0] ,  SUAVE_data.Cp[-Te_idx,:,2] ,color = colors[1] , linestyle = '-' ,marker =  markers[0]  )  
     axis37.plot(Xfoil_data.x[-Te_idx,:,0] ,  Xfoil_data.Cp[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])     
-    axis38.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.Cp[Te_idx ,:,2]   ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis38.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.Cp[Te_idx ,:,2]  ,color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-    axis38.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.Cp[-Te_idx,:,2]  ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )  
-    axis38.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.Cp[-Te_idx,:,2]  ,color = colors2[1], linestyle = '--' ,marker =  markers[1])     
-    axis39.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.Cp[Te_idx ,:,2] ,color = colors[0], linestyle = '-' ,marker =    markers[0]   )  
-    axis39.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.Cp[Te_idx ,:,2] ,color = colors[1], linestyle = '--' ,marker =   markers[1])         
-    axis39.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.Cp[-Te_idx,:,2] ,color = colors2[0], linestyle = '-' ,marker =  markers[0]  )          
+    axis38.plot(SUAVE_data.x[Te_idx ,:,1],   SUAVE_data.Cp[Te_idx ,:,2] ,color = colors[0] ,  linestyle = '-' ,marker =    markers[0]   )  
+    axis38.plot(Xfoil_data.x[Te_idx ,:,1],   Xfoil_data.Cp[Te_idx ,:,2] ,color = colors2[0], linestyle = '--' ,marker =   markers[1]) 
+    axis38.plot(SUAVE_data.x[-Te_idx,:,1],   SUAVE_data.Cp[-Te_idx,:,2] ,color = colors[1] ,  linestyle = '-' ,marker =  markers[0]  )  
+    axis38.plot(Xfoil_data.x[-Te_idx,:,1],   Xfoil_data.Cp[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])     
+    axis39.plot(SUAVE_data.x[Te_idx ,:,2],   SUAVE_data.Cp[Te_idx ,:,2] ,color = colors[0] ,linestyle = '-' ,marker =    markers[0]   )  
+    axis39.plot(Xfoil_data.x[Te_idx ,:,2],   Xfoil_data.Cp[Te_idx ,:,2] ,color = colors2[0],linestyle = '--' ,marker =   markers[1])         
+    axis39.plot(SUAVE_data.x[-Te_idx,:,2],   SUAVE_data.Cp[-Te_idx,:,2] ,color = colors[1] , linestyle = '-' ,marker =  markers[0]  )          
     axis39.plot(Xfoil_data.x[-Te_idx,:,2],   Xfoil_data.Cp[-Te_idx,:,2] ,color = colors2[1], linestyle = '--' ,marker =  markers[1])     
         
     # add legends for plotting
@@ -255,7 +264,7 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     return  
 
 
-## @ingroup Plots
+ 
 def plot_full_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags):   
     
     # determine dimension of angle of attack and reynolds number 
@@ -267,12 +276,18 @@ def plot_full_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags):
     colors2 =['red','darkred']
     markers = ['o','v','s','P','p','^','D','X','*']
     
-    fig1  = plt.figure('Ue_Vinf')   
+    fig1  = plt.figure('Ue_Vinf') 
+    fig1.set_size_inches(10, 8)   
     fig2  = plt.figure('theta') 
+    fig2.set_size_inches(10, 8) 
     fig3  = plt.figure('Delta Star') 
+    fig3.set_size_inches(10, 8) 
     fig4  = plt.figure('Cf') 
+    fig4.set_size_inches(10, 8) 
     fig5  = plt.figure('H') 
+    fig5.set_size_inches(10, 8) 
     fig6  = plt.figure('Cp') 
+    fig6.set_size_inches(10, 8) 
     
      
     mid = int(len(SUAVE_data.x[:,0,0])/2)
@@ -297,52 +312,54 @@ def plot_full_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags):
             axis5.set_title('H' +  Common_Title  )
             axis6.set_title( '$C_p$' +  Common_Title ) 
              
-            axis3.set_ylim(-0.005, 0.025)     
+            axis3.set_ylim(-0.005, 0.025) 
+            axis4.set_ylim(0, 0.2)     
             axis6.set_ylim(1.2,-7)  
-            axis1.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.Ue_Vinf[:mid ,i,j],color = colors[j], linestyle = '-' ,marker =    markers[0]   )  
-            axis1.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.Ue_Vinf[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-            axis1.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.Ue_Vinf[:mid2,i,j],color = colors2[j], linestyle = '-' ,marker =  markers[0]  )  
-            axis1.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.Ue_Vinf[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1])              
+            axis1.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.Ue_Vinf[:mid ,i,j],color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'SUAVE Lower Surf')   
+            axis1.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.Ue_Vinf[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]    , label = 'SUAVE Upper Surf') 
+            axis1.plot(Xfoil_data.x[:mid2,i,j],   -Xfoil_data.Ue_Vinf[:mid2,i,j],color = colors2[0], linestyle = '-' ,marker =  markers[0]     , label = 'Xfoil Lower Surf')  
+            axis1.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.Ue_Vinf[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1]    , label = 'Xfoil Upper Surf')               
            
-            axis2.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.theta[:mid ,i,j],color = colors[j], linestyle = '-' ,marker =    markers[0]   )  
-            axis2.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.theta[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-            axis2.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.theta[:mid2,i,j],color = colors2[j], linestyle = '-' ,marker =  markers[0]  )  
-            axis2.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.theta[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1])     
+            axis2.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.theta[:mid ,i,j],color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'SUAVE Lower Surf')   
+            axis2.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.theta[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]    , label = 'SUAVE Upper Surf') 
+            axis2.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.theta[:mid2,i,j],color = colors2[0], linestyle = '-' ,marker =  markers[0]     , label = 'Xfoil Lower Surf')  
+            axis2.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.theta[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1]     , label = 'Xfoil Upper Surf')        
             
-            axis3.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.delta_star[:mid ,i,j],color = colors[j], linestyle = '-' ,marker =    markers[0]   )  
-            axis3.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.delta_star[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-            axis3.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.delta_star[:mid2,i,j],color = colors2[j], linestyle = '-' ,marker =  markers[0]  )  
-            axis3.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.delta_star[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1])    
+            axis3.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.delta_star[:mid ,i,j],color = colors[0], linestyle = '-' ,marker =    markers[0]  , label = 'SUAVE Lower Surf')    
+            axis3.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.delta_star[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]  , label = 'SUAVE Upper Surf') 
+            axis3.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.delta_star[:mid2,i,j],color = colors2[0], linestyle = '-' ,marker =  markers[0]   , label = 'Xfoil Lower Surf')   
+            axis3.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.delta_star[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1]   , label = 'Xfoil Upper Surf')      
             
 
-            axis4.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.Cf[:mid ,i,j],color = colors[j], linestyle = '-' ,marker =    markers[0]   )  
-            axis4.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.Cf[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-            axis4.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.Cf[:mid2,i,j],color = colors2[j], linestyle = '-' ,marker =  markers[0]  )  
-            axis4.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.Cf[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1])              
+            axis4.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.Cf[:mid ,i,j],color = colors[0], linestyle = '-' ,marker =    markers[0]   , label = 'SUAVE Lower Surf')   
+            axis4.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.Cf[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]   , label = 'SUAVE Upper Surf') 
+            axis4.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.Cf[:mid2,i,j],color = colors2[0], linestyle = '-' ,marker =  markers[0]    , label = 'Xfoil Lower Surf')  
+            axis4.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.Cf[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1]    , label = 'Xfoil Upper Surf')                
            
-            axis5.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.H[:mid ,i,j],color = colors[j], linestyle = '-' ,marker =    markers[0]   )  
-            axis5.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.H[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-            axis5.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.H[:mid2,i,j],color = colors2[j], linestyle = '-' ,marker =  markers[0]  )  
-            axis5.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.H[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1])     
+            axis5.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.H[:mid ,i,j],color = colors[0], linestyle = '-' ,marker =    markers[0]  , label = 'SUAVE Lower Surf')       
+            axis5.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.H[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]  , label = 'SUAVE Upper Surf')  
+            axis5.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.H[:mid2,i,j],color = colors2[0], linestyle = '-' ,marker =  markers[0]   , label = 'Xfoil Lower Surf')   
+            axis5.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.H[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1]   , label = 'Xfoil Upper Surf')       
             
-            axis6.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.Cp[:mid ,i,j],color = colors[j], linestyle = '-' ,marker =    markers[0]   )  
-            axis6.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.Cp[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]) 
-            axis6.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.Cp[:mid2,i,j],color = colors2[j], linestyle = '-' ,marker =  markers[0]  )  
-            axis6.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.Cp[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1])        
+            axis6.plot(SUAVE_data.x[:mid ,i,j],   SUAVE_data.Cp[:mid ,i,j],color = colors[0], linestyle = '-' ,marker =    markers[0]   , label = 'SUAVE Lower Surf')      
+            axis6.plot(SUAVE_data.x[mid: ,i,j],   SUAVE_data.Cp[mid: ,i,j],color = colors[1], linestyle = '--' ,marker =   markers[1]   , label = 'SUAVE Upper Surf') 
+            axis6.plot(Xfoil_data.x[:mid2,i,j],   Xfoil_data.Cp[:mid2,i,j],color = colors2[0], linestyle = '-' ,marker =  markers[0]    , label = 'Xfoil Lower Surf')   
+            axis6.plot(Xfoil_data.x[mid2:,i,j],   Xfoil_data.Cp[mid2:,i,j],color = colors2[1], linestyle = '--' ,marker =  markers[1]    , label = 'Xfoil Upper Surf')         
                 
-                
-    ## add legends for plotting
-    #plt.tight_layout()
-    #if show_legend:
-        #lines1, labels1 = fig2.axes[0].get_legend_handles_labels()
-        #fig2.legend(lines1, labels1, loc='upper center', ncol=5)
-        #plt.tight_layout()
-        #axis8.legend(loc='upper right')     
+            if (i == 0) and (j == 0):  
+                axis1.legend(loc='upper right') 
+                axis2.legend(loc='upper right')
+                axis3.legend(loc='upper right')
+                axis4.legend(loc='upper right')
+                axis5.legend(loc='upper right')
+                axis6.legend(loc='upper right')
+               
     return    
 
 
+def propeller_bl_test():
 
-def surrogates():
+    ti = time.time()     
     net                       = Battery_Propeller()   
     net.number_of_propeller_engines     = 2    
     
@@ -356,42 +373,40 @@ def surrogates():
     gearbox.inputs.power      = 183451.9920076409
     gearbox.compute() 
     
-    prop_a                          = SUAVE.Components.Energy.Converters.Propeller()  
-    prop_a.number_of_blades         = 3
-    prop_a.number_of_engines        = 1
-    prop_a.freestream_velocity      = 49.1744 
-    prop_a.tip_radius               = 1.0668
-    prop_a.hub_radius               = 0.21336 
-    prop_a.design_tip_mach          = 0.65
-    prop_a.angular_velocity         = gearbox.inputs.speed # 207.16160479940007 
-    prop_a.design_Cl                = 0.7
-    prop_a.design_altitude          = 1. * Units.km      
-    prop_a.airfoil_geometry         = ['../Vehicles/Airfoils/NACA_4412.txt','../Vehicles/Airfoils/Clark_y.txt']
+    propeller                          = SUAVE.Components.Energy.Converters.Propeller()  
+    propeller.number_of_blades         = 3
+    propeller.number_of_engines        = 1
+    propeller.freestream_velocity      = 49.1744 
+    propeller.tip_radius               = 1.0668
+    propeller.hub_radius               = 0.21336 
+    propeller.design_tip_mach          = 0.65
+    propeller.angular_velocity         = gearbox.inputs.speed # 207.16160479940007 
+    propeller.design_Cl                = 0.7
+    propeller.design_altitude          = 1. * Units.km      
+    propeller.airfoil_geometry         = ['../../XX_Suplementary/Aircraft_Models/Airfoils/NACA_4412.txt',
+                                          '../../XX_Suplementary/Aircraft_Models/Airfoils/Clark_y.txt']
 
-    prop_a.airfoil_polars           = [['../Vehicles/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
-                                        '../Vehicles/Airfoils/Polars/NACA_4412_polar_Re_100000.txt',
-                                        '../Vehicles/Airfoils/Polars/NACA_4412_polar_Re_200000.txt',
-                                        '../Vehicles/Airfoils/Polars/NACA_4412_polar_Re_500000.txt',
-                                        '../Vehicles/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt'],
-                                       ['../Vehicles/Airfoils/Polars/Clark_y_polar_Re_50000.txt',
-                                        '../Vehicles/Airfoils/Polars/Clark_y_polar_Re_100000.txt',
-                                        '../Vehicles/Airfoils/Polars/Clark_y_polar_Re_200000.txt',
-                                        '../Vehicles/Airfoils/Polars/Clark_y_polar_Re_500000.txt',
-                                        '../Vehicles/Airfoils/Polars/Clark_y_polar_Re_1000000.txt']] 
+    propeller.airfoil_polars           = [['../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/NACA_4412_polar_Re_100000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/NACA_4412_polar_Re_200000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/NACA_4412_polar_Re_500000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt'],
+                                       ['../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/Clark_y_polar_Re_50000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/Clark_y_polar_Re_100000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/Clark_y_polar_Re_200000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/Clark_y_polar_Re_500000.txt',
+                                        '../../XX_Suplementary/Aircraft_Models/Airfoils/Polars/Clark_y_polar_Re_1000000.txt']] 
 
-    prop_a.airfoil_polar_stations  = [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1]  
-    prop_a.design_thrust           = 3054.4809132125697
-    prop_a                         = propeller_design(prop_a)  
-    
-    # plot propeller 
-    plot_propeller(prop_a)
-  
+    #propeller.airfoil_polar_stations  = [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1]  
+    propeller.airfoil_polar_stations  = [0,0,0,0,0,0,1,1,1,1]  
+    propeller.design_thrust           = 3054.4809132125697
+    propeller                         = propeller_design(propeller,number_of_stations=10,surrogate_type= 'svr')   
     
     # Find the operating conditions
     atmosphere            = SUAVE.Analyses.Atmospheric.US_Standard_1976()
-    atmosphere_conditions =  atmosphere.compute_values(prop_a.design_altitude)
+    atmosphere_conditions =  atmosphere.compute_values(propeller.design_altitude)
     
-    V  = prop_a.freestream_velocity 
+    V  = propeller.freestream_velocity 
     
     conditions                                          = SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics()
     conditions._size                                    = 1
@@ -408,47 +423,152 @@ def surrogates():
     conditions.frames.inertial.velocity_vector   = np.array([[V,0,0]]) 
     
     # Create and attach this propeller 
-    prop_a.inputs.omega  = np.array(prop_a.angular_velocity,ndmin=2) 
+    propeller.inputs.omega  = np.array(propeller.angular_velocity,ndmin=2) 
     
     # propeller with airfoil results 
-    prop_a.inputs.pitch_command                = 0.0*Units.degree
-    F_a, Q_a, P_a, Cplast_a ,output_a , etap_a = prop_a.spin(conditions)  
-    plot_results(output_a, prop_a,'blue','-','s')   
+    propeller.inputs.pitch_command                = 0.0*Units.degree
+    F, Q, P, Cplast,outputs , eta = propeller.spin(conditions)  
      
     rho                = conditions.freestream.density                 
     dyna_visc          = conditions.freestream.dynamic_viscosity            
-    alpha_blade        = output_a.disc_effective_angle_of_attack 
-    Vt_2d              = output_a.disc_tangential_velocity  
-    Va_2d              = output_a.disc_axial_velocity                
-    blade_chords       = prop_a.chord_distribution         
-    r                  = prop_a.radius_distribution      
+    alpha_blade        = outputs.disc_effective_angle_of_attack 
+    Vt_2d              = outputs.disc_tangential_velocity  
+    Va_2d              = outputs.disc_axial_velocity                
+    blade_chords       = propeller.chord_distribution         
+    r                  = propeller.radius_distribution      
     num_sec            = len(r) 
-    num_azi            = len(output_a.disc_effective_angle_of_attack[0,0,:])   
+    num_azi            = len(outputs.disc_effective_angle_of_attack[0,0,:])   
     U_blade            = np.sqrt(Vt_2d**2 + Va_2d **2)
     Re_blade           = U_blade*np.repeat(np.repeat(blade_chords[np.newaxis,:],1,axis=0)[:,:,np.newaxis],num_azi,axis=2)*\
                           np.repeat(np.repeat((rho/dyna_visc),num_sec,axis=1)[:,:,np.newaxis],num_azi,axis=2)  
+    
 
     # ------------------------------------------------------------
-    # ****** TRAILING EDGE BOUNDARY LAYER PROPERTY CALCULATIONS  ****** 
-    bl_results = evaluate_boundary_layer_surrogates(prop_a,alpha_blade,Re_blade)
-    
-    bl_results.ls_theta 
-    bl_results.ls_delta   
-    bl_results.ls_delta_star 
-    bl_results.ls_cf      
-    bl_results.ls_Ue        
-    bl_results.ls_H          
-    bl_results.us_theta  
-    bl_results.us_delta    
-    bl_results.us_delta_star
-    bl_results.us_cf     
-    bl_results.us_Ue
-    bl_results.us_H   
+    # ****** TRAILING EDGE BOUNDARY LAYER PROPERTY CALCULATIONS  ******    
+    bl_results = evaluate_boundary_layer_surrogates( propeller,alpha_blade,Re_blade)
     
 
+    tf = time.time()
+    print ('Time taken: ' + str(round((tf-ti)/60,3))  + ' min')
+    
+    plot_surrogate_validation(propeller,bl_results) 
+
     return 
- 
   
+def plot_surrogate_validation(propeller,bl_results):
+    
+    af_sur     = propeller.airfoil_bl_surrogates
+    # determine dimension of angle of attack and reynolds number  
+    Re         = np.array([1E2,1E3,1E4,1E5,1E6,1E7])
+    AoA        = np.linspace(-4,14,10)   
+    a_loc      = propeller.airfoil_polar_stations 
+    
+    # create array of colors for difference reynolds numbers 
+    colors  =['blue','darkblue']
+    colors2 =['red','darkred']
+    markers = ['o','v','s','P','p','^','D','X','*']
+    
+    fig1  = plt.figure('Prop_Ue_Vinf') 
+    fig1.set_size_inches(10, 8)   
+    fig2  = plt.figure('Prop_theta') 
+    fig2.set_size_inches(10, 8) 
+    fig3  = plt.figure('Prop_Delta Star') 
+    fig3.set_size_inches(10, 8) 
+    fig4  = plt.figure('Prop_Cf') 
+    fig4.set_size_inches(10, 8) 
+    fig5  = plt.figure('Prop_H') 
+    fig5.set_size_inches(10, 8) 
+    fig6  = plt.figure('Prop_Cp') 
+    fig6.set_size_inches(10, 8) 
+    
+    idx = 0 
+    blade_section_idx = 3 
+    for Re_i in range(len(Re)): 
+        idx += 1
+        axis_1 = fig1.add_subplot(2,3,idx)  
+        axis_2 = fig2.add_subplot(2,3,idx)  
+        axis_3 = fig3.add_subplot(2,3,idx)  
+        axis_4 = fig4.add_subplot(2,3,idx)  
+        axis_5 = fig5.add_subplot(2,3,idx)  
+        axis_6 = fig6.add_subplot(2,3,idx)  
+        
+        Common_Title = 'Re: ' + str(Re[Re_i]) 
+        axis_5.set_title('$Ue/V_{inf}$ ' +  Common_Title )
+        axis_1.set_title('Theta ' +  Common_Title  ) 
+        axis_3.set_title('$\delta$* ' +  Common_Title  )
+        axis_4.set_title('$Cf$ ' +  Common_Title  )
+        axis_5.set_title('H ' +  Common_Title  )
+        axis_2.set_title('$C_p$ ' +  Common_Title ) 
+          
+        axis_1.plot(AoA,af_sur.lower_surface_theta_vals[a_loc[blade_section_idx],:,Re_i]       ,color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Lower Surf')       
+        axis_1.plot(AoA,af_sur.upper_surface_theta_vals[a_loc[blade_section_idx],:,Re_i]      ,color = colors2[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Upper Surf')  
+        axis_2.plot(AoA,af_sur.lower_surface_dcp_dx_vals[a_loc[blade_section_idx],:,Re_i]      ,color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Lower Surf')       
+        axis_2.plot(AoA,af_sur.upper_surface_dcp_dx_vals[a_loc[blade_section_idx],:,Re_i]     ,color = colors2[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Upper Surf')   
+        axis_3.plot(AoA,af_sur.lower_surface_delta_star_vals[a_loc[blade_section_idx],:,Re_i]  ,color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Lower Surf')      
+        axis_3.plot(AoA,af_sur.upper_surface_delta_star_vals[a_loc[blade_section_idx],:,Re_i] ,color = colors2[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Upper Surf')   
+        axis_4.plot(AoA,af_sur.lower_surface_cf_vals[a_loc[blade_section_idx],:,Re_i]          ,color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Lower Surf')       
+        axis_4.plot(AoA,af_sur.upper_surface_cf_vals[a_loc[blade_section_idx],:,Re_i]         ,color = colors2[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Upper Surf')   
+        axis_5.plot(AoA,af_sur.lower_surface_Ue_vals[a_loc[blade_section_idx],:,Re_i]          ,color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Lower Surf')        
+        axis_5.plot(AoA,af_sur.upper_surface_Ue_vals[a_loc[blade_section_idx],:,Re_i]         ,color = colors2[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Upper Surf')     
+        axis_6.plot(AoA,af_sur.lower_surface_H_vals[a_loc[blade_section_idx],:,Re_i]           ,color = colors[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Lower Surf')       
+        axis_6.plot(AoA,af_sur.upper_surface_H_vals[a_loc[blade_section_idx],:,Re_i]          ,color = colors2[0], linestyle = '-' ,marker =    markers[0]    , label = 'True Upper Surf')   
+        
+
+        Re_sec  = np.ones_like(AoA)*Re[Re_i]/1E6
+        cond    = np.vstack([Re_sec,AoA]).T    
+
+        ls_theta_sur      = af_sur.lower_surface_theta_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        ls_delta_star_sur = af_sur.lower_surface_delta_star_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        ls_cf_sur         = af_sur.lower_surface_cf_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        ls_dcp_dx_sur     = af_sur.lower_surface_dcp_dx_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        ls_Ue_sur         = af_sur.lower_surface_Ue_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        ls_H_sur          = af_sur.lower_surface_H_surrogates[a_loc[blade_section_idx]].predict(cond)  
+        us_theta_sur      = af_sur.upper_surface_theta_surrogates[a_loc[blade_section_idx]].predict(cond)  
+        us_delta_star_sur = af_sur.upper_surface_delta_star_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        us_cf_sur         = af_sur.upper_surface_cf_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        us_dcp_dx_sur     = af_sur.upper_surface_dcp_dx_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        us_Ue_sur         = af_sur.upper_surface_Ue_surrogates[a_loc[blade_section_idx]].predict(cond) 
+        us_H_sur          = af_sur.upper_surface_H_surrogates[a_loc[blade_section_idx]].predict(cond)
+        
+
+
+        #ls_theta_sur      = af_sur.lower_surface_theta_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #ls_delta_star_sur = af_sur.lower_surface_delta_star_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #ls_cf_sur         = af_sur.lower_surface_cf_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #ls_dcp_dx_sur     = af_sur.lower_surface_dcp_dx_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #ls_Ue_sur         = af_sur.lower_surface_Ue_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #ls_H_sur          = af_sur.lower_surface_H_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #us_theta_sur      = af_sur.upper_surface_theta_surrogates[blade_section_idx](AoA ,Re_sec,grid=False)  
+        #us_delta_star_sur = af_sur.upper_surface_delta_star_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #us_cf_sur         = af_sur.upper_surface_cf_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #us_dcp_dx_sur     = af_sur.upper_surface_dcp_dx_surrogates[blade_section_idx](AoA ,Re_sec,grid=False)  
+        #us_Ue_sur         = af_sur.upper_surface_Ue_surrogates[blade_section_idx](AoA ,Re_sec,grid=False) 
+        #us_H_sur          = af_sur.upper_surface_H_surrogates[blade_section_idx](AoA ,Re_sec,grid=False)         
+
+          
+        axis_1.plot(AoA,ls_theta_sur       ,color = colors[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Lower Surf')       
+        axis_1.plot(AoA,us_theta_sur       ,color = colors2[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Upper Surf')  
+        axis_2.plot(AoA,ls_dcp_dx_sur      ,color = colors[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Lower Surf')       
+        axis_2.plot(AoA,us_dcp_dx_sur      ,color = colors2[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Upper Surf')   
+        axis_3.plot(AoA,ls_delta_star_sur  ,color = colors[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Lower Surf')      
+        axis_3.plot(AoA,us_delta_star_sur  ,color = colors2[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Upper Surf')   
+        axis_4.plot(AoA,ls_cf_sur          ,color = colors[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Lower Surf')       
+        axis_4.plot(AoA,us_cf_sur          ,color = colors2[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Upper Surf')   
+        axis_5.plot(AoA,ls_Ue_sur          ,color = colors[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Lower Surf')        
+        axis_5.plot(AoA,us_Ue_sur          ,color = colors2[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Upper Surf')     
+        axis_6.plot(AoA,ls_H_sur           ,color = colors[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Lower Surf')       
+        axis_6.plot(AoA,us_H_sur           ,color = colors2[1], linestyle = '-' ,marker =    markers[1]    , label = 'Sur. Upper Surf')    
+                        
+    
+        if (Re_i == 0):  
+            axis_1.legend(loc='upper left') 
+            axis_2.legend(loc='upper left')
+            axis_3.legend(loc='upper left')
+            axis_4.legend(loc='upper left')
+            axis_5.legend(loc='upper left')
+            axis_6.legend(loc='upper left')    
+    return 
+
 
 def import_NACA_4412_xfoil_results(Re_tags,AoA_tags,Npanels): 
     
@@ -491,14 +611,14 @@ def import_NACA_4412_xfoil_results(Re_tags,AoA_tags,Npanels):
                 Cp[lc,i,j]         = float(data_block_2[lc + header_2][20:28].strip()) 
             
     
-    Xfoil_data.x          = x_pts      
-    Xfoil_data.y          = y_pts      
-    Xfoil_data.Cp         = Cp         
-    Xfoil_data.Ue_Vinf    = Ue_Vinf    
-    Xfoil_data.delta_star = delta_star 
-    Xfoil_data.theta      = theta      
-    Xfoil_data.Cf         = Cf         
-    Xfoil_data.H          = H   
+    Xfoil_data.x          = np.flip(x_pts,axis = 0)    
+    Xfoil_data.y          = np.flip(y_pts   ,axis = 0)   
+    Xfoil_data.Cp         = np.flip(Cp,axis = 0)         
+    Xfoil_data.Ue_Vinf    = np.flip(Ue_Vinf ,axis = 0)   
+    Xfoil_data.delta_star = np.flip(delta_star ,axis = 0)
+    Xfoil_data.theta      = np.flip(theta,axis = 0)      
+    Xfoil_data.Cf         = np.flip(Cf   ,axis = 0)      
+    Xfoil_data.H          = np.flip( H ,axis = 0)  
     
     
     Xfoil_data.Cl      = np.array([[0.0003,0.4466,0.4737],
