@@ -21,7 +21,7 @@ def design_APC_11x_4_7_prop():
     prop.hub_radius                 = prop.tip_radius*0.15 
     prop.number_of_blades           = 2  
     prop.thrust_angle               = 0.
-    prop.VTOL_flag                  = True  
+    prop.airfoil_flag               = True 
     dimensionless_radius_chord      = np.array([[0.1552847467328054, 0.11186397023752742 ],[0.2053658303920633, 0.13710483640179336 ],[0.2554278355432604, 0.15993608699799672 ],
                                                 [0.3030954879328435, 0.1803605838023466  ],[0.3531145664409043, 0.19777019937040918 ],[0.4054803014404272, 0.21156252981016876 ],
                                                 [0.4554326051702757, 0.22053849089001235 ],[0.505361060765048 , 0.2265024325097777  ],[0.5552656682247448, 0.2294543546694648  ],
@@ -60,14 +60,15 @@ def design_APC_11x_4_7_prop():
                                       'Propellers_Rotors/E63_polar_Re_1000000.txt'] ,['Propellers_Rotors/Clark_y_polar_Re_50000.txt',
                                       'Propellers_Rotors/Clark_y_polar_Re_100000.txt','Propellers_Rotors/Clark_y_polar_Re_200000.txt',
                                       'Propellers_Rotors/Clark_y_polar_Re_500000.txt','Propellers_Rotors/Clark_y_polar_Re_1000000.txt']] 
-    prop.airfoil_polar_stations     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]   
+    prop.airfoil_polar_stations     = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]   
     airfoil_polars                  = compute_airfoil_polars(prop.airfoil_geometry, prop.airfoil_polars)  
     airfoil_cl_surs                 = airfoil_polars.lift_coefficient_surrogates 
     airfoil_cd_surs                 = airfoil_polars.drag_coefficient_surrogates         
     prop.airfoil_cl_surrogates      = airfoil_cl_surs
     prop.airfoil_cd_surrogates      = airfoil_cd_surs 
-    prop.mid_chord_aligment         = np.zeros_like(prop.chord_distribution) #  prop.chord_distribution/4. - prop.chord_distribution[0]/4.  
-    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = 402) 
-        
+    prop.mid_chord_aligment         = np.zeros_like(prop.chord_distribution) #  prop.chord_distribution/4. - prop.chord_distribution[0]/4.
+    prop.number_of_airfoil_section_points = 202    
+    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
+    prop.airfoil_flag               = True  
     
     return prop

@@ -52,13 +52,17 @@ def design_SR7_8_blade_prop():
                                         path+'/NACA_65_215_polar_Re_1000000.txt'],[path+'/NACA_15_polar_Re_50000.txt',
                                         path+'/NACA_15_polar_Re_100000.txt',path+'/NACA_15_polar_Re_200000.txt',
                                         path+'/NACA_15_polar_Re_500000.txt',path+'/NACA_15_polar_Re_1000000.txt']] 
-    prop.airfoil_polar_stations     = list(np.ones(dim))
+
+    airfoil_polar_stations          = np.zeros(dim)
+    prop.airfoil_polar_stations     = list(airfoil_polar_stations.astype(int) )      
     airfoil_polars                  = compute_airfoil_polars(prop.airfoil_geometry, prop.airfoil_polars)  
     airfoil_cl_surs                 = airfoil_polars.lift_coefficient_surrogates 
     airfoil_cd_surs                 = airfoil_polars.drag_coefficient_surrogates         
     prop.airfoil_cl_surrogates      = airfoil_cl_surs
     prop.airfoil_cd_surrogates      = airfoil_cd_surs    
     prop.mid_chord_aligment         = np.zeros_like(prop.radius_distribution * np.tan(blade_sweep) ) 
-    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = 402)
+    prop.number_of_airfoil_section_points = 402    
+    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
+    prop.airfoil_flag               = True 
     
     return prop

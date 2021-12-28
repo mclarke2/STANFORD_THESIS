@@ -18,8 +18,7 @@ def design_APC_11x45_prop():
     prop.tip_radius                 = 0.28/2
     prop.hub_radius                 = prop.tip_radius*0.15 
     prop.number_of_blades           = 2  
-    prop.thrust_angle               = 89.99 * Units.degrees    
-    prop.VTOL_flag                  = True 
+    prop.thrust_angle               = 0 * Units.degrees     
     r_R                             = np.array([0.15,0.2,0.25, 0.3,0.35,0.4,0.45,0.5,0.55	
                                                 ,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,0.99  ]) 
     b_R                             = np.array([ 0.124,0.146,0.167,0.18,0.188,0.19,0.189,0.184,0.175,0.164,
@@ -55,7 +54,9 @@ def design_APC_11x45_prop():
     prop.airfoil_cl_surrogates      = airfoil_cl_surs
     prop.airfoil_cd_surrogates      = airfoil_cd_surs 
     prop.mid_chord_aligment         = np.zeros_like(prop.chord_distribution) #  prop.chord_distribution/4. - prop.chord_distribution[0]/4.  
-    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = 402) 
+    prop.number_of_airfoil_section_points = 402    
+    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
+    prop.airfoil_flag               = True 
         
  
     return prop

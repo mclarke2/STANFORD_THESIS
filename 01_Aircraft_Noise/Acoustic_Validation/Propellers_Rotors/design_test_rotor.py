@@ -3,9 +3,7 @@ import SUAVE
 from SUAVE.Core import Units, Data 
 from SUAVE.Components.Energy.Networks.Battery_Propeller                                   import Battery_Propeller
 from SUAVE.Methods.Propulsion                                                             import propeller_design 
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars  import compute_airfoil_polars
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_boundary_layer_properties\
-     import build_boundary_layer_surrogates
+from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars  import compute_airfoil_polars 
 from scipy.interpolate import interp1d 
 import numpy as np 
 import matplotlib.pyplot as plt 
@@ -39,6 +37,7 @@ def design_test_rotor():
     prop.airfoil_cd_surrogates      = airfoil_cd_surs    
     prop.mid_chord_aligment         = np.zeros_like(prop.chord_distribution) #  np.zeros_like(prop.chord_distribution) # prop.chord_distribution/4. - prop.chord_distribution[0]/4.
     prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = 402)
+    prop.airfoil_flag               = True 
     plot_propeller(prop) 
     
     return prop

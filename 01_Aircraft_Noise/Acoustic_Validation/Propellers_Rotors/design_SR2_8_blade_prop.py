@@ -54,7 +54,7 @@ def design_SR2_8_blade_prop():
                                         path+'/NACA_65_215_polar_Re_1000000.txt'],[path+'/NACA_15_polar_Re_50000.txt',
                                         path+'/NACA_15_polar_Re_100000.txt',path+'/NACA_15_polar_Re_200000.txt',
                                         path+'/NACA_15_polar_Re_500000.txt',path+'/NACA_15_polar_Re_1000000.txt']] 
-    airfoil_polar_stations     =  np.zeros(dim)
+    airfoil_polar_stations          =  np.zeros(dim)
     n                               = len(prop.twist_distribution)  
     airfoil_polar_stations[round(n*0.40):] = 1
     prop.airfoil_polar_stations     = list(airfoil_polar_stations.astype(int) ) 
@@ -63,7 +63,9 @@ def design_SR2_8_blade_prop():
     airfoil_cd_surs                 = airfoil_polars.drag_coefficient_surrogates         
     prop.airfoil_cl_surrogates      = airfoil_cl_surs
     prop.airfoil_cd_surrogates      = airfoil_cd_surs    
+    prop.airfoil_flag               = True 
     prop.mid_chord_aligment         = np.zeros_like(prop.chord_distribution) #  np.zeros_like(prop.chord_distribution) # prop.chord_distribution/4. - prop.chord_distribution[0]/4.
-    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = 402)
+    prop.number_of_airfoil_section_points = 402    
+    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
  
     return prop

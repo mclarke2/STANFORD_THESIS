@@ -20,8 +20,6 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoi
 from SUAVE.Plots.Geometry import plot_propeller 
 from SUAVE.Methods.Propulsion import propeller_design
 from SUAVE.Components.Energy.Networks.Battery_Propeller import Battery_Propeller
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_boundary_layer_properties\
-     import evaluate_boundary_layer_surrogates ,  build_boundary_layer_surrogates
 import matplotlib.pyplot as plt  
 import matplotlib.cm as cm
 import os 

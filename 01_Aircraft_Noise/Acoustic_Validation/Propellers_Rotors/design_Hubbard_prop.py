@@ -30,7 +30,7 @@ def design_Hubbard_prop():
                                                  0.040547945,0.038630137,0.036986301,0.034246575])*500 
     
     
-    dim = 30                                
+    dim = 20                                
     new_radius_distribution         = np.linspace(0.3,0.98,dim )
     func_twist_distribution         = interp1d(r_R, (1.528 + beta )*Units.degrees , kind='cubic')
     func_chord_distribution         = interp1d(r_R,  b_D*2*prop.tip_radius       , kind='cubic')
@@ -47,14 +47,17 @@ def design_Hubbard_prop():
     prop.airfoil_polars               = [['Propellers_Rotors/Clark_y_polar_Re_50000.txt','Propellers_Rotors/Clark_y_polar_Re_100000.txt',
                                           'Propellers_Rotors/Clark_y_polar_Re_200000.txt','Propellers_Rotors/Clark_y_polar_Re_500000.txt',
                                           'Propellers_Rotors/Clark_y_polar_Re_1000000.txt']]
-    prop.airfoil_polar_stations       = list(np.zeros(dim))   
+    airfoil_polar_stations            = np.zeros(dim)
+    prop.airfoil_polar_stations       = list(airfoil_polar_stations.astype(int) )     
     airfoil_polars                    = compute_airfoil_polars( prop.airfoil_geometry, prop.airfoil_polars)  
     airfoil_cl_surs                   = airfoil_polars.lift_coefficient_surrogates 
     airfoil_cd_surs                   = airfoil_polars.drag_coefficient_surrogates         
     prop.airfoil_cl_surrogates        = airfoil_cl_surs
     prop.airfoil_cd_surrogates        = airfoil_cd_surs     
     prop.mid_chord_aligment           = np.zeros_like(prop.chord_distribution) #  prop.chord_distribution/4. - prop.chord_distribution[0]/4.
-    prop.airfoil_data                 = import_airfoil_geometry(prop.airfoil_geometry, npoints = 402) 
+    prop.number_of_airfoil_section_points = 302    
+    prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
+    prop.airfoil_flag               = True 
     
     
     return prop
