@@ -66,8 +66,8 @@ def main():
  
     plot_parmeters = Data( 
         lw  = 2,                             # line_width               
-        m = 10,                            # markersize               
-        lf = 10,                            # legend_font_size         
+        m = 10,                              # markersize               
+        lf = 10,                             # legend_font_size         
         Slc = ['black','dimgray','silver' ], # SUAVE_line_colors        
         Slm = '^',                           # SUAVE_line_markers       
         Sls = '-',                           # SUAVE_line_styles        
@@ -81,12 +81,12 @@ def main():
 
     ti = time.time()      
     
-    #Test_Cases_Group_1(plot_parmeters)
+    Test_Cases_Group_1(plot_parmeters)
     Test_Cases_Group_2(plot_parmeters)
-    #Test_Cases_Group_3(plot_parmeters)    
-    #Test_Cases_Group_4(plot_parmeters) 
+    Test_Cases_Group_3(plot_parmeters)    
+    Test_Cases_Group_4(plot_parmeters) 
     Test_Cases_Group_5(plot_parmeters)
-    #Test_Cases_Group_6(plot_parmeters) # NOT WORKING 
+    Test_Cases_Group_6(plot_parmeters) # NOT WORKING 
     
 
     tf           = time.time()
@@ -101,13 +101,13 @@ def Test_Cases_Group_1(plot_parmeters):
     '''Harmonic Noise Validation'''
     
     ''' Acoustic and Aerodynamic Study of a Pusher-Propeller Aircraft Model by Soderman and Horne '''   
-    #Test_Case_1_1(plot_parmeters)    # OK 
+    Test_Case_1_1(plot_parmeters)    # OK 
     
     ''' Sound Measurements for Five Shrouded Propellers at Static Conditions by Hubbard '''      
     Test_Case_1_11(plot_parmeters)   # OK 
     
     ''' Propeller Noise Tests in the German-Dutch Wind Tunnel by Dobrzynski '''    
-    #Test_Case_1_14(plot_parmeters)    # BAD  
+    Test_Case_1_14(plot_parmeters)    # BAD  
     return 
 
 def Test_Cases_Group_2(plot_parmeters):
