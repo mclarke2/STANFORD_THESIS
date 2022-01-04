@@ -18,6 +18,7 @@ from SUAVE.Plots.Geometry                                                 import
 from SUAVE.Plots.Performance.Mission_Plots                                import *
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty                           import empty
 from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import compute_component_centers_of_gravity
+from SUAVE.Methods.Noise.Fidelity_One.Noise_Tools.generate_microphone_points import generate_building_microphone_points
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_planform import wing_planform
 from copy import deepcopy
 import pickle 
@@ -83,7 +84,7 @@ def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,con
     configs  = configs_setup(vehicle)
 
     # vehicle analyses
-    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y)
+    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range)
 
     # mission analyses
     mission  = mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery)
@@ -100,19 +101,19 @@ def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,con
 #   Define the Vehicle Analyses
 # ----------------------------------------------------------------------
 
-def analyses_setup(configs,N_gm_x,N_gm_y):
+def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range):
 
     analyses = SUAVE.Analyses.Analysis.Container()
 
     # build a base analysis for each config
     for tag,config in configs.items():
-        analysis = base_analysis(config,N_gm_x,N_gm_y)
+        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range)
         analyses[tag] = analysis
 
     return analyses
 
 
-def base_analysis(vehicle,N_gm_x,N_gm_y):
+def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range):
 
     # ------------------------------------------------------------------
     #   Initialize the Analyses
@@ -141,13 +142,17 @@ def base_analysis(vehicle,N_gm_x,N_gm_y):
     # ------------------------------------------------------------------
     #  Noise Analysis
     noise = SUAVE.Analyses.Noise.Fidelity_One()   
-    noise.geometry = vehicle
+    noise.geometry = vehicle 
+    #urban_canyon_microphone_array,building_locations,building_dimensions,N_x,N_y,N_z = urban_canyon_microphone_setup() 
+    #noise.settings.urban_canyon_microphone_locations    = urban_canyon_microphone_array
+    #noise.settings.urban_canyon_building_locations      = building_locations
+    #noise.settings.urban_canyon_building_dimensions     = building_dimensions  
     noise.settings.level_ground_microphone_x_resolution = N_gm_x
     noise.settings.level_ground_microphone_y_resolution = N_gm_y
     noise.settings.level_ground_microphone_min_y        = 1E-6
     noise.settings.level_ground_microphone_max_y        = 2500
     noise.settings.level_ground_microphone_min_x        = 1E-6 
-    noise.settings.level_ground_microphone_max_x        = 70 * Units.nmi # 10.42109701 * Units.nmi  
+    noise.settings.level_ground_microphone_max_x        = aircraft_range
     analyses.append(noise)
 
     # ------------------------------------------------------------------
@@ -414,15 +419,12 @@ def vehicle_setup():
     rotor.design_Cl                = 0.7
     rotor.design_altitude          = 500 * Units.feet                   
     rotor.design_thrust            = Lift/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition 
-    ospath    = os.path.abspath(__file__)
-    separator = os.path.sep
-    rel_path  = os.path.dirname(ospath) + separator 
-    rotor.airfoil_geometry         =  [ rel_path + '/Airfoils/NACA_4412.txt']
-    rotor.airfoil_polars           = [[ rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
+    rotor.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
     rotor.airfoil_polar_stations   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     rotor                          = propeller_design(rotor)   
     rotor.variable_pitch           = True 
@@ -706,6 +708,22 @@ def configs_setup(vehicle):
     configs.append(config)
 
     return configs 
+
+
+def urban_canyon_microphone_setup():  
+    
+    # define building locations 
+    building_locations  = [[100,0,0] ,[300,150,0]] #,[400,-200,0],[900,150,0],[500,100,0],[700,-125,0]] # [[x,y,z]]     
+     
+    # define building dimensions  
+    building_dimensions = [[200,100,100*Units.feet],[200,200,55]] # ,[160,160,90],[200,200,50],[200,200,55],[200,200,80]] # [[length,width,height]]     
+    
+    N_X = 3
+    N_Y = 3
+    N_Z = 9 
+    mic_locations  = generate_building_microphone_points(building_locations,building_dimensions,N_x = N_X ,N_y = N_Y ,N_z = N_Z ) 
+     
+    return mic_locations,building_locations ,building_dimensions,N_X ,N_Y ,N_Z 
 
 def mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery):
         

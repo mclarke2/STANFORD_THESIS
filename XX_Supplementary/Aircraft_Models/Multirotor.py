@@ -34,7 +34,7 @@ def main():
     control_points   = 30
     recharge_battery = False
     N_gm_x           =  10
-    N_gm_y           =  10
+    N_gm_y           =  5
      
     # build the vehicle, configs, and analyses 
     configs, analyses = full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y ) 
@@ -74,7 +74,7 @@ def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,con
     configs  = configs_setup(vehicle)
     
     # vehicle analyses
-    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y)
+    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range)
 
     # mission analyses
     mission  = mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery )
@@ -90,12 +90,12 @@ def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,con
 #   Define the Vehicle Analyses
 # ----------------------------------------------------------------------
 
-def analyses_setup(configs,N_gm_x,N_gm_y):
+def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range):
     analyses = SUAVE.Analyses.Analysis.Container()
 
     # build a base analysis for each config
     for tag,config in configs.items():
-        analysis = base_analysis(config,N_gm_x,N_gm_y)
+        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range)
         analyses[tag] = analysis 
         
     return analyses
@@ -310,15 +310,12 @@ def vehicle_setup():
     rotor.design_Cl              = 0.7
     rotor.design_altitude        = 1000 * Units.feet                   
     rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition
-    ospath    = os.path.abspath(__file__)
-    separator = os.path.sep
-    rel_path  = os.path.dirname(ospath) + separator 
-    rotor.airfoil_geometry         =  [ rel_path + '/Airfoils/NACA_4412.txt']
-    rotor.airfoil_polars           = [[ rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                      rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
+    rotor.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                        '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
     rotor.airfoil_polar_stations = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]      
     rotor.variable_pitch         = True 
     rotor                        = propeller_design(rotor)     
@@ -491,7 +488,7 @@ def configs_setup(vehicle):
     
     return configs
 
-def base_analysis(vehicle,N_gm_x,N_gm_y):
+def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range):
 
     # ------------------------------------------------------------------
     #   Initialize the Analyses
@@ -520,15 +517,15 @@ def base_analysis(vehicle,N_gm_x,N_gm_y):
 
     # ------------------------------------------------------------------
     #  Noise Analysis
-    noise = SUAVE.Analyses.Noise.Fidelity_One()   
-    noise.geometry = vehicle
-    noise.settings.level_ground_microphone_x_resolution = N_gm_x
-    noise.settings.level_ground_microphone_y_resolution = N_gm_y
-    noise.settings.level_ground_microphone_min_y        = 1E-6
-    noise.settings.level_ground_microphone_max_y        = 2500
-    noise.settings.level_ground_microphone_min_x        = 1E-6  
-    noise.settings.level_ground_microphone_max_x        = 35 * Units.nmi #  3.86960739 * Units.nmi 
-    analyses.append(noise)
+    #noise = SUAVE.Analyses.Noise.Fidelity_One()   
+    #noise.geometry = vehicle
+    #noise.settings.level_ground_microphone_x_resolution = N_gm_x
+    #noise.settings.level_ground_microphone_y_resolution = N_gm_y
+    #noise.settings.level_ground_microphone_min_y        = 1E-6
+    #noise.settings.level_ground_microphone_max_y        = 2500
+    #noise.settings.level_ground_microphone_min_x        = 1E-6  
+    #noise.settings.level_ground_microphone_max_x        = aircraft_range
+    #analyses.append(noise)
     
     # ------------------------------------------------------------------
     #  Energy
@@ -809,10 +806,10 @@ def plot_results(results,line_style='bo-'):
     plot_battery_degradation(results, line_style)    
     
     # Plot noise level
-    plot_ground_noise_levels(results)
+    #plot_ground_noise_levels(results)
     
     # Plot noise contour
-    plot_flight_profile_noise_contours(results) 
+    #plot_flight_profile_noise_contours(results) 
     
     return
 

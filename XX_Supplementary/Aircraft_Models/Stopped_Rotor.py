@@ -12,13 +12,14 @@ import os
 import pickle
 from SUAVE.Plots.Performance.Mission_Plots import *  
 from SUAVE.Plots.Geometry   import * 
-from SUAVE.Components.Energy.Networks.Lift_Cruise              import Lift_Cruise
-from SUAVE.Methods.Power.Battery.Sizing                        import initialize_from_mass 
-from SUAVE.Methods.Power.Battery.Sizing                        import initialize_from_circuit_configuration 
-from SUAVE.Methods.Weights.Correlations.Propulsion             import nasa_motor
-from SUAVE.Methods.Propulsion.electric_motor_sizing            import size_optimal_motor
-from SUAVE.Methods.Propulsion                                  import propeller_design   
-from SUAVE.Methods.Weights.Buildups.eVTOL.empty                import empty
+from SUAVE.Components.Energy.Networks.Lift_Cruise                         import Lift_Cruise
+from SUAVE.Methods.Power.Battery.Sizing                                   import initialize_from_mass 
+from SUAVE.Methods.Geometry.Two_Dimensional.Planform                      import segment_properties
+from SUAVE.Methods.Power.Battery.Sizing                                   import initialize_from_circuit_configuration 
+from SUAVE.Methods.Weights.Correlations.Propulsion                        import nasa_motor
+from SUAVE.Methods.Propulsion.electric_motor_sizing                       import size_optimal_motor
+from SUAVE.Methods.Propulsion                                             import propeller_design   
+from SUAVE.Methods.Weights.Buildups.eVTOL.empty                           import empty
 from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import compute_component_centers_of_gravity
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
 import vsp 
@@ -39,7 +40,7 @@ def main():
     flights_per_day  = 1 
     aircraft_range   = 70 *Units.nmi
     reserve_segment  = False 
-    control_points   = 30
+    control_points   =  10
     recharge_battery = False
     N_gm_x           =  10
     N_gm_y           =  10
@@ -81,7 +82,7 @@ def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,con
     plt.show()
 
     # vehicle analyses
-    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y)
+    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range)
 
     # mission analyses
     mission  = mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery )
@@ -191,6 +192,7 @@ def vehicle_setup():
 
     # compute reference properties 
     wing_segmented_planform(wing, overwrite_reference = True ) 
+    wing = segment_properties(wing)
     vehicle.reference_area                = wing.areas.reference   
         
     # add to vehicle 
@@ -647,16 +649,13 @@ def vehicle_setup():
     propeller.design_altitude        = 2500 * Units.feet
     propeller.design_thrust          = 2500 #7000
     propeller.rotation               = 1
-    propeller.variable_pitch         = True
-    ospath    = os.path.abspath(__file__)
-    separator = os.path.sep
-    rel_path  = os.path.dirname(ospath) + separator  
-    propeller.airfoil_geometry       =  [rel_path + '/Airfoils/NACA_4412.txt']
-    propeller.airfoil_polars         = [[rel_path + '/Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]] 
+    propeller.variable_pitch         = True 
+    propeller.airfoil_geometry       =  ['../Airfoils/NACA_4412.txt']
+    propeller.airfoil_polars         = [['../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]] 
     propeller.airfoil_polar_stations = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     propeller                        = propeller_design(propeller)
     
@@ -682,12 +681,12 @@ def vehicle_setup():
     rotor.design_altitude            = 20 * Units.feet                     
     rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition
     rotor.variable_pitch             = True 
-    rotor.airfoil_geometry           =  [rel_path + 'Airfoils/NACA_4412.txt']
-    rotor.airfoil_polars             = [[rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                         rel_path + 'Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]
+    rotor.airfoil_geometry           =  ['../Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars             = [['../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                         '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]
 
     rotor.airfoil_polar_stations     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     rotor                            = propeller_design(rotor)
@@ -798,18 +797,18 @@ def vehicle_setup():
 #   Define the Vehicle Analyses
 # ----------------------------------------------------------------------
 
-def analyses_setup(configs,N_gm_x,N_gm_y):
+def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range):
 
     analyses = SUAVE.Analyses.Analysis.Container()
 
     # build a base analysis for each config
     for tag,config in configs.items():
-        analysis = base_analysis(config,N_gm_x,N_gm_y)
+        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range)
         analyses[tag] = analysis
 
     return analyses
 
-def base_analysis(vehicle,N_gm_x,N_gm_y):
+def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range):
 
     # ------------------------------------------------------------------
     #   Initialize the Analyses
@@ -844,7 +843,7 @@ def base_analysis(vehicle,N_gm_x,N_gm_y):
     noise.settings.level_ground_microphone_min_y        = 1E-6
     noise.settings.level_ground_microphone_max_y        = 2500
     noise.settings.level_ground_microphone_min_x        = 1E-6  
-    noise.settings.level_ground_microphone_max_x        = 70 * Units.nmi # 12.8587771 * Units.nmi 
+    noise.settings.level_ground_microphone_max_x        = aircraft_range
     analyses.append(noise)
     
     # ------------------------------------------------------------------
