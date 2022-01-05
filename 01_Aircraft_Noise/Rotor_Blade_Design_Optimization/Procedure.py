@@ -13,9 +13,7 @@ from SUAVE.Analyses.Mission.Segments.Conditions                                 
 from SUAVE.Analyses.Mission.Segments.Segment                                              import Segment 
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry \
      import import_airfoil_geometry 
-from SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics import Aerodynamics
-# Routines  
-import Missions 
+from SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics import Aerodynamics 
 
 # ----------------------------------------------------------------------        
 #   Setup
@@ -72,7 +70,9 @@ def post_process(nexus):
     rotor     = network.lift_rotors.rotor 
     
     
+    alpha         = rotor.noise_aero_acoustic_obj_weight
     r             = rotor.radius_distribution 
+    epsilon       = rotor.optimization_slack_constaint
     c             = rotor.chord_distribution
     B             = rotor.number_of_blades
     omega         = rotor.angular_velocity
@@ -89,8 +89,8 @@ def post_process(nexus):
     mu             = atmo_data.dynamic_viscosity[0]  
 
     # Run Conditions     
-    theta                   = np.linspace(1,179,21)
-    S                       = 4. 
+    theta                   = np.linspace(30,150,5) + 1E-1
+    S                       = 50. 
     ctrl_pts                = 1
 
     # microphone locations
@@ -134,48 +134,69 @@ def post_process(nexus):
     
     # Run Fidelity One    
     propeller_noise   = propeller_mid_fidelity(network,acoustic_outputs,segment,settings,source = 'lift_rotors')   
-    summary.SPL_dBA   = np.mean(propeller_noise.SPL_dBA)
+    Acoustic_Metric   = np.max(np.nan_to_num(propeller_noise.SPL_dBA))/65
  
     # thrust/power constraint
     if rotor.design_thrust == None:
-        summary.thrust_power_residual = 0.005*rotor.design_thrust - abs(power[0][0] - rotor.design_power)    # error bound = 0.5 % 
-    
+        summary.thrust_power_residual = epsilon*rotor.design_power - abs(power[0][0] - rotor.design_power)
+        Aerodynamic_Metric = thrust[0][0]/1000 
+        
     if rotor.design_power == None:
-        summary.thrust_power_residual = 0.005*rotor.design_thrust - abs(thrust[0][0] - rotor.design_thrust)    
- 
-
+        summary.thrust_power_residual = epsilon*rotor.design_thrust - abs(thrust[0][0] - rotor.design_thrust)
+        Aerodynamic_Metric = power[0][0]/100000  
+        
     # Cl constraint  
-    summary.design_cl_residual  =  rotor.design_Cl  - np.mean(noise_data .lift_coefficient)
-
+    summary.design_cl_residual  =  rotor.design_Cl - np.mean(noise_data.lift_coefficient) 
 
     # blade taper consraint 
     blade_taper = c[-1]/c[0]
-    summary.blade_taper_residual  = blade_taper - rotor.design_taper 
+    summary.blade_taper_residual  = blade_taper - rotor.taper
 
     # blade solidity constraint                   
     blade_area = sp.integrate.cumtrapz(B*c, r-r[0])
     sigma      = blade_area[-1]/(np.pi*R**2)    
-    summary.blade_solidity_residual  = 0.2 - sigma   
+    summary.blade_solidity_residual  = sigma - rotor.solidity  
 
     # figure of merit constaint  
     Area   = np.pi*(R**2)
-    FM     = (thrust*np.sqrt(thrust/2*rho*Area))/power
-    summary.figure_of_merit_residual  = FM[0][0] - rotor.design_figure_of_merit 
+    FM     = (thrust[0][0]*np.sqrt(thrust[0][0]/2*rho*Area))/power
+    summary.figure_of_merit_residual  = epsilon*rotor.design_figure_of_merit  - abs(FM[0][0] - rotor.design_figure_of_merit)  
     
+    
+    # monotimic increasing twist and chord constaints
+    summary.c0_min_c1 = rotor.chord_pivots[0] - rotor.chord_pivots[1]
+    summary.c1_min_c2 = rotor.chord_pivots[1] - rotor.chord_pivots[2]
+    summary.c2_min_c3 = rotor.chord_pivots[2] - rotor.chord_pivots[3]
+    summary.t0_min_t1 = rotor.twist_pivots[0] - rotor.twist_pivots[1]
+    summary.t1_min_t2 = rotor.twist_pivots[1] - rotor.twist_pivots[2]
+    summary.t2_min_t3 = rotor.twist_pivots[2] - rotor.twist_pivots[3] 
+    if rotor.blade_optimization_pivots == 5:
+        summary.c3_min_c4 = rotor.chord_pivots[3] - rotor.chord_pivots[4]
+        summary.t3_min_t4 = rotor.twist_pivots[3] - rotor.twist_pivots[4]  
 
-    summary.SPL_dBA 
-    summary.thrust_power_residual 
-    summary.blade_taper_residual 
-    summary.max_cl_residual 
-    summary.blade_solidity_residual 
-    summary.figure_of_merit_residual   
-      
-    print("Average SPL             : " + str(summary.SPL_dBA)) 
+    # print 
+    summary.Aero_Acoustic_Obj =  Aerodynamic_Metric*alpha + Acoustic_Metric *(1-alpha)  
+    print("Aero_Acoustic_Obj       : " + str(summary.Aero_Acoustic_Obj)) 
+    if rotor.design_thrust == None: 
+        print("Power                   : " + str(power[0][0])) 
+    if rotor.design_power == None: 
+        print("Thrust                  : " + str(thrust[0][0]))   
+    print("Average SPL             : " + str(Acoustic_Metric)) 
+    print("c0 - c1                 : " + str(summary.c0_min_c1))
+    print("c1 - c2                 : " + str(summary.c1_min_c2))
+    print("c2 - c3                 : " + str(summary.c2_min_c3))
+    if rotor.blade_optimization_pivots == 5:
+        print("c3 - c4                 : " + str(summary.c3_min_c4))
+    print("t0 - t1                 : " + str(summary.t0_min_t1))
+    print("t1 - t2                 : " + str(summary.t1_min_t2))
+    print("t2 - t3                 : " + str(summary.t2_min_t3))
+    if rotor.blade_optimization_pivots == 5:
+        print("t3 - t4                 : " + str(summary.t3_min_t4)) 
     print("Thrust/Power Residual   : " + str(summary.thrust_power_residual)) 
     print("Blade Taper Residual    : " + str(summary.blade_taper_residual) )
     print("Design CL Residual      : " + str(summary.design_cl_residual)) 
-    print("Blade Solidity Residual : " + str(summary.blade_solidity_residual)) 
-    print("Figure of Merit Residual: " + str(summary.figure_of_merit_residual)) 
+    #print("Blade Solidity Residual : " + str(summary.blade_solidity_residual)) 
+    #print("Figure of Merit Residual: " + str(summary.figure_of_merit_residual)) 
     print("\n\n") 
     
     return nexus  
