@@ -22,8 +22,8 @@ from SUAVE.Methods.Propulsion                                             import
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty                           import empty
 from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import compute_component_centers_of_gravity
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
-import vsp 
-from SUAVE.Input_Output.OpenVSP.vsp_write import write
+#import vsp 
+#from SUAVE.Input_Output.OpenVSP.vsp_write import write
 import time 
 import numpy as np
 import pylab as plt
@@ -40,13 +40,14 @@ def main():
     flights_per_day  = 1 
     aircraft_range   = 70 *Units.nmi
     reserve_segment  = False 
-    control_points   =  10
+    run_noise_model  = True
+    control_points   =  16
     recharge_battery = False
-    N_gm_x           =  10
+    N_gm_x           =  20
     N_gm_y           =  10
     
     # build the vehicle, configs, and analyses 
-    configs, analyses = full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y )  
+    configs, analyses = full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y,run_noise_model)  
     configs.finalize()
     analyses.finalize()   
      
@@ -67,13 +68,13 @@ def main():
     save_results(results)
     
     # plot the results
-    plot_results(results) 
+    plot_results(results,run_noise_model) 
     return 
 
 # ----------------------------------------------------------------------
 #   Analysis Setup
 # ----------------------------------------------------------------------
-def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y):  
+def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y,run_noise_model):  
     
     # vehicle data
     vehicle  = vehicle_setup()
@@ -82,7 +83,7 @@ def full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,con
     plt.show()
 
     # vehicle analyses
-    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range)
+    configs_analyses = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model)
 
     # mission analyses
     mission  = mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery )
@@ -797,18 +798,18 @@ def vehicle_setup():
 #   Define the Vehicle Analyses
 # ----------------------------------------------------------------------
 
-def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range):
+def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
 
     analyses = SUAVE.Analyses.Analysis.Container()
 
     # build a base analysis for each config
     for tag,config in configs.items():
-        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range)
+        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range,run_noise_model)
         analyses[tag] = analysis
 
     return analyses
 
-def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range):
+def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
 
     # ------------------------------------------------------------------
     #   Initialize the Analyses
@@ -833,18 +834,19 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range):
     aerodynamics.geometry = vehicle  
     aerodynamics.settings.model_fuselage = True 
     analyses.append(aerodynamics)
-
-    # ------------------------------------------------------------------
-    #  Noise Analysis
-    noise = SUAVE.Analyses.Noise.Fidelity_One()   
-    noise.geometry = vehicle
-    noise.settings.level_ground_microphone_x_resolution = N_gm_x
-    noise.settings.level_ground_microphone_y_resolution = N_gm_y
-    noise.settings.level_ground_microphone_min_y        = 1E-6
-    noise.settings.level_ground_microphone_max_y        = 2500
-    noise.settings.level_ground_microphone_min_x        = 1E-6  
-    noise.settings.level_ground_microphone_max_x        = aircraft_range
-    analyses.append(noise)
+    
+    if run_noise_model:
+        # ------------------------------------------------------------------
+        #  Noise Analysis
+        noise = SUAVE.Analyses.Noise.Fidelity_One()   
+        noise.geometry = vehicle
+        noise.settings.level_ground_microphone_x_resolution = N_gm_x
+        noise.settings.level_ground_microphone_y_resolution = N_gm_y
+        noise.settings.level_ground_microphone_min_y        = 1E-6
+        noise.settings.level_ground_microphone_max_y        = 2500
+        noise.settings.level_ground_microphone_min_x        = 1E-6  
+        noise.settings.level_ground_microphone_max_x        = aircraft_range
+        analyses.append(noise)
     
     # ------------------------------------------------------------------
     #  Energy
@@ -1215,7 +1217,7 @@ def missions_setup(base_mission):
 # ----------------------------------------------------------------------
 #   Plot Results
 # ----------------------------------------------------------------------
-def plot_results(results,line_style='bo-'): 
+def plot_results(results,run_noise_model,line_style='bo-'): 
     
     # Plot Flight Conditions 
     plot_flight_conditions(results, line_style) 
@@ -1232,11 +1234,13 @@ def plot_results(results,line_style='bo-'):
     # Plot Battery Degradation  
     plot_battery_degradation(results, line_style)    
     
-    # Plot noise level
-    plot_ground_noise_levels(results)
-    
-    # Plot noise contour
-    plot_flight_profile_noise_contours(results) 
+
+    if run_noise_model:     
+        # Plot noise level
+        plot_ground_noise_levels(results)
+        
+        # Plot noise contour
+        plot_flight_profile_noise_contours(results) 
     return     
 
 def save_results(results):

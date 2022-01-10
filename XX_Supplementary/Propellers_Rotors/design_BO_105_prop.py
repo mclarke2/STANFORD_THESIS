@@ -5,6 +5,7 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoi
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry \
      import import_airfoil_geometry     
 import numpy as np  
+import os 
 
 # design propeller 
 
@@ -27,12 +28,15 @@ def design_BO_105_prop():
     prop.chord_distribution         = np.ones(num_sec)*0.121 
     prop.max_thickness_distribution = prop.thickness_to_chord* prop.chord_distribution
     prop.twist_distribution         = 8*np.flip(np.linspace(0,1,num_sec))*Units.degrees + delta_beta
-    prop.airfoil_geometry           = ['../Airfoils/NACA_23012.txt']
-    prop.airfoil_polars             = [['../Airfoils/Polars/NACA_23012_polar_Re_50000.txt',
-                                        '../Airfoils/Polars/NACA_23012_polar_Re_100000.txt',
-                                        '../Airfoils/Polars/NACA_23012_polar_Re_200000.txt',
-                                        '../Airfoils/Polars/NACA_23012_polar_Re_500000.txt',
-                                        '../Airfoils/Polars/NACA_23012_polar_Re_1000000.txt']] 
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator 
+    prop.airfoil_geometry           = [ rel_path +'../Airfoils/NACA_23012.txt']
+    prop.airfoil_polars             = [[rel_path +'../Airfoils/Polars/NACA_23012_polar_Re_50000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_23012_polar_Re_100000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_23012_polar_Re_200000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_23012_polar_Re_500000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_23012_polar_Re_1000000.txt']] 
     prop.airfoil_polar_stations     = list(np.zeros(num_sec).astype(int))
     airfoil_polars                  = compute_airfoil_polars(prop.airfoil_geometry, prop.airfoil_polars)  
     airfoil_cl_surs                 = airfoil_polars.lift_coefficient_surrogates 

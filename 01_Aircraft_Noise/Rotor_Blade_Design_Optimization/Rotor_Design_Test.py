@@ -16,7 +16,7 @@ def main():
     rotor                                 = SUAVE.Components.Energy.Converters.Rotor() 
     rotor.tag                             = 'rotor'     
     rotor.tip_radius                      = 1.2 
-    rotor.hub_radius                      = 0.1 * rotor.tip_radius
+    rotor.hub_radius                      = 0.05 * rotor.tip_radius
     rotor.number_of_blades                = 4
     rotor.design_tip_mach                 = 0.7
     rotor.nacelle_angle                   = 0. * Units.degrees
@@ -41,7 +41,7 @@ def main():
     rotor.max_sectional_Cl                 = 1.1
     rotor.solidity                         = 0.3
     rotor.optimization_slack_constaint     = 0.01 # slack constraint
-    rotor.blade_optimization_pivots        = 4 # either 4 or 5 
+    rotor.blade_optimization_pivots        = 5 # either 4 or 5 
     rotor.noise_aero_acoustic_obj_weight   = 1 # 1 means only perfomrance optimization 0.5 to weight noise equally
     rotor.linear_interp_flag               = True 
     rotor.radial_pivots                    = np.linspace(0,1,rotor.blade_optimization_pivots) 

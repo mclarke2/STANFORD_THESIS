@@ -5,7 +5,7 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoi
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry \
      import import_airfoil_geometry    
 from scipy.interpolate import interp1d
-from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
+import os
 import numpy as np  
 
 # design propeller 
@@ -42,11 +42,15 @@ def design_Hubbard_prop():
     prop.radius_distribution        = func_radius_distribution(new_radius_distribution)        
     prop.max_thickness_distribution = func_max_thickness_distribution(new_radius_distribution) 
     prop.thickness_to_chord         = prop.max_thickness_distribution/prop.chord_distribution  
-    
-    prop.airfoil_geometry             = [ '../Airfoils/Clark_y.txt']
-    prop.airfoil_polars               = [['../Airfoils/Polars/Clark_y_polar_Re_50000.txt','../Airfoils/Polars/Clark_y_polar_Re_100000.txt',
-                                          '../Airfoils/Polars/Clark_y_polar_Re_200000.txt','../Airfoils/Polars/Clark_y_polar_Re_500000.txt',
-                                          '../Airfoils/Polars/Clark_y_polar_Re_1000000.txt']]
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator 
+    prop.airfoil_geometry             = [ rel_path +'../Airfoils/Clark_y.txt']
+    prop.airfoil_polars               = [[rel_path +'../Airfoils/Polars/Clark_y_polar_Re_50000.txt',
+                                          rel_path +'../Airfoils/Polars/Clark_y_polar_Re_100000.txt',
+                                          rel_path +'../Airfoils/Polars/Clark_y_polar_Re_200000.txt',
+                                          rel_path +'../Airfoils/Polars/Clark_y_polar_Re_500000.txt',
+                                          rel_path +'../Airfoils/Polars/Clark_y_polar_Re_1000000.txt']]
     airfoil_polar_stations            = np.zeros(dim)
     prop.airfoil_polar_stations       = list(airfoil_polar_stations.astype(int) )     
     airfoil_polars                    = compute_airfoil_polars( prop.airfoil_geometry, prop.airfoil_polars)  

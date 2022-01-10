@@ -20,6 +20,9 @@ from scipy.special import fresnel
 import matplotlib.pyplot as plt  
 
 # import propeller/rotors geometries  
+import sys
+sys.path.append('../../XX_Supplementary')
+
 from Propellers_Rotors.design_SR2_4_blade_prop import design_SR2_4_blade_prop 
 from Propellers_Rotors.design_SR2_8_blade_prop import design_SR2_8_blade_prop
 from Propellers_Rotors.design_SR7_8_blade_prop import design_SR7_8_blade_prop 
@@ -30,8 +33,7 @@ from Propellers_Rotors.design_DJI_9_4x5_prop   import design_DJI_9_4x5_prop
 from Propellers_Rotors.design_APC_11x_4_7_prop import design_APC_11x_4_7_prop   
 from Propellers_Rotors.design_APC_11x45_prop   import design_APC_11x45_prop   
 from Propellers_Rotors.design_APC_10x7_prop    import design_APC_10x7_prop 
-from Propellers_Rotors.design_APC_11x8_prop    import design_APC_11x8_prop    
-from Propellers_Rotors.design_test_rotor       import design_test_rotor
+from Propellers_Rotors.design_APC_11x8_prop    import design_APC_11x8_prop
 from Propellers_Rotors.design_SR1_prop         import design_SR1_prop
 
 from plot_propeller_performance import plot_propeller_performance 
@@ -86,7 +88,7 @@ def main():
     Test_Cases_Group_3(plot_parmeters)    
     Test_Cases_Group_4(plot_parmeters) 
     Test_Cases_Group_5(plot_parmeters)
-    Test_Cases_Group_6(plot_parmeters) # NOT WORKING 
+    #Test_Cases_Group_6(plot_parmeters) # NOT WORKING 
     
 
     tf           = time.time()
@@ -107,7 +109,7 @@ def Test_Cases_Group_1(plot_parmeters):
     Test_Case_1_11(plot_parmeters)   # OK 
     
     ''' Propeller Noise Tests in the German-Dutch Wind Tunnel by Dobrzynski '''    
-    Test_Case_1_14(plot_parmeters)    # BAD  
+    Test_Case_1_14(plot_parmeters)   # BAD  
     return 
 
 def Test_Cases_Group_2(plot_parmeters):
@@ -118,7 +120,7 @@ def Test_Cases_Group_2(plot_parmeters):
   
     APC_SF_inflow_ratio = 0.08
     DJI_CF_inflow_ratio = 0.09
-    Test_Case_2_3(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,plot_parmeters)    
+    #Test_Case_2_3(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,plot_parmeters)    
     Test_Case_2_4(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,plot_parmeters)   
     return  
 
@@ -1638,7 +1640,8 @@ def setup_noise_settings(sts):
     sts.lateral_ground_distance              = 1000 * Units.feet  
     sts.level_ground_microphone_min_x        = -50
     sts.level_ground_microphone_max_x        = 1000
-    sts.level_ground_microphone_min_y        = -1000 * Units.feet 
+    sts.level_ground_microphone_min_y        = -1000 * Units.feet
+    sts.number_of_multiprocessing_workers    = None
     sts.level_ground_microphone_max_y        = 1000 * Units.feet 
     sts.level_ground_microphone_x_resolution = 16 
     sts.level_ground_microphone_y_resolution = 4      

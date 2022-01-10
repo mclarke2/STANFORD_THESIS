@@ -1,16 +1,13 @@
 # Imports
 import SUAVE
-from SUAVE.Core import Units, Data 
-from SUAVE.Components.Energy.Networks.Battery_Propeller                                   import Battery_Propeller
-from SUAVE.Methods.Propulsion                                                             import propeller_design 
+from SUAVE.Core import Units, Data  
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars  import compute_airfoil_polars 
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry \
      import import_airfoil_geometry    
 from scipy.interpolate import interp1d
-from scipy.interpolate import Rbf, InterpolatedUnivariateSpline
-import numpy as np 
 import os
-import matplotlib.pyplot as plt 
+import numpy as np 
+import os 
 
 # design propeller 
 def design_SR2_8_blade_prop():
@@ -47,13 +44,16 @@ def design_SR2_8_blade_prop():
     prop.radius_distribution        = func_radius_distribution(new_radius_distribution)        
     prop.max_thickness_distribution = func_max_thickness_distribution(new_radius_distribution) 
     prop.thickness_to_chord         = prop.max_thickness_distribution/prop.chord_distribution
-    path = os.path.dirname(__file__)
-    prop.airfoil_geometry           = [ '..Airfoils/NACA_65_215.txt','..Airfoils/NACA_15.txt']
-    prop.airfoil_polars             = [['..Airfoils/Polars/NACA_65_215_polar_Re_50000.txt' ,'..Airfoils/Polars/NACA_65_215_polar_Re_100000.txt',
-                                        '..Airfoils/Polars/NACA_65_215_polar_Re_200000.txt','..Airfoils/Polars/NACA_65_215_polar_Re_500000.txt',
-                                        '..Airfoils/Polars/NACA_65_215_polar_Re_1000000.txt'],['..Airfoils/Polars/NACA_15_polar_Re_50000.txt',
-                                        '..Airfoils/Polars/NACA_15_polar_Re_100000.txt','..Airfoils/Polars/NACA_15_polar_Re_200000.txt',
-                                        '..Airfoils/Polars/NACA_15_polar_Re_500000.txt','..Airfoils/Polars/NACA_15_polar_Re_1000000.txt']] 
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator 
+    prop.airfoil_geometry           = [ rel_path +'../Airfoils/NACA_65_215.txt',
+                                        rel_path +'../Airfoils/NACA_15.txt']
+    prop.airfoil_polars             = [[rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_50000.txt'    ,rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_100000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_200000.txt'   ,rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_500000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_1000000.txt'],[rel_path +'../Airfoils/Polars/NACA_15_polar_Re_50000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_15_polar_Re_100000.txt'       ,rel_path +'../Airfoils/Polars/NACA_15_polar_Re_200000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_15_polar_Re_500000.txt'       ,rel_path +'../Airfoils/Polars/NACA_15_polar_Re_1000000.txt']] 
     airfoil_polar_stations          =  np.zeros(dim)
     n                               = len(prop.twist_distribution)  
     airfoil_polar_stations[round(n*0.40):] = 1
