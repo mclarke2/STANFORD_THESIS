@@ -31,8 +31,8 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Planform             import segment_
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty                  import empty  
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
 
-import vsp 
-from SUAVE.Input_Output.OpenVSP.vsp_write import write 
+#import vsp 
+#from SUAVE.Input_Output.OpenVSP.vsp_write import write 
 
 # ----------------------------------------------------------------------
 #   Main
@@ -149,10 +149,10 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
     stability.geometry = vehicle
     analyses.append(stability)
 
-    stability = SUAVE.Analyses.Stability.AVL() 
-    stability.settings.filenames.avl_bin_name = '/Users/matthewclarke/Documents/AVL/avl3.35'
-    stability.geometry = vehicle
-    analyses.append(stability)
+    #stability = SUAVE.Analyses.Stability.AVL() 
+    #stability.settings.filenames.avl_bin_name = '/Users/matthewclarke/Documents/AVL/avl3.35'
+    #stability.geometry = vehicle
+    #analyses.append(stability)
     
     if run_noise_model:
         # ------------------------------------------------------------------

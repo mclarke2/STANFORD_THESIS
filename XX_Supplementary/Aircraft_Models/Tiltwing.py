@@ -24,8 +24,8 @@ from copy import deepcopy
 import pickle 
 import time 
 import os
-import vsp 
-from SUAVE.Input_Output.OpenVSP.vsp_write import write
+#import vsp 
+#from SUAVE.Input_Output.OpenVSP.vsp_write import write
 
 import numpy as np
 import pylab as plt 

@@ -22,8 +22,8 @@ from SUAVE.Methods.Propulsion.electric_motor_sizing            import size_optim
 from SUAVE.Methods.Weights.Correlations.Propulsion             import nasa_motor 
 import numpy as np
 
-import vsp 
-from SUAVE.Input_Output.OpenVSP.vsp_write import write
+#import vsp 
+#from SUAVE.Input_Output.OpenVSP.vsp_write import write
 
 def main():   
     ti               = time.time() 
