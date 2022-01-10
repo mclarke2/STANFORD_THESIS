@@ -45,11 +45,11 @@ def main():
     flights_per_day  = 1
     aircraft_range   = 70 *Units.nmi
     reserve_segment  = False 
-    run_noise_model  = False 
-    control_points   = 10 # 30
+    run_noise_model  = True  
+    control_points   = 10  
     recharge_battery = True
-    N_gm_x           = 10 # 10
-    N_gm_y           = 5 # 10
+    N_gm_x           = 20 # 
+    N_gm_y           = 10  
     
     # build the vehicle, configs, and analyses
     configs, analyses = full_setup(simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,N_gm_x,N_gm_y,run_noise_model )
