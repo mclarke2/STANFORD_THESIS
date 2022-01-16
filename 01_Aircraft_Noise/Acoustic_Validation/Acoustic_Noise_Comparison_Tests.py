@@ -83,11 +83,11 @@ def main():
 
     ti = time.time()      
     
-    Test_Cases_Group_1(plot_parmeters)
+    #Test_Cases_Group_1(plot_parmeters)
     Test_Cases_Group_2(plot_parmeters)
     Test_Cases_Group_3(plot_parmeters)    
-    Test_Cases_Group_4(plot_parmeters) 
-    Test_Cases_Group_5(plot_parmeters)
+    Test_Cases_Group_4(plot_parmeters)
+    #Test_Cases_Group_5(plot_parmeters)
     #Test_Cases_Group_6(plot_parmeters) # NOT WORKING 
     
 
