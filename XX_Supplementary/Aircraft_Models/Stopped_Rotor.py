@@ -7,8 +7,7 @@
 #   Imports
 # ---------------------------------------------------------------------
 import SUAVE
-from SUAVE.Core import Units, Data  
-import os
+from SUAVE.Core import Units, Data   
 import pickle
 from SUAVE.Plots.Performance.Mission_Plots import *  
 from SUAVE.Plots.Geometry   import * 
@@ -22,14 +21,17 @@ from SUAVE.Methods.Propulsion                                             import
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty                           import empty
 from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import compute_component_centers_of_gravity
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
-#import vsp 
-#from SUAVE.Input_Output.OpenVSP.vsp_write import write
 import time 
 import numpy as np
 import pylab as plt
 from copy import deepcopy 
 
-
+try:
+    import vsp 
+    from SUAVE.Input_Output.OpenVSP.vsp_write import write 
+except ImportError:
+    # This allows SUAVE to build without OpenVSP
+    pass 
 # ----------------------------------------------------------------------
 #   Main
 # ----------------------------------------------------------------------
@@ -41,7 +43,7 @@ def main():
     reserve_segment  = False 
     plot_geometry    = False
     recharge_battery = False
-    control_points   = 15 # 20 is too much
+    control_points   = 10 # 20 is too much
     N_gm_x           = 10  
     N_gm_y           = 7  
     
@@ -49,10 +51,10 @@ def main():
     # Full Mission 
     # ------------------------------------------------------------------------------------------------   
     hover_noise_test  = False
-    run_noise_model   = True
+    run_noise_model   = True 
     ti                = time.time() 
     vehicle           = vehicle_setup()
-    #write(vehicle, "Stopped_Rotor") 
+    #write(vehicle,"Stopped_Rotor") 
     configs           = configs_setup(vehicle) 
     configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test) 
     base_mission      = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
@@ -71,7 +73,7 @@ def main():
     mission_results   = mission.evaluate()   
     filename          = 'Stopped_Rotor_Full_Mission'
     save_results(mission_results,filename) 
-    #plot_results(mission_results,run_noise_model)  
+    plot_results(mission_results,run_noise_model)  
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
     elapsed_range = mission_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
@@ -105,7 +107,6 @@ def main():
     #elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
     #print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')   
     
-
     # ------------------------------------------------------------------------------------------------    
     # Hover Mission  
     # ------------------------------------------------------------------------------------------------     
@@ -126,7 +127,7 @@ def main():
     hover_results     = mission.evaluate()   
     filename          = 'Stopped_Rotor_Hover_Mission'
     save_results(hover_results,filename) 
-    #plot_results(hover_results,run_noise_model) 
+    plot_results(hover_results,run_noise_model) 
     
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
@@ -821,13 +822,11 @@ def vehicle_setup():
     compute_component_centers_of_gravity(vehicle)
     vehicle.center_of_gravity()
     
-    return vehicle
-
+    return vehicle 
 
 # ----------------------------------------------------------------------
 #   Define the Vehicle Analyses
-# ----------------------------------------------------------------------
-
+# ---------------------------------------------------------------------- 
 def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test):
 
     analyses = SUAVE.Analyses.Analysis.Container()
@@ -839,6 +838,9 @@ def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_no
 
     return analyses
 
+# ------------------------------------------------------------------
+# Base Analysis
+# ------------------------------------------------------------------
 def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test):
 
     # ------------------------------------------------------------------
@@ -888,7 +890,7 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noi
             noise.settings.level_ground_microphone_min_y        = 1E-6
             noise.settings.level_ground_microphone_max_y        = 450
             noise.settings.level_ground_microphone_min_x        = 0.0 
-            noise.settings.level_ground_microphone_max_x        = 1.92 * Units.nmi
+            noise.settings.level_ground_microphone_max_x        = 70*Units.nmi
             analyses.append(noise)
     
     # ------------------------------------------------------------------
@@ -912,8 +914,7 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noi
 
 # ----------------------------------------------------------------------
 #   Define the Configurations
-# ---------------------------------------------------------------------
-
+# --------------------------------------------------------------------- 
 def configs_setup(vehicle):
 
     # ------------------------------------------------------------------
@@ -929,18 +930,24 @@ def configs_setup(vehicle):
 
 
     config = SUAVE.Components.Configs.Config(vehicle)
-    config.tag = 'transition'
-    #config.networks.lift_cruise.propeller_pitch_command = 2 * Units.degrees
+    config.tag = 'transition' 
     configs.append(config)
-    
 
     config = SUAVE.Components.Configs.Config(vehicle)
     config.tag = 'descent'
     config.networks.lift_cruise.propeller_pitch_command = 2 * Units.degrees
     configs.append(config)
-    
+
+    config = SUAVE.Components.Configs.Config(vehicle)
+    config.tag = 'desceleration'
+    config.networks.lift_cruise.propeller_pitch_command = -5 * Units.degrees
+    configs.append(config)
+        
     return configs
 
+# ------------------------------------------------------------------
+#   Full Mission Setup
+# ------------------------------------------------------------------
 def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
 
 
@@ -1021,7 +1028,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.altitude                           = 40.  * Units.ft  + starting_elevation 
             segment.air_speed_start                    = 500. * Units['ft/min']
             segment.air_speed_end                      = 0.8 * Vstall
-            segment.acceleration                       = 0.75
+            segment.acceleration                       = 1.5  
             segment.pitch_initial                      = 0.0 * Units.degrees
             segment.pitch_final                        = 7. * Units.degrees  
             segment.state.unknowns.throttle            = 0.70    *  ones_row(1) 
@@ -1095,7 +1102,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.analyses.extend( analyses.base )
             segment.altitude                                 = 2500.0 * Units.ft
             segment.air_speed                                = 175.   * Units['mph']
-            cruise_distance                                  = aircraft_range - 29.59 * Units.nmi    
+            cruise_distance                                  = aircraft_range - 28.99 * Units.nmi    
             segment.distance                                 = cruise_distance  
             segment.state.unknowns.throttle                  = 0.9    *  ones_row(1)
             segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment)    
@@ -1186,24 +1193,25 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment) 
             mission.append_segment(segment)  
         
-            ## ------------------------------------------------------------------
-            ##   Fifth Cuise Segment: Transition
-            ## ------------------------------------------------------------------ 
+            # ------------------------------------------------------------------
+            #   Fifth Cuise Segment: Transition
+            # ------------------------------------------------------------------ 
             segment                                         = Segments.Transition.Constant_Acceleration_Constant_Pitchrate_Constant_Altitude(base_segment)
             segment.tag                                     = "Descent_Transition" + "_F_" + str(flight_no) + "_D" + str (day) 
-            segment.analyses.extend( analyses.base ) 
+            segment.analyses.extend( analyses.desceleration ) 
             segment.altitude                                = 40.  * Units.ft     + starting_elevation 
             segment.air_speed_start                         = 103.5  * Units['mph']
             segment.air_speed_end                           = 300. * Units['ft/min'] 
-            segment.acceleration                            = -0.5
-            segment.pitch_initial                           = 1. * Units.degrees   
-            segment.pitch_final                             = 8. * Units.degrees 
-            segment.state.unknowns.throttle                 = 0.80 *  ones_row(1)  
+            segment.acceleration                            = -0.75              
+            segment.pitch_initial                           =  5.  * Units.degrees  
+            segment.pitch_final                             = 20. * Units.degrees  
+            segment.state.unknowns.throttle                 = 0.9 *  ones_row(1)  
             segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
             segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
             segment.process.finalize.post_process.stability = SUAVE.Methods.skip   
-            segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment)
-                                                                 
+            segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment,\
+                                                                                            initial_lift_rotor_power_coefficient = 0.02,
+                                                                                            initial_throttle_lift = 0.9) 
             mission.append_segment(segment)       
          
             # ------------------------------------------------------------------
@@ -1240,6 +1248,9 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
   
     return mission 
 
+# ------------------------------------------------------------------
+#   Noise (Approach/Departure) Mission Setup
+# ------------------------------------------------------------------
 def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
 
 
@@ -1284,80 +1295,80 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     CLmax  = 1.2 
     Vstall = float(np.sqrt(2.*m*g/(rho*S*CLmax))) 
      
-    ## ------------------------------------------------------------------
-    ##   First Descent Segment: Constant Acceleration, Constant Rate
-    ## ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    #   First Descent Segment: Constant Acceleration, Constant Rate
+    # ------------------------------------------------------------------
 
-    #segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
-    #segment.tag = "Descent_1" 
-    #segment.analyses.extend( analyses.descent)  
-    #segment.altitude_start                           = 2500.0 * Units.ft
-    #segment.altitude_end                             = 100. * Units.ft  + starting_elevation 
-    #segment.climb_rate                               = -300.  * Units['ft/min']
-    #segment.air_speed_start                          = 175.  * Units['mph'] 
-    #segment.battery_energy                         = vehicle.networks.lift_cruise.battery.max_energy   
-    #segment.air_speed_end                            = 1.1*Vstall    
-    #segment.state.unknowns.throttle                  = 0.8   *  ones_row(1)  
-    #segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment,initial_prop_power_coefficient = 0.016)    
-    #mission.append_segment(segment) 
+    segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+    segment.tag = "Descent_1" 
+    segment.analyses.extend( analyses.descent)  
+    segment.altitude_start                           = 2500.0 * Units.ft
+    segment.altitude_end                             = 100. * Units.ft  + starting_elevation 
+    segment.climb_rate                               = -300.  * Units['ft/min']
+    segment.air_speed_start                          = 175.  * Units['mph'] 
+    segment.battery_energy                         = vehicle.networks.lift_cruise.battery.max_energy   
+    segment.air_speed_end                            = 1.1*Vstall    
+    segment.state.unknowns.throttle                  = 0.8   *  ones_row(1)  
+    segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment,initial_prop_power_coefficient = 0.016)    
+    mission.append_segment(segment) 
    
     
-    ## ------------------------------------------------------------------
-    ##   First Cruise Segment: Transition
-    ## ------------------------------------------------------------------ 
-    #segment                                          = Segments.Transition.Constant_Acceleration_Constant_Angle_Linear_Climb(base_segment)
-    #segment.tag                                      = "Approach_Transition"  
-    #segment.analyses.extend( analyses.base ) 
-    #segment.altitude_start                           = 100.0 * Units.ft + starting_elevation 
-    #segment.altitude_end                             = 40.0 * Units.ft + starting_elevation 
-    #segment.air_speed                                = 1.1*Vstall 
-    #segment.climb_angle                              = 1 * Units.degrees
-    #segment.acceleration                             = -0.3 * Units['m/s/s']    
-    #segment.pitch_initial                            = 4. * Units.degrees     
-    #segment.pitch_final                              = 1. * Units.degrees    
-    #segment.state.unknowns.throttle                  = 0.70   *  ones_row(1) 
-    #segment.process.iterate.unknowns.mission         = SUAVE.Methods.skip
-    #segment.process.iterate.conditions.stability     = SUAVE.Methods.skip
-    #segment.process.finalize.post_process.stability  = SUAVE.Methods.skip          
-    #segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment) 
-    #mission.append_segment(segment)  
+    # ------------------------------------------------------------------
+    #   First Cruise Segment: Transition
+    # ------------------------------------------------------------------ 
+    segment                                          = Segments.Transition.Constant_Acceleration_Constant_Angle_Linear_Climb(base_segment)
+    segment.tag                                      = "Approach_Transition"  
+    segment.analyses.extend( analyses.base ) 
+    segment.altitude_start                           = 100.0 * Units.ft + starting_elevation 
+    segment.altitude_end                             = 40.0 * Units.ft + starting_elevation 
+    segment.air_speed                                = 1.1*Vstall 
+    segment.climb_angle                              = 1 * Units.degrees
+    segment.acceleration                             = -0.3 * Units['m/s/s']    
+    segment.pitch_initial                            = 4. * Units.degrees     
+    segment.pitch_final                              = 1. * Units.degrees    
+    segment.state.unknowns.throttle                  = 0.70   *  ones_row(1) 
+    segment.process.iterate.unknowns.mission         = SUAVE.Methods.skip
+    segment.process.iterate.conditions.stability     = SUAVE.Methods.skip
+    segment.process.finalize.post_process.stability  = SUAVE.Methods.skip          
+    segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment) 
+    mission.append_segment(segment)  
 
-    ### ------------------------------------------------------------------
-    ###   Fifth Cuise Segment: Transition
-    ### ------------------------------------------------------------------ 
-    #segment                                         = Segments.Transition.Constant_Acceleration_Constant_Pitchrate_Constant_Altitude(base_segment)
-    #segment.tag                                     = "Descent_Transition"  
-    #segment.analyses.extend( analyses.base ) 
-    #segment.altitude                                = 40.  * Units.ft     + starting_elevation 
-    #segment.air_speed_start                         = 103.5  * Units['mph']
-    #segment.air_speed_end                           = 300. * Units['ft/min'] 
-    #segment.acceleration                            = -0.5
-    #segment.pitch_initial                           = 1. * Units.degrees   
-    #segment.pitch_final                             = 8. * Units.degrees 
-    #segment.state.unknowns.throttle                 = 0.80 *  ones_row(1)  
-    #segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
-    #segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
-    #segment.process.finalize.post_process.stability = SUAVE.Methods.skip   
-    #segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment)
-                                                         
-    #mission.append_segment(segment)       
- 
     ## ------------------------------------------------------------------
-    ##   Third Descent Segment: Constant Speed, Constant Rate
+    ##   Fifth Cuise Segment: Transition
     ## ------------------------------------------------------------------ 
-    #segment                                         = Segments.Hover.Descent(base_segment)
-    #segment.tag                                     = "Vertical_Descent"  
-    #segment.analyses.extend( analyses.base )     
-    #segment.altitude_start                          = 40.0  * Units.ft + starting_elevation 
-    #segment.altitude_end                            = 0.   * Units.ft + starting_elevation 
-    #segment.descent_rate                            = 300. * Units['ft/min']   
-    #segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
-    #segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
-    #segment.process.finalize.post_process.stability = SUAVE.Methods.skip 
-    #segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment,\
-                                                                                    #initial_lift_rotor_power_coefficient = 0.02,
-                                                                                    #initial_throttle_lift = 0.7)
-    #mission.append_segment(segment)
+    segment                                         = Segments.Transition.Constant_Acceleration_Constant_Pitchrate_Constant_Altitude(base_segment)
+    segment.tag                                     = "Descent_Transition"  
+    segment.analyses.extend( analyses.base ) 
+    segment.altitude                                = 40.  * Units.ft     + starting_elevation 
+    segment.air_speed_start                         = 103.5  * Units['mph']
+    segment.air_speed_end                           = 300. * Units['ft/min'] 
+    segment.acceleration                            = -0.5
+    segment.pitch_initial                           = 1. * Units.degrees   
+    segment.pitch_final                             = 8. * Units.degrees 
+    segment.state.unknowns.throttle                 = 0.80 *  ones_row(1)  
+    segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+    segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+    segment.process.finalize.post_process.stability = SUAVE.Methods.skip   
+    segment = vehicle.networks.lift_cruise.add_transition_unknowns_and_residuals_to_segment(segment)
+                                                         
+    mission.append_segment(segment)       
+ 
+    # ------------------------------------------------------------------
+    #   Third Descent Segment: Constant Speed, Constant Rate
+    # ------------------------------------------------------------------ 
+    segment                                         = Segments.Hover.Descent(base_segment)
+    segment.tag                                     = "Vertical_Descent"  
+    segment.analyses.extend( analyses.base )     
+    segment.altitude_start                          = 40.0  * Units.ft + starting_elevation 
+    segment.altitude_end                            = 0.   * Units.ft + starting_elevation 
+    segment.descent_rate                            = 300. * Units['ft/min']   
+    segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
+    segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
+    segment.process.finalize.post_process.stability = SUAVE.Methods.skip 
+    segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment,\
+                                                                                    initial_lift_rotor_power_coefficient = 0.02,
+                                                                                    initial_throttle_lift = 0.7)
+    mission.append_segment(segment)
     
     
     # ------------------------------------------------------------------
@@ -1373,7 +1384,6 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
     segment.process.iterate.conditions.stability    = SUAVE.Methods.skip
     segment.process.finalize.post_process.stability = SUAVE.Methods.skip
-    segment.battery_energy                         = vehicle.networks.lift_cruise.battery.max_energy   
     segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment,\
                                                                             initial_lift_rotor_power_coefficient = 0.02,
                                                                             initial_throttle_lift = 0.7)
@@ -1440,9 +1450,10 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment)   
     mission.append_segment(segment)  
 
-    return mission 
-
-
+    return mission  
+# ------------------------------------------------------------------
+#  Hover Noise Mission Setup
+# ------------------------------------------------------------------   
 def hover_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
  
     
@@ -1469,36 +1480,33 @@ def hover_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     # base segment           
     base_segment                                             = Segments.Segment() 
     base_segment.battery_discharge                           = True  
-    base_segment.state.numerics.number_control_points        = control_points
-    ones_row                                                 = base_segment.state.ones_row
-    base_segment.process.initialize.initialize_battery = SUAVE.Methods.Missions.Segments.Common.Energy.initialize_battery
+    base_segment.state.numerics.number_control_points        = 3 
+    base_segment.process.initialize.initialize_battery       = SUAVE.Methods.Missions.Segments.Common.Energy.initialize_battery
     base_segment.process.finalize.post_process.update_battery_state_of_health = SUAVE.Methods.Missions.Segments.Common.Energy.update_battery_state_of_health  
     base_segment.process.finalize.post_process.stability  = SUAVE.Methods.skip
-
-
-    # VSTALL Calculation
-    m      = vehicle.mass_properties.max_takeoff
-    g      = 9.81
-    S      = vehicle.reference_area
-    atmo   = SUAVE.Analyses.Atmospheric.US_Standard_1976()
-    rho    = atmo.compute_values(1000.*Units.feet,0.).density
-    CLmax  = 1.2 
-    Vstall = float(np.sqrt(2.*m*g/(rho*S*CLmax)))  
-     
+ 
     segment                                            = Segments.Hover.Climb(base_segment)
     segment.tag                                        = "Hover" # very small climb so that broadband noise does not return 0's  
     segment.analyses.extend(analyses.base) 
     segment.altitude_start                             = 500.0  * Units.ft  
     segment.altitude_end                               = 500.1  * Units.ft 
     segment.climb_rate                                 = 100. * Units['ft/min']  
-    segment.battery_energy                             = vehicle.networks.battery_propeller.battery.max_energy   
-    segment.battery_pack_temperature                   = atmo_data.temperature[0,0]             
-    segment.state.unknowns.throttle                    = 0.6  * ones_row(1)  
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.06) 
-    mission.append_segment(segment)   
+    segment.battery_energy                             = vehicle.networks.lift_cruise.battery.max_energy   
+    segment.battery_pack_temperature                   = atmo_data.temperature[0,0]  
+    segment.process.iterate.unknowns.mission           = SUAVE.Methods.skip
+    segment.process.iterate.conditions.stability       = SUAVE.Methods.skip
+    segment.process.finalize.post_process.stability    = SUAVE.Methods.skip
+    segment = vehicle.networks.lift_cruise.add_lift_unknowns_and_residuals_to_segment(segment,\
+                                                                            initial_lift_rotor_power_coefficient = 0.02,
+                                                                            initial_throttle_lift = 0.7)
+    mission.append_segment(segment)
   
+    
     return mission
 
+# ----------------------------------------------------------------------
+#   Missions Setup
+# ----------------------------------------------------------------------
 def missions_setup(base_mission):
 
     # the mission container
@@ -1544,6 +1552,9 @@ def plot_results(results,run_noise_model,line_style='bo-'):
         plot_flight_profile_noise_contours(results) 
     return     
 
+# ----------------------------------------------------------------------
+#   Save Results
+# ----------------------------------------------------------------------
 def save_results(results,filename): 
     pickle_file  = filename + '.pkl'
     with open(pickle_file, 'wb') as file:

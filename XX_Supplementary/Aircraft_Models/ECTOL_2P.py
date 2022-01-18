@@ -1,10 +1,4 @@
-# ECTOL_2P.py
-#
-# Created: Feb 2020, M. Clarke
-#          Sep 2020, M. Clarke 
-
-""" setup file for the X57-Maxwell Electric Aircraft 
-"""
+# ECTOL_2P.py 
  
 # ----------------------------------------------------------------------
 #   Imports
@@ -13,8 +7,7 @@
 import SUAVE
 from SUAVE.Core import Units 
 import numpy as np   
-import matplotlib.pyplot        as plt
-import os
+import matplotlib.pyplot        as plt  
 import pickle
 from copy import deepcopy
 import time 
@@ -31,8 +24,12 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Planform             import segment_
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty                  import empty  
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
 
-#import vsp 
-#from SUAVE.Input_Output.OpenVSP.vsp_write import write 
+try:
+    import vsp 
+    from SUAVE.Input_Output.OpenVSP.vsp_write import write 
+except ImportError:
+    # This allows SUAVE to build without OpenVSP
+    pass 
 
 # ----------------------------------------------------------------------
 #   Main
@@ -46,14 +43,14 @@ def main():
     reserve_segment  = False 
     plot_geometry    = False
     recharge_battery = False 
-    control_points   = 15
+    control_points   = 10
     N_gm_x           = 10  
     N_gm_y           = 7  
     
     # ------------------------------------------------------------------------------------------------
     # Full Mission 
     # ------------------------------------------------------------------------------------------------  
-    run_noise_model   = True    
+    run_noise_model   = True     
     ti                = time.time()  
     vehicle           = vehicle_setup()   
     #write(vehicle, "ECTOL") 
@@ -78,7 +75,7 @@ def main():
     mission_results  = mission.evaluate()     
     filename = 'ECTOL_Full_Mission'
     save_results(mission_results,filename)    
-    #plot_results( mission_results,run_noise_model) 
+    plot_results( mission_results,run_noise_model) 
         
     tf = time.time()
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
@@ -115,6 +112,9 @@ def main():
      
     return
 
+# ------------------------------------------------------------------
+#   Base Analysis  
+# ------------------------------------------------------------------
 def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
 
     # ------------------------------------------------------------------
@@ -137,10 +137,8 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
 
     # ------------------------------------------------------------------
     #  Aerodynamics Analysis
-    aerodynamics = SUAVE.Analyses.Aerodynamics.Fidelity_Zero()
-    aerodynamics.settings.plot_vortex_distribution  = True     
-    aerodynamics.geometry = vehicle 
-    aerodynamics.settings.drag_coefficient_increment = 0.0000
+    aerodynamics = SUAVE.Analyses.Aerodynamics.Fidelity_Zero()  
+    aerodynamics.geometry = vehicle  
     analyses.append(aerodynamics) 
     
     # ------------------------------------------------------------------
@@ -156,10 +154,10 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
         noise.geometry = vehicle
         noise.settings.level_ground_microphone_x_resolution = N_gm_x
         noise.settings.level_ground_microphone_y_resolution = N_gm_y
-        noise.settings.level_ground_microphone_min_y        = 0
+        noise.settings.level_ground_microphone_min_y        = 1E-6
         noise.settings.level_ground_microphone_max_y        = 450
-        noise.settings.level_ground_microphone_min_x        = 1E-1 
-        noise.settings.level_ground_microphone_max_x        = 1.14 * Units.nmi 
+        noise.settings.level_ground_microphone_min_x        = 0.0 
+        noise.settings.level_ground_microphone_max_x        = 70*Units.nmi
         analyses.append(noise)
 
     # ------------------------------------------------------------------
@@ -180,13 +178,11 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
     analyses.append(atmosphere)   
 
     # done!
-    return analyses    
-
+    return analyses     
 
 # ----------------------------------------------------------------------
 #   Define the Vehicle
-# ---------------------------------------------------------------------- 
-
+# ----------------------------------------------------------------------  
 def vehicle_setup():
 
     # ------------------------------------------------------------------
@@ -244,7 +240,7 @@ def vehicle_setup():
     wing.winglet_fraction                 = 0.0  
     wing.dynamic_pressure_ratio           = 1.0  
     airfoil                               = SUAVE.Components.Airfoils.Airfoil()
-    airfoil.coordinate_file               = '../Airfoils/NACA_63_412.txt'
+    #airfoil.coordinate_file               = '../Airfoils/NACA_63_412.txt'
     
     cg_x = wing.origin[0][0] + 0.25*wing.chords.mean_aerodynamic
     cg_z = wing.origin[0][2] - 0.2*wing.chords.mean_aerodynamic
@@ -259,7 +255,7 @@ def vehicle_setup():
     segment.dihedral_outboard             = 0.  
     segment.sweeps.quarter_chord          = 0.
     segment.thickness_to_chord            = 0.12
-    segment.append_airfoil(airfoil)
+    #segment.append_airfoil(airfoil)
     wing.append_segment(segment)
 
     segment                               = SUAVE.Components.Wings.Segment()
@@ -270,7 +266,7 @@ def vehicle_setup():
     segment.dihedral_outboard             = 0. 
     segment.sweeps.quarter_chord          = 0.
     segment.thickness_to_chord            = 0.12 
-    segment.append_airfoil(airfoil)
+    #segment.append_airfoil(airfoil)
     wing.append_segment(segment)
     
     # Wing Segments
@@ -282,7 +278,7 @@ def vehicle_setup():
     segment.dihedral_outboard             = 75. * Units.degrees 
     segment.sweeps.quarter_chord          = 82. * Units.degrees 
     segment.thickness_to_chord            = 0.12 
-    segment.append_airfoil(airfoil)
+    #segment.append_airfoil(airfoil)
     wing.append_segment(segment) 
 
     segment                               = SUAVE.Components.Wings.Segment()
@@ -293,7 +289,7 @@ def vehicle_setup():
     segment.dihedral_outboard             = 0.
     segment.sweeps.quarter_chord          = 0.
     segment.thickness_to_chord            = 0.12
-    segment.append_airfoil(airfoil)
+    #segment.append_airfoil(airfoil)
     wing.append_segment(segment)    
     
     # Fill out more segment properties automatically
@@ -668,8 +664,7 @@ def vehicle_setup():
 
 # ----------------------------------------------------------------------
 #   Define the Vehicle Analyses
-# ----------------------------------------------------------------------
-
+# ---------------------------------------------------------------------- 
 def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
 
     analyses = SUAVE.Analyses.Analysis.Container()
@@ -683,8 +678,7 @@ def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
 
 # ---------------------------------------------------------------------
 #   Define the Configurations
-# ---------------------------------------------------------------------
-
+# --------------------------------------------------------------------- 
 def configs_setup(vehicle):
 
     # ------------------------------------------------------------------
@@ -711,9 +705,8 @@ def configs_setup(vehicle):
  
 
 # ----------------------------------------------------------------------
-#   Define the Mission
-# ----------------------------------------------------------------------
-
+#   Noise (Approach/Departure) Mission Setup
+# ---------------------------------------------------------------------- 
 def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery):   
      
     # Determine Stall Speed 
@@ -848,9 +841,8 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
 
 
 # ----------------------------------------------------------------------
-#   Define the Mission
-# ----------------------------------------------------------------------
-
+#   Full Mission Setup
+# ---------------------------------------------------------------------- 
 def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery):   
      
     # Determine Stall Speed 
@@ -939,8 +931,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.climb_rate                                       = 600 * Units['ft/min']  
             segment.state.unknowns.throttle                          = 0.9 * ones_row(1)  
             segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
-            mission.append_segment(segment) 
-              
+            mission.append_segment(segment)  
                         
             # ------------------------------------------------------------------
             #   Initial Climb Area Segment Flight 1  
@@ -979,9 +970,9 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.tag = 'Cruise'  + "_F_" + str(flight_no) + "_D" + str (day) 
             segment.analyses.extend(analyses.base) 
             segment.air_speed                                        = 175.* Units['mph']        
-            cruise_distance                                          = aircraft_range - 31.321*Units.nmi  
+            cruise_distance                                          = aircraft_range - 24.3715*Units.nmi  
             segment.distance                                         = cruise_distance 
-            segment.state.unknowns.throttle                          = 0.8 * ones_row(1)  
+            segment.state.unknowns.throttle                          = 0.8 * ones_row(1)              
             segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
             mission.append_segment(segment)  
             
@@ -1129,7 +1120,9 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
     
     return mission
 
-
+# ------------------------------------------------------------------
+#  Missions Setup
+# ------------------------------------------------------------------ 
 def missions_setup(base_mission):
 
     # the mission container
@@ -1144,6 +1137,9 @@ def missions_setup(base_mission):
     return missions  
 
 
+# ------------------------------------------------------------------
+#   Plot Results
+# ------------------------------------------------------------------
 def plot_results(results,run_noise_model,line_style = 'bo-'):  
     
     
@@ -1184,7 +1180,11 @@ def plot_results(results,run_noise_model,line_style = 'bo-'):
         plot_flight_profile_noise_contours(results) 
                         
     return
- 
+
+
+# ------------------------------------------------------------------
+#   Save Results
+# ------------------------------------------------------------------
 def save_results(results,filename): 
     pickle_file  = filename + '.pkl'
     with open(pickle_file, 'wb') as file:

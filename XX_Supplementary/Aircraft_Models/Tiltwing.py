@@ -1,7 +1,4 @@
-# Tiltwing.py
-# 
-# Created: May 2019, M Clarke
-#          Sep 2020, M. Clarke 
+# Tiltwing.py 
 
 #----------------------------------------------------------------------
 #   Imports
@@ -21,16 +18,17 @@ from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import
 from SUAVE.Methods.Noise.Fidelity_One.Noise_Tools.generate_microphone_points import generate_building_microphone_points
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_planform import wing_planform
 from copy import deepcopy
-import pickle 
-import time 
-import os
-
-#import vsp 
-#from SUAVE.Input_Output.OpenVSP.vsp_write import write
-
 import numpy as np
 import pylab as plt 
+import pickle 
+import time  
 
+try:
+    import vsp 
+    from SUAVE.Input_Output.OpenVSP.vsp_write import write 
+except ImportError:
+    # This allows SUAVE to build without OpenVSP
+    pass 
 
 # ----------------------------------------------------------------------
 #   Main
@@ -42,45 +40,37 @@ def main():
     reserve_segment  = False 
     plot_geometry    = False
     recharge_battery = False
-    hover_noise_test = False
-    run_noise_model  = True
-    control_points   = 15
+    control_points   = 10
     N_gm_x           = 10  
     N_gm_y           = 7  
-    
-    # ------------------------------------------------------------------------------------------------
-    # Full Mission 
-    # ------------------------------------------------------------------------------------------------   
+ 
+    # ------------------------------------------------------------------------------------------------    
+    # Noise Analysis Mission  
+    # ------------------------------------------------------------------------------------------------ 
     hover_noise_test  = False
-    run_noise_model   = True
-    ti                = time.time() 
-    vehicle           = vehicle_setup()
-    #write(vehicle, "Tiltwing") 
+    run_noise_model   = True 
+    ti                = time.time()  
+    vehicle           = vehicle_setup() 
     configs           = configs_setup(vehicle) 
     configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test) 
-    base_mission      = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
+    base_mission      = noise_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
     missions_analyses = missions_setup(base_mission) 
     analyses          = SUAVE.Analyses.Analysis.Container()
     analyses.configs  = configs_analyses
     analyses.missions = missions_analyses 
     configs.finalize()
-    analyses.finalize()    
-    breakdown = empty(configs.base,contingency_factor=1.0)
-    print(breakdown)    
-    if plot_geometry: 
-        plot_vehicle(configs.base, elevation_angle = 90,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)   
-        plt.show()       
+    analyses.finalize()     
     mission           = analyses.missions.base
-    mission_results   = mission.evaluate()   
-    filename          = 'Tiltwing_Full_Mission'
-    save_results(mission_results,filename) 
-    plot_results(mission_results,run_noise_model)  
+    noise_results     = mission.evaluate()   
+    filename          = 'Tiltwing_Noise_Mission'
+    save_results(noise_results,filename) 
+    #plot_results(noise_results,run_noise_model) 
+    
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
-    elapsed_range = mission_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
+    elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
     print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')   
     
-
     ## ------------------------------------------------------------------------------------------------    
     ## Noise Analysis Mission  
     ## ------------------------------------------------------------------------------------------------ 
@@ -107,7 +97,7 @@ def main():
     #print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
     #elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
     #print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')   
-    
+     
 
     # ------------------------------------------------------------------------------------------------    
     # Hover Mission  
@@ -124,9 +114,9 @@ def main():
     analyses.configs  = configs_analyses
     analyses.missions = missions_analyses 
     configs.finalize()
-    analyses.finalize()     
+    analyses.finalize()
     mission           = analyses.missions.base
-    hover_results           = mission.evaluate()   
+    hover_results     = mission.evaluate()   
     filename          = 'Tiltwing_Hover_Mission'
     save_results(hover_results,filename) 
     #plot_results(hover_results,run_noise_model) 
@@ -140,8 +130,7 @@ def main():
 
 # ----------------------------------------------------------------------
 #   Define the Vehicle Analyses
-# ----------------------------------------------------------------------
-
+# ---------------------------------------------------------------------- 
 def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test):
 
     analyses = SUAVE.Analyses.Analysis.Container()
@@ -153,7 +142,9 @@ def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_no
 
     return analyses
 
-
+# ----------------------------------------------------------------------
+#   Base Analysis
+# ---------------------------------------------------------------------- 
 def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test):
 
     # ------------------------------------------------------------------
@@ -207,7 +198,7 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noi
             noise.settings.level_ground_microphone_min_y        = 1E-6
             noise.settings.level_ground_microphone_max_y        = 450
             noise.settings.level_ground_microphone_min_x        = -450 
-            noise.settings.level_ground_microphone_max_x        = 1.29*Units.nmi
+            noise.settings.level_ground_microphone_max_x        = 70*Units.nmi
             analyses.append(noise)
 
     # ------------------------------------------------------------------
@@ -227,9 +218,11 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noi
     atmosphere.features.planet = planet.features
     analyses.append(atmosphere)   
 
-    return analyses    
+    return analyses
 
-
+# ----------------------------------------------------------------------
+#   Build the Vehicle
+# ----------------------------------------------------------------------
 def vehicle_setup(): 
     
     # ------------------------------------------------------------------
@@ -302,7 +295,7 @@ def vehicle_setup():
     wing.symmetric                              = True 
     
     # compute reference properties  
-    vehicle.reference_area                = wing.areas.reference*2   
+    vehicle.reference_area                     = wing.areas.reference*2   
         
     # add to vehicle 
     vehicle.append_component(wing)      
@@ -414,7 +407,7 @@ def vehicle_setup():
     net.areas                      = Data()
     net.identical_lift_rotors      = True  
     
-        # Component 1 the ESC
+    # Component 1 the ESC
     esc                            = SUAVE.Components.Energy.Distributors.Electronic_Speed_Controller()
     esc.efficiency                 = 0.95
     net.esc                        = esc 
@@ -469,7 +462,7 @@ def vehicle_setup():
     rotor.disc_area                = np.pi*(rotor.tip_radius**2)   
     rotor.design_tip_mach          = 0.65 # gives better noise results and more realistic blade 
     rotor.number_of_blades         = 3  
-    rotor.freestream_velocity      = 10     
+    rotor.freestream_velocity      = 130 * Units.mph  # 10  
     rotor.angular_velocity         = rotor.design_tip_mach*speed_of_sound/rotor.tip_radius      
     rotor.design_Cl                = 0.7
     rotor.design_altitude          = 500 * Units.feet                   
@@ -623,7 +616,6 @@ def vehicle_setup():
 # ----------------------------------------------------------------------
 #   Define the Configurations
 # ---------------------------------------------------------------------
-
 def configs_setup(vehicle):
     '''
     The configration set up below the scheduling of the nacelle angle and vehicle speed.
@@ -650,7 +642,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle   
-    config.networks.battery_propeller.pitch_command   = -5.  * Units.degrees   
+    config.networks.battery_propeller.pitch_command   = -10.  * Units.degrees   
     configs.append(config)
 
     # ------------------------------------------------------------------
@@ -664,7 +656,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle
-    config.networks.battery_propeller.pitch_command   = 3.  * Units.degrees  
+    config.networks.battery_propeller.pitch_command   = -8.  * Units.degrees  
     configs.append(config)
     
 
@@ -680,9 +672,8 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle
-    config.networks.battery_propeller.pitch_command   = 4.  * Units.degrees  
-    configs.append(config)
-    
+    config.networks.battery_propeller.pitch_command   = -5.  * Units.degrees  
+    configs.append(config) 
         
     
 
@@ -697,7 +688,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle 
-    config.networks.battery_propeller.pitch_command   = 5.  * Units.degrees     
+    config.networks.battery_propeller.pitch_command   = -3.  * Units.degrees     
     configs.append(config)
      
     # ------------------------------------------------------------------
@@ -711,7 +702,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle  
-    config.networks.battery_propeller.pitch_command   = 20.  * Units.degrees   # 20 
+    config.networks.battery_propeller.pitch_command   = 0.  * Units.degrees   
     configs.append(config)    
 
     # ------------------------------------------------------------------
@@ -725,7 +716,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle  
-    config.networks.battery_propeller.pitch_command   = 16.  * Units.degrees   # 17
+    config.networks.battery_propeller.pitch_command   = 0 * Units.degrees 
     configs.append(config)    
     
   
@@ -741,7 +732,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle  
-    config.networks.battery_propeller.pitch_command   = 15.  * Units.degrees   # 20 
+    config.networks.battery_propeller.pitch_command   = 0.  * Units.degrees 
     configs.append(config)     
     
     # ------------------------------------------------------------------
@@ -755,7 +746,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle
-    config.networks.battery_propeller.pitch_command   = 5.  * Units.degrees   
+    config.networks.battery_propeller.pitch_command   = -5.  * Units.degrees 
     configs.append(config) 
     
 
@@ -770,7 +761,7 @@ def configs_setup(vehicle):
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
     config.wings.canard_wing.twists.tip               = vector_angle     
-    config.networks.battery_propeller.pitch_command   = -5.  * Units.degrees  
+    config.networks.battery_propeller.pitch_command   = -10.  * Units.degrees  
     configs.append(config)
 
     return configs 
@@ -791,6 +782,9 @@ def urban_canyon_microphone_setup():
      
     return mic_locations,building_locations ,building_dimensions,N_X ,N_Y ,N_Z 
 
+# ------------------------------------------------------------------
+#   Full Mission Setup
+# ------------------------------------------------------------------  
 def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
         
   
@@ -885,7 +879,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.acceleration          = 9.81/5
                 segment.pitch_initial         = 20. * Units.degrees
                 segment.pitch_final           = -20. * Units.degrees 
-                segment.state.unknowns.throttle   = 0.80 * ones_row(1) 
+                segment.state.unknowns.throttle   = 0.80 * ones_row(1)  
                 segment                       = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.06) 
                 mission.append_segment(segment)
                 
@@ -917,7 +911,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.air_speed_end            = Vstall* 1.0 
                 segment.altitude_start           = 40.0 * Units.ft   + starting_elevation 
                 segment.altitude_end             = 500.0 * Units.ft   + starting_elevation 
-                segment.state.unknowns.throttle   = 0.80 * ones_row(1) 
+                segment.state.unknowns.throttle   = 0.80 * ones_row(1)  
                 segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.06)       
                 mission.append_segment(segment)   
                 
@@ -961,9 +955,9 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.analyses.extend(analyses.cruise) 
                 segment.altitude                 = 2500.0 * Units.ft
                 segment.air_speed                = 175.   * Units['mph'] 
-                cruise_distance                  = aircraft_range  - 16.67 * Units.nmi
+                cruise_distance                  = aircraft_range  - 26.67 * Units.nmi
                 segment.distance                 = cruise_distance
-                segment.state.unknowns.throttle  = 0.8 * ones_row(1) 
+                segment.state.unknowns.throttle  = 0.8 * ones_row(1)   
                 segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.01)     
                 mission.append_segment(segment)     
                 
@@ -976,7 +970,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.climb_rate               = -300. * Units['ft/min']
                 segment.air_speed_start          = 175.   * Units['mph']
                 segment.air_speed_end            = 100.   * Units['mph'] 
-                segment.altitude_start           = 2500.0 * Units.ft
+                segment.altitude_start           = 2500.0 * Units.ft 
                 segment.altitude_end             = 100.0 * Units.ft + starting_elevation      
                 segment.state.unknowns.throttle  = 0.6 * ones_row(1) 
                 segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.03) 
@@ -1031,7 +1025,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment                          = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
                 segment.tag                      = "Approach_Transition"  + "_F_" + str(flight_no) + "_D" + str (day)
                 segment.analyses.extend( analyses.approach)  
-                segment.climb_rate               = -200. * Units['ft/min']
+                segment.climb_rate               = -300. * Units['ft/min']
                 segment.air_speed_start          = 100.   * Units['mph'] 
                 segment.air_speed_end            = 55.   * Units['mph'] 
                 segment.altitude_start           = 100.0 * Units.ft     + starting_elevation
@@ -1085,6 +1079,9 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
 
     return mission 
 
+# ------------------------------------------------------------------
+#   Noise (Approach/Departure) Mission Setup
+# ------------------------------------------------------------------     
 def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
       
     starting_elevation = 0*Units.feet
@@ -1126,6 +1123,67 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     CLmax  = 1.2 
     Vstall = float(np.sqrt(2.*m*g/(rho*S*CLmax)))   
     
+    
+    # ------------------------------------------------------------------
+    #    Descent Segment: Constant Acceleration, Constant Altitude
+    # ------------------------------------------------------------------ 
+    segment                          = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+    segment.tag                      = "Descent"   
+    segment.analyses.extend(analyses.climb)
+    segment.climb_rate               = -300. * Units['ft/min']
+    segment.air_speed_start          = 175.   * Units['mph']
+    segment.air_speed_end            = 100.   * Units['mph'] 
+    segment.altitude_start           = 500.0 * Units.ft 
+    segment.battery_energy           = vehicle.networks.battery_propeller.battery.max_energy 
+    segment.altitude_end             = 100.0 * Units.ft + starting_elevation      
+    segment.state.unknowns.throttle  = 0.6 * ones_row(1) 
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.03) 
+    mission.append_segment(segment)         
+    
+    # ------------------------------------------------------------------
+    #  Forth Transition Segment
+    # ------------------------------------------------------------------ 
+    segment                          = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+    segment.tag                      = "Approach_Transition"  
+    segment.analyses.extend( analyses.approach)  
+    segment.climb_rate               = -300. * Units['ft/min']
+    segment.air_speed_start          = 100.   * Units['mph'] 
+    segment.air_speed_end            = 55.   * Units['mph'] 
+    segment.altitude_start           = 100.0 * Units.ft     + starting_elevation
+    segment.altitude_end             = 40.0 * Units.ft     + starting_elevation              
+    segment.state.unknowns.throttle  = 0.6 * ones_row(1) 
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.03) 
+    mission.append_segment(segment)     
+    
+    # ------------------------------------------------------------------
+    #  Forth Transition Segment
+    # ------------------------------------------------------------------ 
+    segment                          = Segments.Cruise.Constant_Acceleration_Constant_Altitude(base_segment)  
+    segment.tag                      = "Descent_Transition"  
+    segment.analyses.extend( analyses.descent_transition)   
+    segment.altitude                 = 40.  * Units.ft+ starting_elevation 
+    segment.air_speed_start          = 55 * Units['mph']    
+    segment.air_speed_end            = 300. * Units['ft/min'] 
+    segment.acceleration             = -0.5 * Units['m/s/s']   
+    segment.pitch_initial            = 1. * Units.degrees
+    segment.pitch_final              = 2. * Units.degrees               
+    segment.state.unknowns.throttle  = 0.6 * ones_row(1) 
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment , initial_power_coefficient = 0.01) 
+    mission.append_segment(segment)     
+
+    # ------------------------------------------------------------------
+    #   Descent Segment: Constant Speed, Constant Rate
+    # ------------------------------------------------------------------ 
+    segment                          = Segments.Hover.Descent(base_segment)
+    segment.tag                      = "Vertical_Descent"   
+    segment.analyses.extend( analyses.vertical_descent) 
+    segment.altitude_start           = 40.0  * Units.ft + starting_elevation 
+    segment.altitude_end             = 0.  * Units.ft + starting_elevation 
+    segment.descent_rate             = 300. * Units['ft/min']  
+    segment.state.unknowns.throttle  = 0.6  * ones_row(1)  
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.06)  
+    mission.append_segment(segment)  
+    
     # ------------------------------------------------------------------
     #   First Climb Segment: Constant Speed, Constant Rate
     # ------------------------------------------------------------------ 
@@ -1134,8 +1192,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment.analyses.extend(analyses.vertical_climb) 
     segment.altitude_start                             = 0.0  * Units.ft + starting_elevation 
     segment.altitude_end                               = 40.  * Units.ft + starting_elevation 
-    segment.climb_rate                                 = 300. * Units['ft/min']  
-    segment.battery_energy                         = vehicle.networks.battery_propeller.battery.max_energy   
+    segment.climb_rate                                 = 300. * Units['ft/min']    
     segment.battery_pack_temperature                   = atmo_data.temperature[0,0]             
     segment.state.unknowns.throttle                    = 0.6  * ones_row(1)  
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.06) 
@@ -1192,13 +1249,11 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     
     return mission
 
-
-
-
+# ------------------------------------------------------------------
+#  Hover Noise Mission Setup
+# ------------------------------------------------------------------   
 def hover_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
-        
-  
-    starting_elevation = 100*Units.feet
+         
     # ------------------------------------------------------------------
     #   Initialize the Mission
     # ------------------------------------------------------------------
@@ -1219,7 +1274,7 @@ def hover_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
 
     # base segment
     base_segment                                             = Segments.Segment() 
-    base_segment.state.numerics.number_control_points        = control_points     
+    base_segment.state.numerics.number_control_points        = 3     
     ones_row                                                 = base_segment.state.ones_row
     base_segment.battery_discharge                           = True  
     base_segment.process.iterate.conditions.stability        = SUAVE.Methods.skip
@@ -1243,7 +1298,9 @@ def hover_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
 
     return mission
 
-
+# ------------------------------------------------------------------
+#   Missions Setup
+# ------------------------------------------------------------------   
 def missions_setup(base_mission):
 
     # the mission container
@@ -1262,8 +1319,7 @@ def missions_setup(base_mission):
 
 # ----------------------------------------------------------------------
 #   Plot Results
-# ----------------------------------------------------------------------
-
+# ---------------------------------------------------------------------- 
 def plot_results(results,run_noise_model,line_style = 'bo-'):  
 
     # Plot Flight Conditions 
@@ -1302,6 +1358,9 @@ def plot_results(results,run_noise_model,line_style = 'bo-'):
 
     return 
 
+# ------------------------------------------------------------------
+#   Save Results
+# ------------------------------------------------------------------   
 def save_results(results,filename): 
     pickle_file  = filename + '.pkl'
     with open(pickle_file, 'wb') as file:

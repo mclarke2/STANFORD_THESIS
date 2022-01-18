@@ -7,55 +7,58 @@ from SUAVE.Plots.Performance.Mission_Plots import *
 from SUAVE.Plots.Geometry import *  
 from SUAVE.Core import Data , Units
 import matplotlib.gridspec as gridspec
-import numpy as np   
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection  
+import numpy as np    
 import matplotlib.pyplot as plt    
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 import numpy as np   
-import pickle 
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry import import_airfoil_geometry
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_naca_4series import compute_naca_4series   
-from SUAVE.Components.Energy.Energy_Component import Energy_Component
-
-import sys 
-sys.path.append('../XX_Supplementary/Aircraft_Models')
-
+import pickle  
+ 
 # ----------------------------------------------------------------------
 #   Main
 # ----------------------------------------------------------------------
 def main():
      
     N_gm_x              = 10
-    N_gm_y              = 10
-     
-    filename = 'ECTOL_Full_Mission'
-    ECTOL_results_raw = load_results(filename)
-    ECTOL_results = process_results(ECTOL_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'ECTOL')
+    N_gm_y              = 7
+    # ../Supplementary/
+    mission_filename  = 'ECTOL_Full_Mission'
+    ECTOL_results_raw = load_results(mission_filename)
+    ECTOL_results     = process_results(ECTOL_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'ECTOL')
     
-    filename = 'Stopped_Rotor_Full_Mission'
-    sr_results_raw = load_results(filename)
-    sr_results = process_results(sr_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR')
+    mission_filename       = 'Stopped_Rotor_Full_Mission'
+    sr_mission_results_raw = load_results(mission_filename)
+    sr_results             = process_results(sr_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR')
+    hover_filename         = 'Stopped_Rotor_Hover_Mission'
+    sr_hover_results_raw   = load_results(hover_filename)
+    sr_hover_results       = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR')
     
-    filename = 'Tiltwing_Full_Mission'
-    tw_results_raw = load_results(filename)
-    tw_results = process_results(tw_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW')
+    mission_filename       = 'Tiltwing_Full_Mission'
+    tw_results_raw         = load_results(mission_filename)
+    tw_results             = process_results(tw_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW')
+    hover_filename         = 'Tiltwing_Hover_Mission'
+    tw_hover_results_raw   = load_results(hover_filename)
+    tw_hover_results       = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW')
     
-    filename = 'Multirotor_Full_Mission'  
-    mr_results_raw = load_results(filename)     
-    mr_results = process_results(mr_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR') 
-    
+    mission_filename       = 'Multirotor_Full_Mission'  
+    mr_results_raw         = load_results(mission_filename)     
+    mr_results             = process_results(mr_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR') 
+    hover_filename         = 'Multirotor_Hover_Mission'  
+    mr_hover_results_raw   = load_results(hover_filename)     
+    mr_hover_results       = process_results(mr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR')  
     
     line_width                     = 4
     plt.rcParams['axes.linewidth'] = 4.
     plt.rcParams["font.family"]    = "Times New Roman"
     plt.rcParams.update({'font.size': 36})
-    figure_width  = 14
-    figure_height = 8
-    ls            = 22 # legend font size 
-    ms            = 14   
+    figure_width                   = 14
+    figure_height                  = 8
+    ls                             = 22 # legend font size 
+    ms                             = 14   
         
     axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
-               axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21 =  set_up_axes(figure_width,figure_height,ls)
+               axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
+               fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
+               fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20     =  set_up_axes(figure_width,figure_height,ls)
     plot_results(ECTOL_results,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
                  axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
                  col = 'black',col2 = 'grey',vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
@@ -72,11 +75,6 @@ def main():
                  axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
                  col = 'firebrick',col2 = 'darkred',vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')          
      
-     
-    plot_flight_profile_noise_contours(ECTOL_results,line_width,ms,ls, col = 'black',col2 = 'grey',vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
-    plot_flight_profile_noise_contours(sr_results,line_width,ms,ls,  col = 'mediumblue',col2 = 'darkcyan',vehicle_name = 'SR',m = '^',ls1 = '-', ls2 = '--')   
-    plot_flight_profile_noise_contours(tw_results,line_width,ms,ls, col = 'green',col2 = 'darkgreen',vehicle_name = 'TW',m = 'X',ls1 = '-', ls2 = '--')    
-    plot_flight_profile_noise_contours(mr_results,line_width,ms,ls, col = 'firebrick',col2 = 'darkred',vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')  
 
     mark_inset(axes_1, axins_1, loc1=2, loc2=4, fc="none", ec="0.5")  
     mark_inset(axes_12, axins_12, loc1=2, loc2=4, fc="none", ec="0.5")  
@@ -100,13 +98,28 @@ def main():
     axes_17.legend(loc='upper center', ncol=  5 , prop={'size': ls}) 
     axes_18.legend(loc='upper center', ncol=  5, prop={'size': ls})     
     axes_19.legend(loc='upper center', ncol=  5, prop={'size': ls})   
-    axes_20.legend(loc='upper center', ncol=  5 , prop={'size': ls})
-    
-        
+    axes_20.legend(loc='upper center', ncol=  5 , prop={'size': ls}) 
 
+    save_figures(fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
+                     fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
+                     fig_17,fig_18,fig_19,fig_20)
     
+    
+    # Hover Noise Contours
+    plot_aircraft_hover_noise_contours(sr_hover_results,vehicle_name = 'SR') 
+    plot_aircraft_hover_noise_contours(tw_hover_results,vehicle_name = 'TW') 
+    plot_aircraft_hover_noise_contours(mr_hover_results,vehicle_name = 'MR') 
+    
+    # flight profile noise contours 
+    plot_flight_profile_noise_contours(ECTOL_results,line_width,ms,ls, col = 'black',col2 = 'grey',vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
+    plot_flight_profile_noise_contours(sr_results,line_width,ms,ls,  col = 'mediumblue',col2 = 'darkcyan',vehicle_name = 'SR',m = '^',ls1 = '-', ls2 = '--')   
+    plot_flight_profile_noise_contours(tw_results,line_width,ms,ls, col = 'green',col2 = 'darkgreen',vehicle_name = 'TW',m = 'X',ls1 = '-', ls2 = '--')    
+    plot_flight_profile_noise_contours(mr_results,line_width,ms,ls, col = 'firebrick',col2 = 'darkred',vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')      
     return
-
+ 
+# ------------------------------------------------------------------
+# Process Results 
+# ------------------------------------------------------------------
 def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
     '''This function cleans up the data and connects segments for plots ''' 
 
@@ -160,10 +173,8 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
     PD.SPL_contour  = np.zeros((data_dimension,N_gm_x*N_gm_y))
     PD.N_gm_x       = N_gm_x  
     PD.N_gm_y       = N_gm_y  
-    PD.aircraft_pos =  np.zeros((data_dimension,3))
-    
-
-    dim_segs  = len(res.segments)    
+    PD.aircraft_pos =  np.zeros((data_dimension,3)) 
+    dim_segs        = len(res.segments)    
     PD.num_segments = dim_segs
     PD.num_ctrl_pts = num_ctrl_pts
     
@@ -266,283 +277,111 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
             
     return PD
 
-def set_up_axes(figure_width,figure_height,ls):
-    
-    # ------------------------------------------------------------------
-    #   Flight Conditions - Altitude 
-    # ------------------------------------------------------------------
-    fig_1 = plt.figure("Flight_Conditions_Altitude")
-    fig_1.set_size_inches(figure_width,figure_height)
-    axes_1 = fig_1.add_subplot(1,1,1)
-    axes_1.set_ylabel('Altitude (ft)')  
-    axes_1.set_xlabel('$\hat{t}$')         
-    axes_1.set_ylim(0,3000)   
-    axes_1.minorticks_on()    
-    fig_1.tight_layout()   
-    axins_1 = axes_1.inset_axes([0.2, 0.05, 0.5, 0.5])
-    axins_1.set_xlim(-0.002, 0.024) # apply the x-limits
-    axins_1.set_ylim(0, 500) # apply the y-limits    
-    axins_1.xaxis.set_visible(False)
-    axins_1.yaxis.set_visible(False) 
-    axins_1.indicate_inset([0.2, 0.05, 0.5, 0.5],edgecolor = 'black', alpha=1.0,linewidth =2)    
-    axins_1.set_aspect('auto')   
-    
-    # ------------------------------------------------------------------
-    #   Flight Conditions - Altitude 
-    # ------------------------------------------------------------------
-    fig_2 = plt.figure("Flight_Conditions_Range")
-    fig_2.set_size_inches(figure_width,figure_height) 
-    axes_2 = fig_2.add_subplot(1,1,1)
-    axes_2.set_ylabel('Range (nmi)')  
-    axes_2.set_xlabel(r'$\hat{t}$')            
-    axes_2.set_ylim(0,80)   
-    axes_2.minorticks_on()    
-    fig_2.tight_layout()    
-    
-    # ------------------------------------------------------------------
-    #   Flight Conditions - Noise
-    # ------------------------------------------------------------------
-    fig_3 = plt.figure("Flight_Conditions_Noise")
-    fig_3.set_size_inches(figure_width,figure_height)
-    axes_3 = fig_3.add_subplot(1,1,1)   
-    axes_3.set_ylim(55,130)   
-    axes_3.set_ylabel('SPL$_{Amax}$ (dBA)')  
-    axes_3.set_xlabel(r'$\hat{t}$') 
-    axes_3.minorticks_on()     
-    fig_3.tight_layout()        
-    
-    # ------------------------------------------------------------------
-    #   Flight Conditions - AoA 
-    # ------------------------------------------------------------------ 
-    fig_4 = plt.figure("Aero_Conditions_AoA")
-    fig_4.set_size_inches(figure_width,figure_height) 
-    axes_4 = fig_4.add_subplot(1,1,1)
-    axes_4.set_ylabel('AoA (deg.)' )     
-    axes_4.set_ylim(-15,20)   
-    axes_4.minorticks_on()  
-    axes_4.set_xlabel(r'$\hat{t}$')
-    fig_4.tight_layout()    
-    
-    # ------------------------------------------------------------------
-    #   Flight Conditions - CL
-    # ------------------------------------------------------------------ 
-    fig_5 = plt.figure("Aero_Conditions_CL")
-    fig_5.set_size_inches(figure_width,figure_height)   
-    axes_5 = fig_5.add_subplot(1,1,1)    
-    axes_5.set_ylabel(r'$C_L$')  
-    axes_5.minorticks_on()  
-    axes_5.set_ylim(-0.2, 1.5)    
-    axes_5.set_xlabel(r'$\hat{t}$')
-    fig_5.tight_layout()    
+# ------------------------------------------------------------------
+# Plot Aircraft Hover Noise Contours at 500 ft
+# ------------------------------------------------------------------
+def plot_aircraft_hover_noise_contours(res,vehicle_name): 
      
-    # ------------------------------------------------------------------
-    #   Flight Conditions - CD 
-    # ------------------------------------------------------------------ 
-    fig_6 = plt.figure("Aero_Conditions_CD")
-    fig_6.set_size_inches(figure_width,figure_height)   
-    axes_6 = fig_6.add_subplot(1,1,1) 
-    axes_6.set_xlabel(r'$\hat{t}$')
-    axes_6.set_ylabel(r'$C_D$') 
-    axes_6.minorticks_on()   
-    axes_6.set_ylim(0, 0.18) 
-    axes_6.set_xlabel(r'$\hat{t}$')
-    fig_6.tight_layout()    
-    
-    # ------------------------------------------------------------------
-    #   Flight Conditions - L/D
-    # ------------------------------------------------------------------ 
-    fig_7 = plt.figure("Aero_Conditions_L_D")
-    fig_7.set_size_inches(figure_width,figure_height) 
-    axes_7 = fig_7.add_subplot(1,1,1)
-    axes_7.set_xlabel(r'$\hat{t}$')
-    axes_7.set_ylabel('L/D')  
-    axes_7.minorticks_on()  
-    axes_7.set_ylim(-6, 20)     
-    axes_7.set_xlabel(r'$\hat{t}$')
-    fig_7.tight_layout()    
- 
-    # ------------------------------------------------------------------
-    #   Electronic Conditions - Energy 
-    # ------------------------------------------------------------------
-    fig_8 = plt.figure("Battery_Pack_Performance_E")
-    fig_8.set_size_inches(figure_width,figure_height) 
-    axes_8 = fig_8.add_subplot(1,1,1)   
-    axes_8.set_ylabel('$E_{bat}$ (kW-hr)')
-    axes_8.minorticks_on()  
-    axes_8.set_xlabel(r'$\hat{t}$')
-    fig_8.tight_layout()    
-           
-    # ------------------------------------------------------------------
-    #   Electronic Conditions - Voltage 
-    # ------------------------------------------------------------------
-    fig_9 = plt.figure("Battery_Pack_Performance_V")
-    fig_9.set_size_inches(figure_width,figure_height)  
-    axes_9 = fig_9.add_subplot(1,1,1)
-    axes_9.set_ylabel('$V_{OC}$ (V)')   
-    axes_9.minorticks_on()  
-    axes_9.set_xlabel(r'$\hat{t}$')     
-    axes_9.set_ylim(400, 1500)        
-    fig_9.tight_layout()    
-    
+    # unpack microphone array 
+    dim_gm             = res.segments[0].conditions.noise.number_ground_microphones
+    gm_N_x             = res.segments[0].analyses.noise.settings.level_ground_microphone_x_resolution
+    gm_N_y             = res.segments[0].analyses.noise.settings.level_ground_microphone_y_resolution   
+    Range              = np.zeros(dim_gm) 
+    Span               = np.zeros(dim_gm)   
+    gm_mic_loc         = res.segments[0].analyses.noise.settings.ground_microphone_locations  
+    Range              = gm_mic_loc[:,0].reshape(gm_N_x,gm_N_y)
+    Span               = gm_mic_loc[:,1].reshape(gm_N_x,gm_N_y) 
+    levs               = np.linspace(40,80,25)
+   
+    # ---------------------------------------------------------------------------
+    # Stopped-Rotor 
+    # --------------------------------------------------------------------------- 
+    SR_SPL_contour_gm      = res.segments[0].conditions.noise.total_SPL_dBA[0,:dim_gm] 
+    SR_max_SPL_contour_gm  = np.max(SR_SPL_contour_gm,axis=0)
+    SR_SPL_gm              = SR_max_SPL_contour_gm.reshape(gm_N_x,gm_N_y) 
+    fig_name               = 'Noise_Contour_500ft_' + vehicle_name
+    SR_fig                 = plt.figure(fig_name )  
+    SR_fig.set_size_inches(6, 6) 
+    SR_axes                = SR_fig.add_subplot(1,1,1)   
+    Range                  = Range/Units.nmi
+    Span                   = Span/Units.nmi
+    CS                     = SR_axes.contourf(Range , Span,SR_SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both')     
+    cbar                   = SR_fig.colorbar(CS)
+    cbar.ax.set_ylabel('SPL (dBA)', rotation =  90)     
+    SR_axes.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
+    SR_axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
+    SR_axes.grid(False)  
+    SR_axes.minorticks_on()   
+    plt.savefig(fig_name + 'png')
+    return  
 
-    # ------------------------------------------------------------------
-    #   Electronic Conditions - Voltage 
-    # ------------------------------------------------------------------
-    fig_21 = plt.figure("Battery_Pack_Performance_Vul")
-    fig_21.set_size_inches(figure_width,figure_height)  
-    axes_21 = fig_21.add_subplot(1,1,1)
-    axes_21.set_ylabel('$V_{UL}$ (V)')   
-    axes_21.minorticks_on()  
-    axes_21.set_xlabel(r'$\hat{t}$')     
-    axes_21.set_ylim(400, 1300)        
-    fig_21.tight_layout()    
+# ------------------------------------------------------------------
+# Plot Flight Profile Noise Contours 
+# ------------------------------------------------------------------
+def plot_flight_profile_noise_contours(res,line_width,ms,ls, col ,col2,vehicle_name,m,ls1, ls2):    
     
-    # ------------------------------------------------------------------
-    #  Performance - Disc Loading
-    # ------------------------------------------------------------------
-    fig_10 = plt.figure("Battery_Pack_Performance_DL")
-    fig_10.set_size_inches(figure_width,figure_height)  
-    axes_10 = fig_10.add_subplot(1,1,1)
-    axes_10.set_ylabel('$DL$ $(N/m^2)$') 
-    axes_10.minorticks_on()  
-    axes_10.set_xlabel(r'$\hat{t}$')     
-    axes_10.set_ylim(0, 800)       
-    fig_10.tight_layout()             
-        
-    # ------------------------------------------------------------------
-    #   Electronic Conditions - Power Loading
-    # ------------------------------------------------------------------
-    fig_11 = plt.figure("Battery_Pack_Performance_PL")
-    fig_11.set_size_inches(figure_width,figure_height)  
-    axes_11 = fig_11.add_subplot(1,1,1) 
-    axes_11.set_ylabel('$PL$ (N/W)')   
-    axes_11.minorticks_on()  
-    axes_11.set_xlabel(r'$\hat{t}$')     
-    axes_11.set_ylim(0, 0.11)       
-    fig_11.tight_layout()              
+    line_width                     = 4
+    plt.rcParams['axes.linewidth'] = 4.
+    plt.rcParams["font.family"]    = "Times New Roman"
+    plt.rcParams.update({'font.size': 36}) 
+    ls            = 24 
+    ms            = 14   
+    figure_width  = 14
+    figure_height = 8     
     
-    # ------------------------------------------------------------------
-    #   Electronic Conditions - C-Rate 
-    # ------------------------------------------------------------------ 
-    fig_12 = plt.figure("Battery_Pack_Performance_C_rate")
-    fig_12.set_size_inches(figure_width,figure_height) 
-    axes_12 = fig_12.add_subplot(1,1,1) 
-    axes_12.set_ylabel('C ($hr^{-1}$)')  
-    axes_12.set_xlabel(r'$\hat{t}$')     
-    axes_12.set_ylim(0, 6)      
-    axes_12.minorticks_on()      
-    fig_12.tight_layout()        
-    axins_12 = axes_12.inset_axes([0.1, 0.37, 0.6, 0.5])
-    axins_12.set_xlim(-0.002, 0.03) # apply the x-limits
-    axins_12.set_ylim(0, 4) # apply the y-limits    
-    axins_12.xaxis.set_visible(False)
-    axins_12.yaxis.set_visible(False) 
-    axins_12.indicate_inset( [0.1, 0.37, 0.6, 0.5],edgecolor = 'black', alpha= 1.0,linewidth =2)
-    axins_12.set_aspect('auto')   
-    
-    # ------------------------------------------------------------------
-    #   Electronic Conditions
-    # ------------------------------------------------------------------
-    fig_13 = plt.figure("Battery_Pack_Performance_T")
-    fig_13.set_size_inches(figure_width,figure_height) 
-    axes_13 = fig_13.add_subplot(1,1,1)      
-    axes_13.set_ylim(0, 1.2)       
-    axes_13.set_ylabel('$\zeta$') 
-    axes_13.minorticks_on()  
-    axes_13.set_xlabel(r'$\hat{t}$')     
-    fig_13.tight_layout()          
- 
-    # ------------------------------------------------------------------
-    #   Electronic Conditions - SOC
-    # ------------------------------------------------------------------
-    fig_14 = plt.figure("Battery_Pack_Performance_SOC")
-    fig_14.set_size_inches(figure_width,figure_height) 
-    axes_14 = fig_14.add_subplot(1,1,1)   
-    axes_14.set_ylabel('SOC')
-    axes_14.minorticks_on()     
-    axes_14.set_ylim(0.5,1.02)   
-    fig_14.tight_layout()          
-    axes_14.text(0.0, 0.96, "1", size=20, ha="center", va="center", color= "black", bbox=dict(facecolor = 'white', boxstyle="circle") )  
-    axes_14.text(0.99, 0.63, "2", size=20, ha="center", va="center",color= "black", bbox=dict(facecolor = 'white',boxstyle="circle") )  
-    axes_14.set_xlabel(r'$\hat{t}$')
+    # figure parameters
+    filename = 'Noise_Contour' + vehicle_name
+    fig          = plt.figure(filename) 
+    fig.set_size_inches(figure_width ,figure_height)   
      
-    # ------------------------------------------------------------------
-    #   Propeller Performance _ RPM 
-    # ------------------------------------------------------------------
+    gs = gridspec.GridSpec(8, 8)
+    axes_21 = fig.add_subplot(gs[2:,:]) # contour 
+    axes_22 = fig.add_subplot(gs[:2,:]) # altitude 
+      
+    #   Altitude  
+    axes_22.set_ylabel('Alt (ft)')  
+    axes_22.axes.xaxis.set_visible(False)
+    axes_22.plot(res.aircraft_pos[:,0]/Units.nmi,  -res.aircraft_pos[:,2]/Units.feet , color = col , linestyle = ls1, marker = m, markersize = ms , linewidth= line_width) 
+    max_mi = np.max( res.aircraft_pos[:,0]/Units.nmi)
+    axes_22.set_xlim(0, max_mi)   
+    axes_22.set_ylim(0, 3000)     
+    axes_22.minorticks_on()  
  
-    fig_15 = plt.figure("Propeller_Performance_RPM")
-    fig_15.set_size_inches(figure_width,figure_height)   
-    axes_15 = fig_15.add_subplot(1,1,1)  
-    axes_15.set_ylabel('RPM')      
-    axes_15.minorticks_on()  
-    axes_15.set_ylim(0, 2250)
-    axes_15.set_xlabel(r'$\hat{t}$')
-    fig_15.tight_layout()        
+    #   Noise     
+    N_gm_x              = res.N_gm_x
+    N_gm_y              = res.N_gm_y   
+    gm_mic_loc          = res.gm_mic_loc
+    Range               = gm_mic_loc[:,0].reshape(N_gm_x ,N_gm_y )
+    Span                = gm_mic_loc[:,1].reshape(N_gm_x ,N_gm_y ) 
+    max_SPL_contour_gm  = np.max(res.SPL_contour,axis=0)
+    SPL_gm              = max_SPL_contour_gm.reshape(N_gm_x ,N_gm_y ) 
+    levs                = np.linspace(40,120,25)   
+    Range               = Range/Units.nmi
+    Span                = Span/Units.nmi
+    CS                  = axes_21.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both') 
+    CS                  = axes_21.contourf(Range ,-Span, SPL_gm, levels = levs, cmap=plt.cm.jet, extend='both')
     
-    # ------------------------------------------------------------------
-    #   Propeller Performance Thrust 
-    # ------------------------------------------------------------------    
-    fig_16 = plt.figure("Propeller_Performance_T")
-    fig_16.set_size_inches(figure_width,figure_height)   
-    axes_16 = fig_16.add_subplot(1,1,1) 
-    axes_16.set_ylabel('T (kN)') 
-    axes_16.minorticks_on()  
-    axes_16.set_ylim(0,45) 
-    axes_16.set_xlabel(r'$\hat{t}$')
-    fig_16.tight_layout()        
+    xi, yi = np.meshgrid(np.linspace(np.min(Range),np.max(Range), 10),np.linspace(-np.max(Span),np.max(Span), 5) )
+    axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
+    axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
     
-    # ------------------------------------------------------------------
-    #   Propeller Performance - Torque
-    # ------------------------------------------------------------------       
-    fig_17 = plt.figure("Propeller_Performance_Q")
-    fig_17.set_size_inches(figure_width,figure_height) 
-    axes_17 = fig_17.add_subplot(1,1,1)
-    axes_17.set_xlabel(r'$\hat{t}$')    
-    axes_17.set_ylabel('Q (Nm)')      
-    axes_17.minorticks_on()  
-    axes_17.set_ylim(0, 1500)      
-    fig_17.tight_layout()          
+    fig.subplots_adjust(right=0.8)
+    axes_23 = fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
+    cbar    = fig.colorbar(CS, ax=axes_23)
+    cbar.ax.set_ylabel('SPL$_{Amax}$ (dBA)', rotation =  90)     
+    axes_21.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
+    axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
+    plt.axis('off')	
+    plt.grid(None)      
+    
+    plt.savefig(filename+'.png')
+    
+    return 
+  
 
-    # ------------------------------------------------------------------
-    #   Propeller Performance - Propeller Efficiency 
-    # ------------------------------------------------------------------     
-    fig_18 = plt.figure("Propeller_Performance_Prop_eff")
-    fig_18.set_size_inches(figure_width,figure_height)  
-    axes_18 = fig_18.add_subplot(1,1,1) 
-    axes_18.set_ylabel(r'$\eta_{prop/rot}$')    
-    axes_18.set_xlabel(r'$\hat{t}$')                
-    axes_18.set_ylim(0, 1.1)  
-    axes_18.minorticks_on()    
-    fig_18.tight_layout()        
-    
-    # ------------------------------------------------------------------
-    #   Propeller Performance - Motor Efficiency
-    # ------------------------------------------------------------------      
- 
-    fig_19 = plt.figure("Propeller_Performance_Mot_eff")
-    fig_19.set_size_inches(figure_width,figure_height) 
-    axes_19 = fig_19.add_subplot(1,1,1)        
-    axes_19.set_xlabel(r'$\hat{t}$')
-    axes_19.set_ylabel(r'$\eta_{motor}$') 
-    axes_19.set_ylim(0.85, 1.)             
-    axes_19.minorticks_on()     
-    fig_19.tight_layout() 
-    
-    # ------------------------------------------------------------------
-    #   Propeller Performance - Tip Mach 
-    # ------------------------------------------------------------------   
-    fig_20 = plt.figure("Propeller_Performance_Mach_Tip")
-    fig_20.set_size_inches(figure_width,figure_height) 
-    axes_20 = fig_20.add_subplot(1,1,1)        
-    axes_20.set_xlabel(r'$\hat{t}$')
-    axes_20.set_ylabel('$M_{tip}$')  
-    axes_20.set_ylim(0, 0.75)  
-    axes_20.minorticks_on()     
-    fig_20.tight_layout() 
-    
-    return axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
-           axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21
-
+# ------------------------------------------------------------------ 
+# Plot Figures
+# ------------------------------------------------------------------ 
 def plot_results(res,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
                  axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
                  col,col2,vehicle_name,m,ls1,ls2):
@@ -745,137 +584,322 @@ def plot_results(res,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,ax
     
     return 
 
-def plot_aircraft_noise_contours(ECTOL_res,SR_res,TW_res,MR_res):
+
+
+# ------------------------------------------------------------------ 
+# Setup Axes 
+# ------------------------------------------------------------------ 
+def set_up_axes(figure_width,figure_height,ls):
     
-    evaluation_altitudes = np.array([50,250,1500])
-    dim_ea               = len(evaluation_altitudes) 
-    levs                 = np.linspace(65,120,35)
+    # ------------------------------------------------------------------
+    #   Flight Conditions - Altitude 
+    # ------------------------------------------------------------------
+    fig_1 = plt.figure("Flight_Conditions_Altitude")
+    fig_1.set_size_inches(figure_width,figure_height)
+    axes_1 = fig_1.add_subplot(1,1,1)
+    axes_1.set_ylabel('Altitude (ft)')  
+    axes_1.set_xlabel('$\hat{t}$')         
+    axes_1.set_ylim(0,3000)   
+    axes_1.minorticks_on()    
+    fig_1.tight_layout()   
+    axins_1 = axes_1.inset_axes([0.2, 0.05, 0.5, 0.5])
+    axins_1.set_xlim(-0.002, 0.024) # apply the x-limits
+    axins_1.set_ylim(0, 500) # apply the y-limits    
+    axins_1.xaxis.set_visible(False)
+    axins_1.yaxis.set_visible(False) 
+    axins_1.indicate_inset([0.2, 0.05, 0.5, 0.5],edgecolor = 'black', alpha=1.0,linewidth =2)    
+    axins_1.set_aspect('auto')   
     
-    for ea in range(dim_ea): 
-        fig = plt.figure("Noise_Contour_" + str(evaluation_altitudes[ea]) + '_ft' ) 
-        fig.set_size_inches(18, 4) 
-        
-        # Find index of point nearest to evaluation altitude
-        ECTOL_idx         = (np.abs(ECTOL_res.altitude[0:64] - evaluation_altitudes[ea])).argmin()
-        dim = int(np.sqrt(len(ECTOL_res.SPL_contour[ECTOL_idx])))
-        ECTOL_SPL_contour = ECTOL_res.SPL_contour[ECTOL_idx].reshape(dim,dim) 
-        ECTOL_x           = ECTOL_res.mic_x_loc[ECTOL_idx].reshape(dim,dim) 
-        ECTOL_y           = ECTOL_res.mic_y_loc[ECTOL_idx].reshape(dim,dim)   
-        ECTOL_axes        = fig.add_subplot(1,4,1)  
-        ECTOL_CS          = ECTOL_axes.contourf(ECTOL_y,ECTOL_x,ECTOL_SPL_contour,lw=3, levels = levs)   
-        ECTOL_axes.set_title('General Aviation')  
-        ECTOL_axes.set_xlabel('Spanwise $x_{fp}$ (ft)')
-        ECTOL_axes.set_ylabel('Streamwise $x_{fp}$ (ft)')         
-        ECTOL_axes.grid(False)  
-        ECTOL_axes.minorticks_on()   
-        
-        
-        SR_idx         = (np.abs(SR_res.altitude[:100] - evaluation_altitudes[ea])).argmin()
-        SR_SPL_contour = SR_res.SPL_contour[SR_idx].reshape(dim,dim) 
-        SR_x           = SR_res.mic_x_loc[SR_idx].reshape(dim,dim) 
-        SR_y           = SR_res.mic_y_loc[SR_idx].reshape(dim,dim)   
-        SR_axes        = fig.add_subplot(1,4,2)  
-        SR_CS          = SR_axes.contourf(SR_y,SR_x,SR_SPL_contour, lw=3,levels = levs)       
-        SR_axes.set_title('Stopped-rotor')  
-        SR_axes.set_xlabel('Spanwise $x_{fp}$ (ft)')         
-        SR_axes.grid(False)  
-        SR_axes.minorticks_on()      
-        
-        
-        TW_idx         = (np.abs(TW_res.altitude[:80] - evaluation_altitudes[ea])).argmin()
-        TW_SPL_contour = TW_res.SPL_contour[TW_idx].reshape(dim,dim)
-        TW_x           = TW_res.mic_x_loc[TW_idx].reshape(dim,dim) 
-        TW_y           = TW_res.mic_y_loc[TW_idx].reshape(dim,dim)   
-        TW_axes        = fig.add_subplot(1,4,3)  
-        TW_CS          = TW_axes.contourf(TW_y,TW_x,TW_SPL_contour, lw=3,levels = levs)       
-        TW_axes.set_title('Tilt-wing')  
-        TW_axes.set_xlabel('Spanwise $x_{fp}$ (ft)')             
-        TW_axes.grid(False)  
-        TW_axes.minorticks_on()       
-        
-        
-        MR_idx         = (np.abs(MR_res.altitude[0:48] - evaluation_altitudes[ea])).argmin()
-        MR_SPL_contour = MR_res.SPL_contour[MR_idx].reshape(dim,dim) 
-        MR_x           = MR_res.mic_x_loc[MR_idx].reshape(dim,dim) 
-        MR_y           = MR_res.mic_y_loc[MR_idx].reshape(dim,dim)   
-        MR_axes        = fig.add_subplot(1,4,4)  
-        MR_CS          = MR_axes.contourf(MR_y,MR_x,MR_SPL_contour,lw=3, levels = levs)       
-        MR_axes.set_title('Multi-rotor')  
-        MR_axes.set_xlabel('Spanwise $x_{fp}$ (ft)')         
-        MR_axes.grid(False)  
-        MR_axes.minorticks_on()      
-        
-        
-        fig.subplots_adjust(right=0.85)
-        cbar_ax = fig.add_axes([0.9, 0.15, 0.02, 0.7])
-        MR_cbar = fig.colorbar(MR_CS, cax=cbar_ax) 
-        MR_cbar.ax.set_ylabel('SPL (dBA)')       
+    # ------------------------------------------------------------------
+    #   Flight Conditions - Altitude 
+    # ------------------------------------------------------------------
+    fig_2 = plt.figure("Flight_Conditions_Range")
+    fig_2.set_size_inches(figure_width,figure_height) 
+    axes_2 = fig_2.add_subplot(1,1,1)
+    axes_2.set_ylabel('Range (nmi)')  
+    axes_2.set_xlabel(r'$\hat{t}$')            
+    axes_2.set_ylim(0,80)   
+    axes_2.minorticks_on()    
+    fig_2.tight_layout()    
+    
+    # ------------------------------------------------------------------
+    #   Flight Conditions - Noise
+    # ------------------------------------------------------------------
+    fig_3 = plt.figure("Flight_Conditions_Noise")
+    fig_3.set_size_inches(figure_width,figure_height)
+    axes_3 = fig_3.add_subplot(1,1,1)   
+    axes_3.set_ylim(55,130)   
+    axes_3.set_ylabel('SPL$_{Amax}$ (dBA)')  
+    axes_3.set_xlabel(r'$\hat{t}$') 
+    axes_3.minorticks_on()     
+    fig_3.tight_layout()        
+    
+    # ------------------------------------------------------------------
+    #   Flight Conditions - AoA 
+    # ------------------------------------------------------------------ 
+    fig_4 = plt.figure("Aero_Conditions_AoA")
+    fig_4.set_size_inches(figure_width,figure_height) 
+    axes_4 = fig_4.add_subplot(1,1,1)
+    axes_4.set_ylabel('AoA (deg.)' )     
+    axes_4.set_ylim(-15,20)   
+    axes_4.minorticks_on()  
+    axes_4.set_xlabel(r'$\hat{t}$')
+    fig_4.tight_layout()    
+    
+    # ------------------------------------------------------------------
+    #   Flight Conditions - CL
+    # ------------------------------------------------------------------ 
+    fig_5 = plt.figure("Aero_Conditions_CL")
+    fig_5.set_size_inches(figure_width,figure_height)   
+    axes_5 = fig_5.add_subplot(1,1,1)    
+    axes_5.set_ylabel(r'$C_L$')  
+    axes_5.minorticks_on()  
+    axes_5.set_ylim(-0.2, 1.5)    
+    axes_5.set_xlabel(r'$\hat{t}$')
+    fig_5.tight_layout()    
      
-    return 
-
-
-def plot_flight_profile_noise_contours(res,line_width,ms,ls, col ,col2,vehicle_name,m,ls1, ls2):    
+    # ------------------------------------------------------------------
+    #   Flight Conditions - CD 
+    # ------------------------------------------------------------------ 
+    fig_6 = plt.figure("Aero_Conditions_CD")
+    fig_6.set_size_inches(figure_width,figure_height)   
+    axes_6 = fig_6.add_subplot(1,1,1) 
+    axes_6.set_xlabel(r'$\hat{t}$')
+    axes_6.set_ylabel(r'$C_D$') 
+    axes_6.minorticks_on()   
+    axes_6.set_ylim(0, 0.18) 
+    axes_6.set_xlabel(r'$\hat{t}$')
+    fig_6.tight_layout()    
     
-    line_width                     = 4
-    plt.rcParams['axes.linewidth'] = 4.
-    plt.rcParams["font.family"]    = "Times New Roman"
-    plt.rcParams.update({'font.size': 36}) 
-    ls            = 24 # legend font size 
-    ms            = 14   
+    # ------------------------------------------------------------------
+    #   Flight Conditions - L/D
+    # ------------------------------------------------------------------ 
+    fig_7 = plt.figure("Aero_Conditions_L_D")
+    fig_7.set_size_inches(figure_width,figure_height) 
+    axes_7 = fig_7.add_subplot(1,1,1)
+    axes_7.set_xlabel(r'$\hat{t}$')
+    axes_7.set_ylabel('L/D')  
+    axes_7.minorticks_on()  
+    axes_7.set_ylim(-6, 20)     
+    axes_7.set_xlabel(r'$\hat{t}$')
+    fig_7.tight_layout()    
+ 
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Energy 
+    # ------------------------------------------------------------------
+    fig_8 = plt.figure("Battery_Pack_Performance_E")
+    fig_8.set_size_inches(figure_width,figure_height) 
+    axes_8 = fig_8.add_subplot(1,1,1)   
+    axes_8.set_ylabel('$E_{bat}$ (kW-hr)')
+    axes_8.minorticks_on()  
+    axes_8.set_xlabel(r'$\hat{t}$')
+    fig_8.tight_layout()    
+           
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Voltage 
+    # ------------------------------------------------------------------
+    fig_9 = plt.figure("Battery_Pack_Performance_V")
+    fig_9.set_size_inches(figure_width,figure_height)  
+    axes_9 = fig_9.add_subplot(1,1,1)
+    axes_9.set_ylabel('$V_{OC}$ (V)')   
+    axes_9.minorticks_on()  
+    axes_9.set_xlabel(r'$\hat{t}$')     
+    axes_9.set_ylim(400, 800)        
+    fig_9.tight_layout()
 
-    figure_width  = 14
-    figure_height = 8     
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Voltage 
+    # ------------------------------------------------------------------
+    fig_21 = plt.figure("Battery_Pack_Performance_Vul")
+    fig_21.set_size_inches(figure_width,figure_height)  
+    axes_21 = fig_21.add_subplot(1,1,1)
+    axes_21.set_ylabel('$V_{UL}$ (V)')   
+    axes_21.minorticks_on()  
+    axes_21.set_xlabel(r'$\hat{t}$')     
+    axes_21.set_ylim(400, 1300)        
+    fig_21.tight_layout()    
     
-    # figure parameters
-    filename = 'Noise_Contour' + vehicle_name
-    fig          = plt.figure(filename) 
-    fig.set_size_inches(figure_width ,figure_height)   
+    # ------------------------------------------------------------------
+    #  Performance - Disc Loading
+    # ------------------------------------------------------------------
+    fig_10 = plt.figure("Battery_Pack_Performance_DL")
+    fig_10.set_size_inches(figure_width,figure_height)  
+    axes_10 = fig_10.add_subplot(1,1,1)
+    axes_10.set_ylabel('$DL$ $(N/m^2)$') 
+    axes_10.minorticks_on()  
+    axes_10.set_xlabel(r'$\hat{t}$')     
+    axes_10.set_ylim(0, 800)       
+    fig_10.tight_layout()             
+        
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Power Loading
+    # ------------------------------------------------------------------
+    fig_11 = plt.figure("Battery_Pack_Performance_PL")
+    fig_11.set_size_inches(figure_width,figure_height)  
+    axes_11 = fig_11.add_subplot(1,1,1) 
+    axes_11.set_ylabel('$PL$ (N/W)')   
+    axes_11.minorticks_on()  
+    axes_11.set_xlabel(r'$\hat{t}$')     
+    axes_11.set_ylim(0, 0.11)       
+    fig_11.tight_layout()              
+    
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - C-Rate 
+    # ------------------------------------------------------------------ 
+    fig_12 = plt.figure("Battery_Pack_Performance_C_rate")
+    fig_12.set_size_inches(figure_width,figure_height) 
+    axes_12 = fig_12.add_subplot(1,1,1) 
+    axes_12.set_ylabel('C ($hr^{-1}$)')  
+    axes_12.set_xlabel(r'$\hat{t}$')     
+    axes_12.set_ylim(0, 6)      
+    axes_12.minorticks_on()      
+    fig_12.tight_layout()        
+    axins_12 = axes_12.inset_axes([0.1, 0.37, 0.6, 0.5])
+    axins_12.set_xlim(-0.002, 0.03) # apply the x-limits
+    axins_12.set_ylim(0, 4) # apply the y-limits    
+    axins_12.xaxis.set_visible(False)
+    axins_12.yaxis.set_visible(False) 
+    axins_12.indicate_inset( [0.1, 0.37, 0.6, 0.5],edgecolor = 'black', alpha= 1.0,linewidth =2)
+    axins_12.set_aspect('auto')   
+    
+    # ------------------------------------------------------------------
+    #   Electronic Conditions
+    # ------------------------------------------------------------------
+    fig_13 = plt.figure("Battery_Pack_Performance_T")
+    fig_13.set_size_inches(figure_width,figure_height) 
+    axes_13 = fig_13.add_subplot(1,1,1)      
+    axes_13.set_ylim(0, 1.2)       
+    axes_13.set_ylabel('$\zeta$') 
+    axes_13.minorticks_on()  
+    axes_13.set_xlabel(r'$\hat{t}$')     
+    fig_13.tight_layout()          
+ 
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - SOC
+    # ------------------------------------------------------------------
+    fig_14 = plt.figure("Battery_Pack_Performance_SOC")
+    fig_14.set_size_inches(figure_width,figure_height) 
+    axes_14 = fig_14.add_subplot(1,1,1)   
+    axes_14.set_ylabel('SOC')
+    axes_14.minorticks_on()     
+    axes_14.set_ylim(0.5,1.02)   
+    fig_14.tight_layout()          
+    axes_14.text(0.0, 0.96, "1", size=20, ha="center", va="center", color= "black", bbox=dict(facecolor = 'white', boxstyle="circle") )  
+    axes_14.text(0.99, 0.63, "2", size=20, ha="center", va="center",color= "black", bbox=dict(facecolor = 'white',boxstyle="circle") )  
+    axes_14.set_xlabel(r'$\hat{t}$')
      
-    gs = gridspec.GridSpec(8, 8)
-    axes_21 = fig.add_subplot(gs[2:,:]) # contour 
-    axes_22 = fig.add_subplot(gs[:2,:]) #altitude 
+    # ------------------------------------------------------------------
+    #   Propeller Performance _ RPM 
+    # ------------------------------------------------------------------
+ 
+    fig_15 = plt.figure("Propeller_Performance_RPM")
+    fig_15.set_size_inches(figure_width,figure_height)   
+    axes_15 = fig_15.add_subplot(1,1,1)  
+    axes_15.set_ylabel('RPM')      
+    axes_15.minorticks_on()  
+    axes_15.set_ylim(0, 3000)
+    axes_15.set_xlabel(r'$\hat{t}$')
+    fig_15.tight_layout()        
     
-      
-    #   Altitude  
-    axes_22.set_ylabel('Alt (ft)')  
-    axes_22.axes.xaxis.set_visible(False)
-    axes_22.plot(res.aircraft_pos[:,0]/Units.nmi,  -res.aircraft_pos[:,2]/Units.feet , color = col , linestyle = ls1, marker = m, markersize = ms , linewidth= line_width) 
-    max_mi = np.max( res.aircraft_pos[:,0]/Units.nmi)
-    axes_22.set_xlim(0, max_mi)   
-    axes_22.set_ylim(0, 3000)     
-    axes_22.minorticks_on()  
+    # ------------------------------------------------------------------
+    #   Propeller Performance Thrust 
+    # ------------------------------------------------------------------    
+    fig_16 = plt.figure("Propeller_Performance_T")
+    fig_16.set_size_inches(figure_width,figure_height)   
+    axes_16 = fig_16.add_subplot(1,1,1) 
+    axes_16.set_ylabel('T (kN)') 
+    axes_16.minorticks_on()  
+    axes_16.set_ylim(0,45) 
+    axes_16.set_xlabel(r'$\hat{t}$')
+    fig_16.tight_layout()        
+    
+    # ------------------------------------------------------------------
+    #   Propeller Performance - Torque
+    # ------------------------------------------------------------------       
+    fig_17 = plt.figure("Propeller_Performance_Q")
+    fig_17.set_size_inches(figure_width,figure_height) 
+    axes_17 = fig_17.add_subplot(1,1,1)
+    axes_17.set_xlabel(r'$\hat{t}$')    
+    axes_17.set_ylabel('Q (Nm)')      
+    axes_17.minorticks_on()  
+    axes_17.set_ylim(0, 1500)      
+    fig_17.tight_layout()          
 
+    # ------------------------------------------------------------------
+    #   Propeller Performance - Propeller Efficiency 
+    # ------------------------------------------------------------------     
+    fig_18 = plt.figure("Propeller_Performance_Prop_eff")
+    fig_18.set_size_inches(figure_width,figure_height)  
+    axes_18 = fig_18.add_subplot(1,1,1) 
+    axes_18.set_ylabel(r'$\eta_{prop/rot}$')    
+    axes_18.set_xlabel(r'$\hat{t}$')                
+    axes_18.set_ylim(0, 1.1)  
+    axes_18.minorticks_on()    
+    fig_18.tight_layout()        
+    
+    # ------------------------------------------------------------------
+    #   Propeller Performance - Motor Efficiency
+    # ------------------------------------------------------------------      
  
-    #   Noise    
-    # unpack 
-    N_gm_x              = res.N_gm_x
-    N_gm_y              = res.N_gm_y   
-    gm_mic_loc          = res.gm_mic_loc
-    Range               = gm_mic_loc[:,0].reshape(N_gm_x ,N_gm_y )
-    Span                = gm_mic_loc[:,1].reshape(N_gm_x ,N_gm_y ) 
-    max_SPL_contour_gm  = np.max(res.SPL_contour,axis=0)
-    SPL_gm              = max_SPL_contour_gm.reshape(N_gm_x ,N_gm_y ) 
-    levs                = np.linspace(40,120,25)   
-    Range               = Range/Units.nmi
-    Span                = Span/Units.nmi
-    CS                  = axes_21.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both') 
-    CS                  = axes_21.contourf(Range ,-Span, SPL_gm, levels = levs, cmap=plt.cm.jet, extend='both')
+    fig_19 = plt.figure("Propeller_Performance_Mot_eff")
+    fig_19.set_size_inches(figure_width,figure_height) 
+    axes_19 = fig_19.add_subplot(1,1,1)        
+    axes_19.set_xlabel(r'$\hat{t}$')
+    axes_19.set_ylabel(r'$\eta_{motor}$') 
+    axes_19.set_ylim(0.85, 1.)             
+    axes_19.minorticks_on()     
+    fig_19.tight_layout() 
     
-    xi, yi = np.meshgrid(np.linspace(np.min(Range),np.max(Range), 10),np.linspace(-np.max(Span),np.max(Span), 5) )
-    axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
-    axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
+    # ------------------------------------------------------------------
+    #   Propeller Performance - Tip Mach 
+    # ------------------------------------------------------------------   
+    fig_20 = plt.figure("Propeller_Performance_Mach_Tip")
+    fig_20.set_size_inches(figure_width,figure_height) 
+    axes_20 = fig_20.add_subplot(1,1,1)        
+    axes_20.set_xlabel(r'$\hat{t}$')
+    axes_20.set_ylabel('$M_{tip}$')  
+    axes_20.set_ylim(0, 0.75)  
+    axes_20.minorticks_on()     
+    fig_20.tight_layout() 
     
-    fig.subplots_adjust(right=0.8)
-    axes_23= fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
-    cbar = fig.colorbar(CS, ax=axes_23)
-    cbar.ax.set_ylabel('SPL$_{Amax}$ (dBA)', rotation =  90)     
-    axes_21.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
-    axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
-    plt.axis('off')	
-    plt.grid(None)      
+    return axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
+           axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
+           fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
+           fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20 
+
+
+# ------------------------------------------------------------------ 
+# Save Figures
+# ------------------------------------------------------------------ 
+def save_figures(fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
+                 fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
+                 fig_17,fig_18,fig_19,fig_20):
     
-    return 
- 
+    fig_1.savefig("Flight_Conditions_Altitude.png") 
+    fig_2.savefig("Flight_Conditions_Range.png") 
+    fig_3.savefig("Flight_Conditions_Noise.png") 
+    fig_4.savefig("Aero_Conditions_AoA.png") 
+    fig_5.savefig("Aero_Conditions_CL.png") 
+    fig_6.savefig("Aero_Conditions_CD.png") 
+    fig_7.savefig("Aero_Conditions_L_D.png") 
+    fig_8.savefig("Battery_Pack_Performance_E.png") 
+    fig_9.savefig("Battery_Pack_Performance_V.png") 
+    fig_10.savefig("Battery_Pack_Performance_DL.png") 
+    fig_11.savefig("Battery_Pack_Performance_PL.png") 
+    fig_12.savefig("Battery_Pack_Performance_C_rate.png") 
+    fig_13.savefig("Battery_Pack_Performance_T.png") 
+    fig_14.savefig("Battery_Pack_Performance_SOC.png")
+    fig_15.savefig("Propeller_Performance_RPM.png") 
+    fig_16.savefig("Propeller_Performance_T.png") 
+    fig_17.savefig("Propeller_Performance_Q.png") 
+    fig_18.savefig("Propeller_Performance_Prop_eff.png") 
+    fig_19.savefig("Propeller_Performance_Mot_eff.png") 
+    fig_20.savefig("Propeller_Performance_Mach_Tip.png")  
+    fig_21.savefig("Battery_Pack_Performance_Vul.png") 
+    
+    return  
+
+
 # ----------------------------------------------------------------------
 #  Add Grid Lines 
 # ----------------------------------------------------------------------
@@ -884,20 +908,14 @@ def add_grid_lines(axes):
     axes.minorticks_on() 
         
     return 
-    
 
-def save_results(results,filename):
-   
-    save_file = filename + '.pkl'
-    # Store data (serialize)
-    with open(save_file, 'wb') as file:
-        pickle.dump(results, file)
-        
-    return  
 
+ 
+# ----------------------------------------------------------------------
+#  Load results
+# ----------------------------------------------------------------------     
 def load_results(filename):
-   
-    load_file = filename + '.pkl'
+    load_file =   filename + '.pkl'
     # Store data (serialize)
     with open(load_file, 'rb') as file:
         results = pickle.load(file)
