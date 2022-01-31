@@ -56,9 +56,9 @@ def design_APC_10x7_prop():
     airfoil_cl_surs                 = airfoil_polars.lift_coefficient_surrogates 
     airfoil_cd_surs                 = airfoil_polars.drag_coefficient_surrogates         
     prop.airfoil_cl_surrogates      = airfoil_cl_surs
-    prop.airfoil_cd_surrogates      = airfoil_cd_surs 
+    prop.airfoil_cd_surrogates      = airfoil_cd_surs
     prop.number_of_airfoil_section_points = 100
-    prop.mid_chord_aligment         = np.zeros_like(prop.chord_distribution) #  prop.chord_distribution/4. - prop.chord_distribution[0]/4.  
+    prop.mid_chord_alignment         = np.zeros_like(prop.chord_distribution) #  prop.chord_distribution/4. - prop.chord_distribution[0]/4.  
     prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
     prop.airfoil_flag               = True  
     return prop 

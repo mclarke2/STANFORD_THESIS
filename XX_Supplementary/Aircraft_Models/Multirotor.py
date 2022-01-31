@@ -25,117 +25,179 @@ except ImportError:
     # This allows SUAVE to build without OpenVSP
     pass 
 
-def main():   
-    ti               = time.time() 
+def main():    
     simulated_days   = 1
     flights_per_day  = 1 
     aircraft_range   = 35 *Units.nmi
     reserve_segment  = False 
     plot_geometry    = False
-    recharge_battery = False 
+    recharge_battery = False
+    run_analysis     = True
+    plot_mission     = False
     control_points   = 10
-    N_gm_x           = 10  
-    N_gm_y           = 7  
-     
-    # ------------------------------------------------------------------------------------------------
-    # Full Mission 
-    # ------------------------------------------------------------------------------------------------   
+    N_gm_x           = 10
+    N_gm_y           = 4
+    
+    run_noise_model   = False
     hover_noise_test  = False
-    run_noise_model   = True
+    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y)
+    
+    
+
+    run_noise_model   = True 
+    hover_noise_test  = False   
+    run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y)
+    
+    
+
+    hover_noise_test  = True 
+    run_noise_model   = True    
+    run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y) 
+    
+    return 
+
+
+def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y):  
+ 
+    min_y             = 1E-1
+    max_y             = 0.25*Units.nmi
+    min_x             = 1E-1
+    max_x             = aircraft_range 
+    
     ti                = time.time() 
     vehicle           = vehicle_setup()
-    #write(vehicle, "Multirotor") 
+    #write(vehicle,"Multirotor") 
     configs           = configs_setup(vehicle) 
-    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test) 
+    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test) 
     base_mission      = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
     missions_analyses = missions_setup(base_mission) 
     analyses          = SUAVE.Analyses.Analysis.Container()
     analyses.configs  = configs_analyses
     analyses.missions = missions_analyses 
     configs.finalize()
-    analyses.finalize()    
-    breakdown = empty(configs.base,contingency_factor=1.0)
-    print(breakdown)    
-    if plot_geometry: 
-        plot_vehicle(configs.base, elevation_angle = 90,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)   
-        plt.show()       
+    analyses.finalize()      
     mission           = analyses.missions.base
     mission_results   = mission.evaluate()   
-    filename          = 'Multirotor_Full_Mission'
-    save_results(mission_results,filename) 
-    #plot_results(mission_results,run_noise_model)  
+    filename          = 'Multirotor_Full_Mission' 
+    save_results(mission_results,filename)   
+            
+    # weight plot breakdown 
+    print('WEIGHT BREAKDOWN')
+    breakdown = empty(configs.base,contingency_factor=1.0)
+    print(breakdown)
+    
+    # plot geoemtry 
+    if plot_geometry: 
+        plot_vehicle(configs.base, elevation_angle = 90,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)       
+        
+    if plot_mission: 
+        plot_results(mission_results,run_noise_model)   
+        
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
     elapsed_range = mission_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
-    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')   
-    
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
+  
+    return 
 
-    ## ------------------------------------------------------------------------------------------------    
-    ## Noise Analysis Mission  
-    ## ------------------------------------------------------------------------------------------------ 
-    #hover_noise_test  = False
-    #run_noise_model   = True 
-    #ti                = time.time() 
-    #vehicle           = vehicle_setup() 
-    #configs           = configs_setup(vehicle) 
-    #configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test) 
-    #base_mission      = noise_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
-    #missions_analyses = missions_setup(base_mission) 
-    #analyses          = SUAVE.Analyses.Analysis.Container()
-    #analyses.configs  = configs_analyses
-    #analyses.missions = missions_analyses 
-    #configs.finalize()
-    #analyses.finalize()     
-    #mission           = analyses.missions.base
-    #noise_results     = mission.evaluate()   
-    #filename          = 'Multirotor_Noise_Mission'
-    #save_results(noise_results,filename) 
-    ##plot_results(noise_results,run_noise_model) 
-    
-    #tf = time.time() 
-    #print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
-    #elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
-    #print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')   
-    
+def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y): 
 
-    # ------------------------------------------------------------------------------------------------
-    # Hover Mission  
-    # ------------------------------------------------------------------------------------------------
-    hover_noise_test  = True
-    run_noise_model   = True
+    Y_LIM = np.linspace(1E-1,5*Units.nmi,3)    
+    end_distance = aircraft_range/((N_gm_x-2)*2)
+    X_LIM = np.linspace(-end_distance+1E1,aircraft_range + end_distance+1E1,3)      
+    
+    ti                = time.time() 
+    vehicle           = vehicle_setup() 
+    configs           = configs_setup(vehicle)  
+    Q_idx             = 1
+
+    for i in range(len(X_LIM)-1):
+        for j in range(len(Y_LIM)-1): 
+            print('Running Quardant:' + str(Q_idx))
+            min_x = X_LIM[i]
+            max_x = X_LIM[i+1]
+            min_y = Y_LIM[j]
+            max_y = Y_LIM[j+1]
+            
+            # ------------------------------------------------------------------------------------------------
+            # Noise Mission 
+            # ------------------------------------------------------------------------------------------------   
+            configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test) 
+            noise_mission     = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
+            missions_analyses = missions_setup(noise_mission) 
+            analyses          = SUAVE.Analyses.Analysis.Container()
+            analyses.configs  = configs_analyses
+            analyses.missions = missions_analyses 
+            configs.finalize()
+            analyses.finalize()      
+            noise_mission     = analyses.missions.base
+            noise_results     = noise_mission.evaluate()   
+            filename          = 'Multirotor_Noise_Mission_Q' + str(Q_idx)
+            save_results(noise_results,filename)  
+            Q_idx += 1 
+        
+    if plot_mission: 
+        plot_results(noise_results,run_noise_model)       
+                
+    tf = time.time() 
+    print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
+    elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
+    
+    return 
+  
+def run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y): 
+
+    min_y = -0.25*Units.nmi
+    max_y = 0.25*Units.nmi
+    min_x = -0.25*Units.nmi
+    max_x = 0.25*Units.nmi
+    
     ti                = time.time() 
     vehicle           = vehicle_setup() 
     configs           = configs_setup(vehicle) 
-    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test) 
+    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test) 
     base_mission      = hover_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
     missions_analyses = missions_setup(base_mission) 
     analyses          = SUAVE.Analyses.Analysis.Container()
     analyses.configs  = configs_analyses
-    analyses.missions = missions_analyses
+    analyses.missions = missions_analyses 
     configs.finalize()
-    analyses.finalize()
+    analyses.finalize()     
     mission           = analyses.missions.base
     hover_results     = mission.evaluate()   
     filename          = 'Multirotor_Hover_Mission'
-    save_results(hover_results,filename)
-    #plot_results(hover_results,run_noise_model) 
+    save_results(hover_results,filename)  
     
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
     elapsed_range = hover_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
     print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')   
+    
+    return 
 
-    return
 
 # ----------------------------------------------------------------------
 #   Define the Vehicle Analyses
 # ----------------------------------------------------------------------
-def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model, hover_noise_test ):
+def analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model, hover_noise_test ):
     analyses = SUAVE.Analyses.Analysis.Container()
 
     # build a base analysis for each config
     for tag,config in configs.items():
-        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range,run_noise_model, hover_noise_test )
+        analysis = base_analysis(config,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model, hover_noise_test )
         analyses[tag] = analysis 
         
     return analyses
@@ -520,7 +582,7 @@ def configs_setup(vehicle):
 # ------------------------------------------------------------------
 #   Base Analysis
 # ------------------------------------------------------------------     
-def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noise_test):
+def base_analysis(vehicle,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test):
 
     # ------------------------------------------------------------------
     #   Initialize the Analyses
@@ -547,31 +609,18 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model,hover_noi
     aerodynamics.settings.model_fuselage = True 
     analyses.append(aerodynamics) 
 
-    if run_noise_model:
-        if hover_noise_test: 
-            # ------------------------------------------------------------------
-            #  Noise Analysis
-            noise = SUAVE.Analyses.Noise.Fidelity_One()   
-            noise.geometry = vehicle
-            noise.settings.level_ground_microphone_x_resolution = N_gm_x
-            noise.settings.level_ground_microphone_y_resolution = N_gm_y
-            noise.settings.level_ground_microphone_min_y        = -450
-            noise.settings.level_ground_microphone_max_y        = 450
-            noise.settings.level_ground_microphone_min_x        = -450
-            noise.settings.level_ground_microphone_max_x        = 450
-            analyses.append(noise)
-        else:
-            # ------------------------------------------------------------------
-            #  Noise Analysis
-            noise = SUAVE.Analyses.Noise.Fidelity_One()   
-            noise.geometry = vehicle
-            noise.settings.level_ground_microphone_x_resolution = N_gm_x
-            noise.settings.level_ground_microphone_y_resolution = N_gm_y
-            noise.settings.level_ground_microphone_min_y        = 1E-6
-            noise.settings.level_ground_microphone_max_y        = 450
-            noise.settings.level_ground_microphone_min_x        = -450 
-            noise.settings.level_ground_microphone_max_x        = 35*Units.nmi
-            analyses.append(noise)
+    if run_noise_model: 
+        # ------------------------------------------------------------------
+        #  Noise Analysis
+        noise = SUAVE.Analyses.Noise.Fidelity_One()   
+        noise.geometry = vehicle
+        noise.settings.level_ground_microphone_x_resolution = N_gm_x
+        noise.settings.level_ground_microphone_y_resolution = N_gm_y
+        noise.settings.level_ground_microphone_min_y        = min_y
+        noise.settings.level_ground_microphone_max_y        = max_y
+        noise.settings.level_ground_microphone_min_x        = min_x
+        noise.settings.level_ground_microphone_max_x        = max_x
+        analyses.append(noise)
     
     # ------------------------------------------------------------------
     #  Energy
@@ -724,7 +773,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_start                  = 75. * Units['mph']      
             segment.air_speed_end                    = 35. * Units['mph']      
             segment.altitude_start                   = 2500.0 * Units.ft 
-            segment.altitude_end                     = 100.0 * Units.ft   + starting_elevation
+            segment.altitude_end                     = 40.0 * Units.ft   + starting_elevation
             segment.state.unknowns.throttle          = 0.6  * ones_row(1)  
             segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.01)  
             mission.append_segment(segment)     
@@ -857,7 +906,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     base_segment.process.initialize.initialize_battery       = SUAVE.Methods.Missions.Segments.Common.Energy.initialize_battery
     base_segment.process.finalize.post_process.update_battery_state_of_health = SUAVE.Methods.Missions.Segments.Common.Energy.update_battery_state_of_health  
     base_segment.process.iterate.conditions.planet_position  = SUAVE.Methods.skip  
-    
+     
     # ------------------------------------------------------------------
     #   First Descent Segment: Constant Acceleration, Constant Altitude
     # ------------------------------------------------------------------ 
@@ -865,15 +914,14 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment.tag                              = "Descent_1"  
     segment.analyses.extend(analyses.cruise)
     segment.climb_rate                       = -200. * Units['ft/min']
+    segment.battery_energy                         = vehicle.networks.battery_propeller.battery.max_energy  
     segment.air_speed_start                  = 75. * Units['mph']      
     segment.air_speed_end                    = 35. * Units['mph']      
     segment.altitude_start                   = 500.0 * Units.ft 
-    segment.altitude_end                     = 100.0 * Units.ft   + starting_elevation
-    segment.state.unknowns.throttle          = 0.6  * ones_row(1)   
-    segment.battery_energy                         = vehicle.networks.battery_propeller.battery.max_energy       
+    segment.altitude_end                     = 40.0 * Units.ft   + starting_elevation
+    segment.state.unknowns.throttle          = 0.6  * ones_row(1)  
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.01)  
     mission.append_segment(segment)      
-     
     # ------------------------------------------------------------------
     #  Third Transition Segment
     # ------------------------------------------------------------------
@@ -896,7 +944,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     #   First Climb Segment: Constant Speed, Constant Rate
     # ------------------------------------------------------------------ 
     segment                           = Segments.Hover.Descent(base_segment)
-    segment.tag                       = "Vertical_Descent" 
+    segment.tag                       = "Vertical_Descent"  
     segment.analyses.extend( analyses.vertical_climb) 
     segment.altitude_start            = 40.0  * Units.ft  + starting_elevation
     segment.altitude_end              = 0.  * Units.ft + starting_elevation
@@ -904,8 +952,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment.state.unknowns.throttle   = 0.5  * ones_row(1)  
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.01) 
     mission.append_segment(segment)
-    
-        
+
     
     # ------------------------------------------------------------------
     #   First Climb Segment: Constant Speed, Constant Rate
@@ -1070,8 +1117,17 @@ def save_results(results,filename):
     pickle_file  = filename + '.pkl'
     with open(pickle_file, 'wb') as file:
         pickle.dump(results, file) 
-    return    
- 
+    return     
+
+# ------------------------------------------------------------------
+#   Load Results
+# ------------------------------------------------------------------   
+def load_results(filename):  
+    load_file = filename + '.pkl' 
+    with open(load_file, 'rb') as file:
+        results = pickle.load(file)
+        
+    return results
 if __name__ == '__main__': 
     main()  
     plt.show()

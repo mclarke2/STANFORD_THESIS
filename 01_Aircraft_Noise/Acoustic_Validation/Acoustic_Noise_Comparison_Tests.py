@@ -83,12 +83,11 @@ def main():
 
     ti = time.time()      
     
-    #Test_Cases_Group_1(plot_parmeters)
+    Test_Cases_Group_1(plot_parmeters)
     Test_Cases_Group_2(plot_parmeters)
     Test_Cases_Group_3(plot_parmeters)    
     Test_Cases_Group_4(plot_parmeters)
-    #Test_Cases_Group_5(plot_parmeters)
-    #Test_Cases_Group_6(plot_parmeters) # NOT WORKING 
+    Test_Cases_Group_5(plot_parmeters) 
     
 
     tf           = time.time()
@@ -120,7 +119,7 @@ def Test_Cases_Group_2(plot_parmeters):
   
     APC_SF_inflow_ratio = 0.08
     DJI_CF_inflow_ratio = 0.09
-    #Test_Case_2_3(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,plot_parmeters)    
+    Test_Case_2_3(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,plot_parmeters)    
     Test_Case_2_4(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,plot_parmeters)   
     return  
 
@@ -202,7 +201,7 @@ def Test_Case_1_1(PP):
     acoustic_outputs.propeller                             = noise_data
     
     # Run Noise Model  
-    propeller_noise  = propeller_mid_fidelity(net,acoustic_outputs,segment,settings)  
+    propeller_noise  = propeller_mid_fidelity(net.propellers,acoustic_outputs,segment,settings)  
     SPL_harmonic_1   = propeller_noise.SPL_harmonic_1_3_spectrum[0,:,0]         
     SPL_harmonic_2   = propeller_noise.SPL_harmonic_1_3_spectrum[0,:,1]     
     
@@ -297,7 +296,7 @@ def Test_Case_1_11(PP):
     acoustic_outputs.propeller                             = noise_data
     
     # Run Noise Model   
-    propeller_noise  = propeller_mid_fidelity(net,acoustic_outputs,segment,settings )   
+    propeller_noise  = propeller_mid_fidelity(net.propellers,acoustic_outputs,segment,settings )   
     SPL_harmonic_1   = propeller_noise.SPL_harmonic_bpf_spectrum[0,:,0]   
     
     
@@ -344,7 +343,7 @@ def Test_Case_1_11(PP):
     acoustic_outputs.propeller                             = noise_data
     
     # Run Noise Model   
-    propeller_noise  = propeller_mid_fidelity(net,acoustic_outputs,segment,settings)    
+    propeller_noise  = propeller_mid_fidelity(net.propellers,acoustic_outputs,segment,settings)    
     SPL_harmonic_2   = propeller_noise.SPL_harmonic_bpf_spectrum[0,:,1] 
     
     # ----------------------------------------------------------------------------------------------------------------------------------------
@@ -485,7 +484,7 @@ def Test_Case_1_14(PP):
     acoustic_outputs.propeller                             = noise_data
 
     # Run Noise Model  
-    propeller_noise  = propeller_mid_fidelity(net,acoustic_outputs,segment,settings)   
+    propeller_noise  = propeller_mid_fidelity(net.propellers,acoustic_outputs,segment,settings)   
     SPL_Hanson       = propeller_noise.SPL_harmonic_bpf_spectrum[0,:,:][:,:len(harmonics)]        
     
     # PAPER RESULTS 
@@ -701,7 +700,7 @@ def Test_Case_2_4(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,PP):
     acoustic_outputs.propeller                                     = APC_SF_res
     
     # Run Noise Model    
-    APC_SF_propeller_noise             = propeller_mid_fidelity(net_APC_SF,acoustic_outputs,APC_SF_segment,APC_SF_settings )    
+    APC_SF_propeller_noise             = propeller_mid_fidelity(net_APC_SF.propellers,acoustic_outputs,APC_SF_segment,APC_SF_settings )    
     APC_SF_1_3_Spectrum                = APC_SF_propeller_noise.SPL_1_3_spectrum 
     APC_SF_SPL_broadband_1_3_spectrum  = APC_SF_propeller_noise.SPL_broadband_1_3_spectrum 
     APC_SF_SPL_tonal                   = APC_SF_propeller_noise.SPL_harmonic_bpf_spectrum_dBA
@@ -752,7 +751,7 @@ def Test_Case_2_4(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,PP):
       
     
     ## Run Noise Model   
-    #DJI_CF_propeller_noise             = propeller_mid_fidelity(net_DJI_CF,acoustic_outputs,DJI_CF_segment,DJI_CF_settings )  
+    #DJI_CF_propeller_noise             = propeller_mid_fidelity(net_DJI_CF.propellers,acoustic_outputs,DJI_CF_segment,DJI_CF_settings )  
     #DJI_CF_1_3_Spectrum                = DJI_CF_propeller_noise.SPL_1_3_spectrum
     #DJI_CF_SPL_tonal                   = DJI_CF_propeller_noise.SPL_harmonic_bpf_spectrum_dBA
     #DJI_CF_SPL_broadband_1_3_spectrum  = DJI_CF_propeller_noise.SPL_broadband_1_3_spectrum 
@@ -806,49 +805,33 @@ def Test_Case_2_4(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,PP):
     # ----------------------------------------------------------------------------------------------------------------------------------------   
     
     # Figures 8 and 9 comparison 
-    fig1 = plt.figure('Test_Case_2_4_p1')    
-    fig1.set_size_inches(12, 6) 
-    axes1 = fig1.add_subplot(1,2,1)
+    fig1 = plt.figure('APC_SF_Rotor')    
+    fig1.set_size_inches(8, 7) 
+    axes1 = fig1.add_subplot(1,1,1)
     axes1.plot(Exp_APC_SF_freqency_spectrum , Exp_APC_SF_1_3_Spectrum[0,:-5]  , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw, label = 'Exp. 3600 RPM')        
     axes1.plot(Exp_APC_SF_freqency_spectrum , Exp_APC_SF_1_3_Spectrum[1,:-5]  , color = PP.Elc[1] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,  label = 'Exp. 4200 RPM')       
-    axes1.plot(Exp_APC_SF_freqency_spectrum , Exp_APC_SF_1_3_Spectrum[2,:-5]  , color = PP.Elc[2] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,  label = 'Exp. 4800 RPM')          
+    #axes1.plot(Exp_APC_SF_freqency_spectrum , Exp_APC_SF_1_3_Spectrum[2,:-5]  , color = PP.Elc[2] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,  label = 'Exp. 4800 RPM')          
     axes1.plot(Exp_APC_SF_freqency_spectrum ,     APC_SF_1_3_Spectrum[0,0,8:]  , color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw, label =' SUAVE 3600 RPM')   
     axes1.plot(Exp_APC_SF_freqency_spectrum ,     APC_SF_1_3_Spectrum[1,0,8:]  , color = PP.Slc[1] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,label = ' SUAVE 4200 RPM')   
-    axes1.plot(Exp_APC_SF_freqency_spectrum ,     APC_SF_1_3_Spectrum[2,0,8:]  , color = PP.Slc[2] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,label = ' SUAVE 4800 RPM')   
+    #axes1.plot(Exp_APC_SF_freqency_spectrum ,     APC_SF_1_3_Spectrum[2,0,8:]  , color = PP.Slc[2] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,label = ' SUAVE 4800 RPM')   
     axes1.set_xscale('log')
-    axes1.set_title('APC SF')
+    #axes1.set_title('APC SF')
     axes1.set_ylabel(r'SPL$_{1/3}$ (dB)')
     axes1.set_xlabel('Frequency (Hz)') 
     axes1.legend(loc='lower right') 
-    plt.ylim((10,60)) 
-     
-    #axes2 = fig1.add_subplot(1,2,2) 
-    #axes2.plot(Exp_DJI_CF_freqency_spectrum ,  Exp_DJI_CF_1_3_Spectrum[0,:-5] , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,  label = 'Exp. 4800 RPM')       
-    #axes2.plot(Exp_DJI_CF_freqency_spectrum ,  Exp_DJI_CF_1_3_Spectrum[1,:-5] , color = PP.Elc[1] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,  label = 'Exp. 5400 RPM')       
-    #axes2.plot(Exp_DJI_CF_freqency_spectrum ,  Exp_DJI_CF_1_3_Spectrum[2,:-5] , color = PP.Elc[2] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,  label = 'Exp. 6000 RPM')             
-    #axes2.plot(Exp_DJI_CF_freqency_spectrum ,      DJI_CF_1_3_Spectrum[0,0,8:] , color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,  label ='SUAVE 4800 RPM')   
-    #axes2.plot(Exp_DJI_CF_freqency_spectrum ,      DJI_CF_1_3_Spectrum[1,0,8:] , color = PP.Slc[1] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,  label = 'SUAVE 5400 RPM')   
-    #axes2.plot(Exp_DJI_CF_freqency_spectrum ,      DJI_CF_1_3_Spectrum[2,0,8:] , color = PP.Slc[2] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,  label = 'SUAVE 6000 RPM')       
-    #axes2.set_ylabel(r'SPL$_{1/3}$ (dB)')
-    #axes2.set_xlabel('Frequency (Hz)') 
-    #axes2.set_title('DJI CF')
-    #axes2.set_xscale('log')
-    #axes2.legend(loc='lower right')
-    #plt.ylim((10,60))  
-    
+    plt.ylim((15,55)) 
     
     # Figures 10 and 11 comparison 
-    fig2 = plt.figure('Test_Case_2_4_p2')    
-    fig2.set_size_inches(8, 6) 
+    fig2 = plt.figure('APC_SF_Rotor_Broadband')    
+    fig2.set_size_inches(8, 7) 
     axes1 = fig2.add_subplot(1,1,1)            
     axes1.plot(Exp_APC_SF_freqency_spectrum , APC_SF_SPL_broadband_1_3_spectrum[0,4,8:] , color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm , markersize = PP.m , linewidth = PP.lw,  label = 'SUAVE -45 deg')      
     axes1.plot(Exp_broadband_APC[:,0], Exp_broadband_APC[:,1], color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm , markersize = PP.m , linewidth = PP.lw,    label = 'Exp -45 deg')     
     axes1.set_xscale('log')
-    axes1.set_title('APC-SF Rotor Broadband @ 3600 RPM')
     axes1.set_ylabel(r'SPL$_{1/3}$ (dB)')
     axes1.set_xlabel('Frequency (Hz)') 
-    axes1.legend(loc='upper left') 
-    plt.ylim((20,50)) 
+    axes1.legend(loc='lower right') 
+    plt.ylim((20,45)) 
     
     # Figures 16 a Comparison  
     fig3 = plt.figure('Test_Case_2_4_p3')    
@@ -873,8 +856,7 @@ def Test_Case_2_4(DJI_CF,APC_SF,APC_SF_inflow_ratio,DJI_CF_inflow_ratio,PP):
     axes2.set_ylabel(r'SPL$_{1/3}$ (dB)')
     axes2.set_xlabel('Frequency (Hz)') 
     axes2.legend(loc='lower right') 
-    plt.ylim((10,60))  
-    
+    plt.ylim((10,60))   
 
     fig4 = plt.figure('Test_Case_2_4_p4')    
     fig4.set_size_inches(12, 6)  
@@ -962,13 +944,10 @@ def Test_Case_3_1(PP):
     acoustic_outputs.propeller                             = noise_data
     
     # Run Noise Model  
-    propeller_noise                       = propeller_mid_fidelity(net,acoustic_outputs,segment,settings )    
-    F8745D4_blade_passing_frequencies     = propeller_noise.blade_passing_frequencies      
+    propeller_noise                       = propeller_mid_fidelity(net.propellers,acoustic_outputs,segment,settings )     
     F8745D4_SPL                           = propeller_noise.SPL     
     F8745D4_SPL_harmonic                  = propeller_noise.SPL_harmonic 
-    F8745D4_SPL_broadband                 = propeller_noise.SPL_broadband  
-    F8745D4_SPL_dBA                       = propeller_noise.SPL_dBA                        
-    F8745D4_SPL_harmonic_bpf_spectrum_dBA = propeller_noise.SPL_harmonic_bpf_spectrum_dBA  
+    F8745D4_SPL_broadband                 = propeller_noise.SPL_broadband   
     F8745D4_SPL_harmonic_bpf_spectrum     = propeller_noise.SPL_harmonic_bpf_spectrum      
     F8745D4_SPL_1_3_spectrum              = propeller_noise.SPL_1_3_spectrum         
     F8745D4_SPL_harmonic_1_3_spectrum     = propeller_noise.SPL_harmonic_1_3_spectrum      
@@ -1193,7 +1172,7 @@ def Test_Case_4_1(PP):
     acoustic_outputs.propeller                             = noise_data
     
     # Run Noise Model  
-    propeller_noise  = propeller_mid_fidelity(net,acoustic_outputs,segment,settings )   
+    propeller_noise  = propeller_mid_fidelity(net.propellers,acoustic_outputs,segment,settings )   
     SPL_harmonic_bpf_spectrum  = propeller_noise.SPL_harmonic_bpf_spectrum[0,:][:len(harmonics)] 
 
 
@@ -1233,8 +1212,7 @@ def Test_Case_4_1(PP):
 
 def Test_Case_5_1(PP):
     
-    '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows'''
-
+    '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
     
     # ****** DEFINE INPUTS ****** 
  
@@ -1274,7 +1252,7 @@ def Test_Case_5_1(PP):
 
     TE_idx                  = -4 
     delta[:,:,:,:,0]        = vectorize(AP.delta[:,TE_idx]                         ,ctrl_pts,num_sec,N_r,BSR,method = 2) # CHECKED                
-    delta[:,:,:,:,1]        = vectorize(AP.delta[:,-TE_idx]                        ,ctrl_pts,num_sec,N_r,BSR,method = 2) # CHECKED                           
+    delta[:,:,:,:,1]        = vectorize(AP.delta[:,-TE_idx]                        ,ctrl_pts,num_sec,N_r,BSR,method = 2) # CHECKED   
     #delta_star[:,:,:,:,0]   = vectorize(AP.delta_star[:,TE_idx]                    ,ctrl_pts,num_sec,N_r,BSR,method = 2) # CHECKED                     
     #delta_star[:,:,:,:,1]   = vectorize(AP.delta_star[:,-TE_idx]                   ,ctrl_pts,num_sec,N_r,BSR,method = 2) # CHECKED  
     #surface_dcp_dx          = (np.diff(AP.Cp*0.5*rho*(V_inf**2),axis = 1)/(np.diff(AP.x,axis = 1)*chord)) 
@@ -1434,7 +1412,7 @@ def Test_Case_5_2(PP):
         BO_105_conditions.freestream.speed_of_sound                    = np.ones((ctrl_pts,1)) * a 
         BO_105_conditions.freestream.temperature                       = np.ones((ctrl_pts,1)) * T
         v_mat                                                          = np.zeros((ctrl_pts,3)) 
-        v_mat[:,0]                                                 = velocity 
+        v_mat[:,0]                                                     = velocity 
         BO_105_conditions.frames.inertial.velocity_vector              = v_mat 
         BO_105_conditions.propulsion.throttle                          = np.ones((ctrl_pts,1)) * 1.0 
         BO_105_conditions.frames.body.transform_to_inertial            = np.array([[[1., 0., 0.],[0., 1., 0.],[0., 0., 1.]]])
@@ -1456,15 +1434,10 @@ def Test_Case_5_2(PP):
         C_T[i] = BO_105_res.thrust_coefficient[:,0]*(8/(np.pi**3))
     
         # Run Noise Model    
-        BO_105_propeller_noise                = propeller_mid_fidelity(net_BO_105,acoustic_outputs,BO_105_segment,BO_105_settings )     
+        BO_105_propeller_noise                = propeller_mid_fidelity(net_BO_105.propellers,acoustic_outputs,BO_105_segment,BO_105_settings )     
         BO_105_freqency_spectrum[i]           = BO_105_propeller_noise.one_third_frequency_spectrum
         BO_105_SPL_broadband_1_3_spectrum[i]  = BO_105_propeller_noise.SPL_broadband_1_3_spectrum   
-    
-        # ----------------------------------------------------------------------------------------------------------------------------------------
-        #  Experimental Data
-        # ----------------------------------------------------------------------------------------------------------------------------------------      
-       
-        
+     
     # ----------------------------------------------------------------------------------------------------------------------------------------
     #  Plots  
     # ----------------------------------------------------------------------------------------------------------------------------------------   
@@ -1504,90 +1477,8 @@ def Test_Case_5_2(PP):
     #axes3.legend(loc='upper left') 
     #plt.ylim((0,90)) 
     
-
     
-    
-    return 
-
-def Test_Case_6_1(PP): 
-    
-    # Define Network
-    net                              = Battery_Propeller()
-    net.number_of_propeller_engines  = 1                                      
-    prop                             = design_SR1_prop()     
-    net.identical_propellers         = True  
-    net.propellers.append(prop) 
-
-    # Atmosheric & Run Conditions  
-    a                     = 343.376
-    T                     = 286.16889478 
-    Helical_Tip_Mach      = 1.049
-    Mach                  = 0.32
-    Tip_Mach              = np.sqrt(Helical_Tip_Mach**2 - Mach**2)   
-    density               = 1.2250	
-    dynamic_viscosity     = 1.81E-5    
-    theta                 = np.array([60,70,80,90.01,100,110,120])
-    S                     = 4.9
-    ctrl_pts              = 1
-
-    # microphone locations
-    positions = np.zeros(( len(theta),3))
-    for i in range(len(theta)):
-        if theta[i]*Units.degrees < np.pi/2:
-            positions[i][:] = [-S*np.cos(theta[i]*Units.degrees),-S*np.sin(theta[i]*Units.degrees), 0.0]
-        else: 
-            positions[i][:] = [S*np.sin(theta[i]*Units.degrees- np.pi/2),-S*np.cos(theta[i]*Units.degrees - np.pi/2), 0.0] 
-
-    # Set up for Propeller Model  
-    test_omega                                             = a*Tip_Mach/prop.tip_radius  
-    prop.inputs.omega                                      = np.ones((ctrl_pts,1)) *test_omega    
-    conditions                                             = Aerodynamics()   
-    conditions.freestream.density                          = np.ones((ctrl_pts,1)) * density
-    conditions.freestream.dynamic_viscosity                = np.ones((ctrl_pts,1)) * dynamic_viscosity   
-    conditions.freestream.speed_of_sound                   = np.ones((ctrl_pts,1)) * a 
-    conditions.freestream.temperature                      = np.ones((ctrl_pts,1)) * T
-    velocity_vector                                        = np.array([[Mach*a, 0. ,0.]])
-    conditions.frames.inertial.velocity_vector             = np.tile(velocity_vector,(ctrl_pts,1))   
-    conditions.propulsion.throttle                         = np.ones((ctrl_pts,1))*1.0
-    conditions.frames.body.transform_to_inertial           = np.array([[[1., 0., 0.],[0., 1., 0.],[0., 0., 1.]]])
-
-    # Run Propeller model 
-    F, Q, P, Cp , noise_data , etap                        = prop.spin(conditions) 
-    plot_propeller_performance(F, Q, P, Cp , noise_data,prop, col1 = 'go-', col2 = 'gs-') 
-
-    # Prepare Inputs for Noise Model  
-    conditions.noise.total_microphone_locations            = np.repeat(positions[ np.newaxis,:,: ],ctrl_pts,axis=0)
-    conditions.aerodynamics.angle_of_attack                = np.ones((ctrl_pts,1))* 0. * Units.degrees  
-    segment                                                = Segment() 
-    segment.state.conditions                               = conditions
-    settings                                               = Data()
-    settings                                               = setup_noise_settings(segment) 
-    num_mic                                                = len(conditions.noise.total_microphone_locations[0] )  
-    conditions.noise.number_of_microphones                 = num_mic
-    acoustic_outputs                                       = Data()
-    acoustic_outputs.propeller                             = noise_data
-
-    # Run Noise Model  
-    propeller_noise  = propeller_mid_fidelity(net,acoustic_outputs,segment,settings )       
-     
-    harmonic_pressure  = propeller_noise.SPL_prop_azimuthal_harmonic
-    time               = propeller_noise.azimuthal_time
-    
-    # ----------------------------------------------------------------------------------------------------------------------------------------
-    #  Plots
-    # ----------------------------------------------------------------------------------------------------------------------------------------       
-    # plot results
-    fig51 = plt.figure('Test_Case_5_p3')
-    fig51.set_size_inches(10, 5)   
-    axes = fig51.add_subplot(1,1,1) 
-    axes.plot(time[0,:], harmonic_pressure[0,:]    , color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm , markersize = PP.m , linewidth = PP.lw,   label = 'Tonal/Harmonic')     
-    axes.set_ylabel('SPL (dB)')
-    axes.set_xlabel('Frequency') 
-    plt.ylim((20,120)) 
-    axes.minorticks_on()  
-    
-    
-    return 
+    return  
 def vectorize(vec,ctrl_pts,num_sec,N_r,BSR,method):
     vec = np.atleast_2d(vec)
     if method == 1:
@@ -1650,9 +1541,4 @@ def setup_noise_settings(sts):
 if __name__ == '__main__': 
     main()    
     plt.show()   
-    
-    
-    #45 deg , 22.5 
-    
-
  

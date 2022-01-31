@@ -17,35 +17,6 @@ import pickle
 #   Main
 # ----------------------------------------------------------------------
 def main():
-     
-    N_gm_x              = 10
-    N_gm_y              = 7
-    # ../Supplementary/
-    mission_filename  = 'ECTOL_Full_Mission'
-    ECTOL_results_raw = load_results(mission_filename)
-    ECTOL_results     = process_results(ECTOL_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'ECTOL')
-    
-    mission_filename       = 'Stopped_Rotor_Full_Mission'
-    sr_mission_results_raw = load_results(mission_filename)
-    sr_results             = process_results(sr_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-    hover_filename         = 'Stopped_Rotor_Hover_Mission'
-    sr_hover_results_raw   = load_results(hover_filename)
-    sr_hover_results       = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-    
-    mission_filename       = 'Tiltwing_Full_Mission'
-    tw_results_raw         = load_results(mission_filename)
-    tw_results             = process_results(tw_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW')
-    hover_filename         = 'Tiltwing_Hover_Mission'
-    tw_hover_results_raw   = load_results(hover_filename)
-    tw_hover_results       = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW')
-    
-    mission_filename       = 'Multirotor_Full_Mission'  
-    mr_results_raw         = load_results(mission_filename)     
-    mr_results             = process_results(mr_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR') 
-    hover_filename         = 'Multirotor_Hover_Mission'  
-    mr_hover_results_raw   = load_results(hover_filename)     
-    mr_hover_results       = process_results(mr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR')  
-    
     line_width                     = 4
     plt.rcParams['axes.linewidth'] = 4.
     plt.rcParams["font.family"]    = "Times New Roman"
@@ -53,74 +24,167 @@ def main():
     figure_width                   = 14
     figure_height                  = 8
     ls                             = 22 # legend font size 
-    ms                             = 14   
-        
-    axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
-               axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
-               fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
-               fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20     =  set_up_axes(figure_width,figure_height,ls)
-    plot_results(ECTOL_results,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
-                 col = 'black',col2 = 'grey',vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
+    ms                             = 14       
+    N_gm_x              = 8 # 12
+    N_gm_y              = 3 # 4
+    ## ../Supplementary/ 
     
-    plot_results(sr_results,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
-                 col = 'mediumblue',col2 = 'darkcyan',vehicle_name = 'SR',m = '^',ls1 = '-', ls2 = '--')   
+    # STOPPED ROTOR
+    ectol_full_mission_filename   = 'ECTOL_Full_Mission'
+    ectol_noise_filename_Q1       = 'ECTOL_Noise_Mission_Q1'
+    ectol_noise_filename_Q2       = 'ECTOL_Noise_Mission_Q2'
+    ectol_noise_filename_Q3       = 'ECTOL_Noise_Mission_Q3'
+    ectol_noise_filename_Q4       = 'ECTOL_Noise_Mission_Q4' 
+    ectol_full_mission_results_raw= load_results(ectol_full_mission_filename)
+    ectol_noise_results_raw_Q1    = load_results(ectol_noise_filename_Q1)
+    ectol_noise_results_raw_Q2    = load_results(ectol_noise_filename_Q2)
+    ectol_noise_results_raw_Q3    = load_results(ectol_noise_filename_Q3)
+    ectol_noise_results_raw_Q4    = load_results(ectol_noise_filename_Q4) 
+    ectol_full_res                = process_results(ectol_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'ECTOL', noise_analysis = False)
+    ectol_noise_res_Q1            = process_results(ectol_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL', noise_analysis = True)
+    ectol_noise_res_Q2            = process_results(ectol_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL', noise_analysis = True)
+    ectol_noise_res_Q3            = process_results(ectol_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL', noise_analysis = True)
+    ectol_noise_res_Q4            = process_results(ectol_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL', noise_analysis = True) 
+ 
+    ## STOPPED ROTOR
+    #sr_full_mission_filename   = 'Stopped_Rotor_Full_Mission'
+    #sr_noise_filename_Q1       = 'Stopped_Rotor_Noise_Mission_Q1'
+    #sr_noise_filename_Q2       = 'Stopped_Rotor_Noise_Mission_Q2'
+    #sr_noise_filename_Q3       = 'Stopped_Rotor_Noise_Mission_Q3'
+    #sr_noise_filename_Q4       = 'Stopped_Rotor_Noise_Mission_Q4'
+    #sr_hover_filename          = 'Stopped_Rotor_Hover_Mission'
+    #sr_full_mission_results_raw= load_results(sr_full_mission_filename)
+    #sr_noise_results_raw_Q1    = load_results(sr_noise_filename_Q1)
+    #sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
+    #sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
+    #sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4)
+    #sr_hover_results_raw       = load_results(sr_hover_filename)
+    #sr_full_res                = process_results(sr_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR', noise_analysis = False)
+    #sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name = 'SR', noise_analysis = True)
+    #sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name = 'SR', noise_analysis = True)
+    #sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name = 'SR', noise_analysis = True)
+    #sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name = 'SR', noise_analysis = True)
+    #sr_hover_results           = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name    = 'SR', noise_analysis = True)
+     
+    ## TILTWING
+    #tw_full_mission_filename   = 'Tiltwing_Full_Mission'
+    #tw_noise_filename_Q1       = 'Tiltwing_Noise_Mission_Q1'
+    #tw_noise_filename_Q2       = 'Tiltwing_Noise_Mission_Q2'
+    #tw_noise_filename_Q3       = 'Tiltwing_Noise_Mission_Q3'
+    #tw_noise_filename_Q4       = 'Tiltwing_Noise_Mission_Q4'
+    #tw_hover_filename          = 'Tiltwing_Hover_Mission'
+    #tw_full_mission_results_raw= load_results(tw_full_mission_filename)
+    #tw_noise_results_raw_Q1    = load_results(tw_noise_filename_Q1)
+    #tw_noise_results_raw_Q2    = load_results(tw_noise_filename_Q2)
+    #tw_noise_results_raw_Q3    = load_results(tw_noise_filename_Q3)
+    #tw_noise_results_raw_Q4    = load_results(tw_noise_filename_Q4)
+    #tw_hover_results_raw       = load_results(tw_hover_filename)
+    #tw_full_res                = process_results(tw_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW', noise_analysis = False)
+    #tw_noise_res_Q1            = process_results(tw_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
+    #tw_noise_res_Q2            = process_results(tw_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
+    #tw_noise_res_Q3            = process_results(tw_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
+    #tw_noise_res_Q4            = process_results(tw_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
+    #tw_hover_results           = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'TW', noise_analysis = True)
     
-    plot_results(tw_results,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
-                 col = 'green',col2 = 'darkgreen',vehicle_name = 'TW',m = 'X',ls1 = '-', ls2 = '--')    
+     
+    ## MULTIROTOR
+    #mr_full_mission_filename   = 'Multirotor_Full_Mission'
+    #mr_noise_filename_Q1       = 'Multirotor_Noise_Mission_Q1'
+    #mr_noise_filename_Q2       = 'Multirotor_Noise_Mission_Q2'
+    #mr_noise_filename_Q3       = 'Multirotor_Noise_Mission_Q3'
+    #mr_noise_filename_Q4       = 'Multirotor_Noise_Mission_Q4'
+    #mr_hover_filename          = 'Multirotor_Hover_Mission'
+    #mr_full_mission_results_raw= load_results(mr_full_mission_filename)
+    #mr_noise_results_raw_Q1    = load_results(mr_noise_filename_Q1)
+    #mr_noise_results_raw_Q2    = load_results(mr_noise_filename_Q2)
+    #mr_noise_results_raw_Q3    = load_results(mr_noise_filename_Q3)
+    #mr_noise_results_raw_Q4    = load_results(mr_noise_filename_Q4)
+    #mr_hover_results_raw       = load_results(mr_hover_filename)
+    #mr_full_res                = process_results(mr_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR', noise_analysis = False)
+    #mr_noise_res_Q1            = process_results(mr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'MR', noise_analysis = True)
+    #mr_noise_res_Q2            = process_results(mr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'MR', noise_analysis = True)
+    #mr_noise_res_Q3            = process_results(mr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'MR', noise_analysis = True)
+    #mr_noise_res_Q4            = process_results(mr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'MR', noise_analysis = True)
+    #mr_hover_results           = process_results(mr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'MR', noise_analysis = True) 
+     
+    #axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
+               #axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
+               #fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
+               #fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20     =  set_up_axes(figure_width,figure_height,ls)
+    #plot_results(ectol_full_res ,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                 #axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
+                 #col = 'black',col2 = 'grey',vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
     
-    plot_results(mr_results ,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
-                 col = 'firebrick',col2 = 'darkred',vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')          
+    #plot_results(sr_full_res ,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                 #axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
+                 #col = 'mediumblue',col2 = 'darkcyan',vehicle_name = 'SR',m = '^',ls1 = '-', ls2 = '--')   
+    
+    #plot_results(tw_full_res,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                 #axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
+                 #col = 'green',col2 = 'darkgreen',vehicle_name = 'TW',m = 'X',ls1 = '-', ls2 = '--')    
+    
+    #plot_results(mr_full_res,axes_1,axins_1,axes_2,axes_3,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                 #axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,line_width,ms,ls,
+                 #col = 'firebrick',col2 = 'darkred',vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')          
      
 
-    mark_inset(axes_1, axins_1, loc1=2, loc2=4, fc="none", ec="0.5")  
-    mark_inset(axes_12, axins_12, loc1=2, loc2=4, fc="none", ec="0.5")  
-    axes_1.legend(loc='upper center', ncol= 4, prop={'size': ls})  
-    axes_2.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
-    axes_3.legend(loc='upper center', ncol= 4, prop={'size': ls})  
-    axes_4.legend(loc='upper center', ncol= 4, prop={'size': ls})  
-    axes_5.legend(loc='upper center', ncol= 4, prop={'size': ls})
-    axes_6.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
-    axes_7.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
-    axes_8.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
-    axes_9.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
-    axes_10.legend(loc='upper center', ncol= 5, prop={'size': ls})  
-    axes_11.legend(loc='upper center', ncol= 5, prop={'size': ls})  
-    axes_12.legend(loc='upper center', ncol= 4, prop={'size': ls})    
-    axes_13.legend(loc='upper center', ncol= 5, prop={'size': ls})
-    axes_21.legend(loc='upper center', ncol= 5, prop={'size': ls})
-    axes_14.legend(loc='upper center', ncol= 4, prop={'size': ls})
-    axes_15.legend(loc='upper center', ncol=  5 , prop={'size': ls})    
-    axes_16.legend(loc='upper center', ncol=  5 , prop={'size': ls})  
-    axes_17.legend(loc='upper center', ncol=  5 , prop={'size': ls}) 
-    axes_18.legend(loc='upper center', ncol=  5, prop={'size': ls})     
-    axes_19.legend(loc='upper center', ncol=  5, prop={'size': ls})   
-    axes_20.legend(loc='upper center', ncol=  5 , prop={'size': ls}) 
+    #mark_inset(axes_1, axins_1, loc1=2, loc2=4, fc="none", ec="0.5")  
+    #mark_inset(axes_12, axins_12, loc1=2, loc2=4, fc="none", ec="0.5")  
+    #axes_1.legend(loc='upper center', ncol= 4, prop={'size': ls})  
+    #axes_2.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
+    #axes_3.legend(loc='upper center', ncol= 4, prop={'size': ls})  
+    #axes_4.legend(loc='upper center', ncol= 4, prop={'size': ls})  
+    #axes_5.legend(loc='upper center', ncol= 4, prop={'size': ls})
+    #axes_6.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
+    #axes_7.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
+    #axes_8.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
+    #axes_9.legend(loc='upper center', ncol= 4, prop={'size': ls}) 
+    #axes_10.legend(loc='upper center', ncol= 5, prop={'size': ls})  
+    #axes_11.legend(loc='upper center', ncol= 5, prop={'size': ls})  
+    #axes_12.legend(loc='upper center', ncol= 4, prop={'size': ls})    
+    #axes_13.legend(loc='upper center', ncol= 5, prop={'size': ls})
+    #axes_21.legend(loc='upper center', ncol= 5, prop={'size': ls})
+    #axes_14.legend(loc='upper center', ncol= 4, prop={'size': ls})
+    #axes_15.legend(loc='upper center', ncol=  5 , prop={'size': ls})    
+    #axes_16.legend(loc='upper center', ncol=  5 , prop={'size': ls})  
+    #axes_17.legend(loc='upper center', ncol=  5 , prop={'size': ls}) 
+    #axes_18.legend(loc='upper center', ncol=  5, prop={'size': ls})     
+    #axes_19.legend(loc='upper center', ncol=  5, prop={'size': ls})   
+    #axes_20.legend(loc='upper center', ncol=  5 , prop={'size': ls}) 
 
-    save_figures(fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
-                     fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
-                     fig_17,fig_18,fig_19,fig_20)
-    
+    #save_figures(fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
+                     #fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
+                     #fig_17,fig_18,fig_19,fig_20)
+                     
     
     # Hover Noise Contours
-    plot_aircraft_hover_noise_contours(sr_hover_results,vehicle_name = 'SR') 
-    plot_aircraft_hover_noise_contours(tw_hover_results,vehicle_name = 'TW') 
-    plot_aircraft_hover_noise_contours(mr_hover_results,vehicle_name = 'MR') 
+    #plot_aircraft_hover_noise_contours(sr_hover_results,vehicle_name = 'SR') 
+    #plot_aircraft_hover_noise_contours(tw_hover_results,vehicle_name = 'TW') 
+    #plot_aircraft_hover_noise_contours(mr_hover_results,vehicle_name = 'MR') 
     
     # flight profile noise contours 
-    plot_flight_profile_noise_contours(ECTOL_results,line_width,ms,ls, col = 'black',col2 = 'grey',vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
-    plot_flight_profile_noise_contours(sr_results,line_width,ms,ls,  col = 'mediumblue',col2 = 'darkcyan',vehicle_name = 'SR',m = '^',ls1 = '-', ls2 = '--')   
-    plot_flight_profile_noise_contours(tw_results,line_width,ms,ls, col = 'green',col2 = 'darkgreen',vehicle_name = 'TW',m = 'X',ls1 = '-', ls2 = '--')    
-    plot_flight_profile_noise_contours(mr_results,line_width,ms,ls, col = 'firebrick',col2 = 'darkred',vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')      
+    plot_flight_profile_noise_contours(ectol_noise_res_Q1,ectol_noise_res_Q2,
+                                       ectol_noise_res_Q3,ectol_noise_res_Q4,
+                                       line_width,ms,ls, col = 'black',col2 = 'grey',
+                                       vehicle_name = 'ECTOL',m = 's',ls1 = '-', ls2 = '--')    
+    #plot_flight_profile_noise_contours(sr_noise_res_Q1,sr_noise_res_Q2,
+                                       #sr_noise_res_Q3,sr_noise_res_Q4,
+                                       #line_width,ms,ls,  col = 'mediumblue',col2 = 'darkcyan',
+                                       #vehicle_name = 'SR',m = '^',ls1 = '-', ls2 = '--')   
+    #plot_flight_profile_noise_contours(tw_noise_res_Q1,tw_noise_res_Q2,
+                                       #tw_noise_res_Q3,tw_noise_res_Q4,
+                                       #line_width,ms,ls, col = 'green',col2 = 'darkgreen',
+                                       #vehicle_name = 'TW',m = 'X',ls1 = '-', ls2 = '--')    
+    #plot_flight_profile_noise_contours(mr_noise_res_Q1,mr_noise_res_Q2,
+    #mr_noise_res_Q3,mr_noise_res_Q4,
+    #line_width,ms,ls, col = 'firebrick',col2 = 'darkred',
+    #vehicle_name = 'MR',m = 'o',ls1 = '-', ls2 = '--')      
     return
  
 # ------------------------------------------------------------------
 # Process Results 
 # ------------------------------------------------------------------
-def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
+def process_results(res,N_gm_x ,N_gm_y,vehicle_name,noise_analysis):
     '''This function cleans up the data and connects segments for plots ''' 
 
     num_ctrl_pts   = len(res.segments[0].conditions.frames.inertial.time[:,0] )
@@ -167,12 +231,13 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
     PD.DL_rot          = np.zeros(data_dimension) 
     PD.PL_prop         = np.zeros(data_dimension) 
     PD.PL_rot          = np.zeros(data_dimension) 
-     
-    PD.num_gm       = res.segments[0].conditions.noise.number_ground_microphones 
-    PD.gm_mic_loc   = res.segments[0].analyses.noise.settings.ground_microphone_locations 
-    PD.SPL_contour  = np.zeros((data_dimension,N_gm_x*N_gm_y))
-    PD.N_gm_x       = N_gm_x  
-    PD.N_gm_y       = N_gm_y  
+    
+    if noise_analysis:
+        PD.num_gm       = res.segments[0].conditions.noise.number_ground_microphones 
+        PD.gm_mic_loc   = res.segments[0].analyses.noise.settings.ground_microphone_locations 
+        PD.SPL_contour  = np.zeros((data_dimension,N_gm_x*N_gm_y))
+        PD.N_gm_x       = N_gm_x  
+        PD.N_gm_y       = N_gm_y  
     PD.aircraft_pos =  np.zeros((data_dimension,3)) 
     dim_segs        = len(res.segments)    
     PD.num_segments = dim_segs
@@ -196,7 +261,8 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
         current         = res.segments[i].conditions.propulsion.battery_current[:,0]      
         battery_amp_hr  = (energy)/volts 
         C_rating        = current /battery_amp_hr   
-        SPL_contour     = res.segments[i].conditions.noise.total_SPL_dBA   
+        if noise_analysis:
+            SPL_contour     = res.segments[i].conditions.noise.total_SPL_dBA   
         pos             = res.segments[i].conditions.frames.inertial.position_vector   
         
         
@@ -215,8 +281,9 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
         PD.volts_oc[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = volts_oc       
         PD.current[i*num_ctrl_pts:(i+1)*num_ctrl_pts]         = current        
         PD.battery_amp_hr[i*num_ctrl_pts:(i+1)*num_ctrl_pts]  = battery_amp_hr 
-        PD.C_rating[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = C_rating      
-        PD.SPL_contour[i*num_ctrl_pts:(i+1)*num_ctrl_pts,:]   = SPL_contour   
+        PD.C_rating[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = C_rating     
+        if noise_analysis:
+            PD.SPL_contour[i*num_ctrl_pts:(i+1)*num_ctrl_pts,:]   = SPL_contour   
         PD.aircraft_pos[i*num_ctrl_pts:(i+1)*num_ctrl_pts,:]  = pos        
         
         if vehicle_name == 'SR':
@@ -283,12 +350,13 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name):
 def plot_aircraft_hover_noise_contours(res,vehicle_name): 
      
     # unpack microphone array 
-    dim_gm             = res.segments[0].conditions.noise.number_ground_microphones
-    gm_N_x             = res.segments[0].analyses.noise.settings.level_ground_microphone_x_resolution
-    gm_N_y             = res.segments[0].analyses.noise.settings.level_ground_microphone_y_resolution   
+
+    gm_N_x             = res.N_gm_x
+    gm_N_y             = res.N_gm_y   
+    gm_mic_loc         = res.gm_mic_loc 
+    dim_gm             = res.num_gm
     Range              = np.zeros(dim_gm) 
-    Span               = np.zeros(dim_gm)   
-    gm_mic_loc         = res.segments[0].analyses.noise.settings.ground_microphone_locations  
+    Span               = np.zeros(dim_gm)     
     Range              = gm_mic_loc[:,0].reshape(gm_N_x,gm_N_y)
     Span               = gm_mic_loc[:,1].reshape(gm_N_x,gm_N_y) 
     levs               = np.linspace(40,80,25)
@@ -296,29 +364,29 @@ def plot_aircraft_hover_noise_contours(res,vehicle_name):
     # ---------------------------------------------------------------------------
     # Stopped-Rotor 
     # --------------------------------------------------------------------------- 
-    SR_SPL_contour_gm      = res.segments[0].conditions.noise.total_SPL_dBA[0,:dim_gm] 
-    SR_max_SPL_contour_gm  = np.max(SR_SPL_contour_gm,axis=0)
-    SR_SPL_gm              = SR_max_SPL_contour_gm.reshape(gm_N_x,gm_N_y) 
+    SPL_contour_gm      = res.SPL_contour 
+    max_SPL_contour_gm  = np.max(SPL_contour_gm,axis=0)
+    SPL_gm              = max_SPL_contour_gm.reshape(gm_N_x,gm_N_y) 
     fig_name               = 'Noise_Contour_500ft_' + vehicle_name
-    SR_fig                 = plt.figure(fig_name )  
-    SR_fig.set_size_inches(6, 6) 
-    SR_axes                = SR_fig.add_subplot(1,1,1)   
+    fig                 = plt.figure(fig_name )  
+    fig.set_size_inches(6, 6) 
+    axes                = fig.add_subplot(1,1,1)   
     Range                  = Range/Units.nmi
     Span                   = Span/Units.nmi
-    CS                     = SR_axes.contourf(Range , Span,SR_SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both')     
-    cbar                   = SR_fig.colorbar(CS)
+    CS                     = axes.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both')     
+    cbar                   = fig.colorbar(CS)
     cbar.ax.set_ylabel('SPL (dBA)', rotation =  90)     
-    SR_axes.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
-    SR_axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
-    SR_axes.grid(False)  
-    SR_axes.minorticks_on()   
-    plt.savefig(fig_name + 'png')
+    axes.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
+    axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
+    axes.grid(False)  
+    axes.minorticks_on()   
+    plt.savefig(fig_name + 'pdf')
     return  
 
 # ------------------------------------------------------------------
 # Plot Flight Profile Noise Contours 
 # ------------------------------------------------------------------
-def plot_flight_profile_noise_contours(res,line_width,ms,ls, col ,col2,vehicle_name,m,ls1, ls2):    
+def plot_flight_profile_noise_contours(res_Q1,res_Q2,res_Q3,res_Q4,line_width,ms,ls, col ,col2,vehicle_name,m,ls1, ls2):    
     
     line_width                     = 4
     plt.rcParams['axes.linewidth'] = 4.
@@ -326,8 +394,8 @@ def plot_flight_profile_noise_contours(res,line_width,ms,ls, col ,col2,vehicle_n
     plt.rcParams.update({'font.size': 36}) 
     ls            = 24 
     ms            = 14   
-    figure_width  = 14
-    figure_height = 8     
+    figure_width  = 15
+    figure_height = 10     
     
     # figure parameters
     filename = 'Noise_Contour' + vehicle_name
@@ -341,30 +409,38 @@ def plot_flight_profile_noise_contours(res,line_width,ms,ls, col ,col2,vehicle_n
     #   Altitude  
     axes_22.set_ylabel('Alt (ft)')  
     axes_22.axes.xaxis.set_visible(False)
-    axes_22.plot(res.aircraft_pos[:,0]/Units.nmi,  -res.aircraft_pos[:,2]/Units.feet , color = col , linestyle = ls1, marker = m, markersize = ms , linewidth= line_width) 
-    max_mi = np.max( res.aircraft_pos[:,0]/Units.nmi)
-    axes_22.set_xlim(0, max_mi)   
+    axes_22.plot(res_Q1.aircraft_pos[:,0]/Units.nmi,  -res_Q1.aircraft_pos[:,2]/Units.feet , color = col , linestyle = ls1, marker = m, markersize = ms , linewidth= line_width) 
+    
+    max_mi = np.max(res_Q1.aircraft_pos[:,0]/Units.nmi)
+    end_distance = max_mi/((res_Q1.N_gm_x-2)*2)
+    axes_22.set_xlim(-end_distance, max_mi+end_distance)   
     axes_22.set_ylim(0, 3000)     
     axes_22.minorticks_on()  
  
-    #   Noise     
-    N_gm_x              = res.N_gm_x
-    N_gm_y              = res.N_gm_y   
-    gm_mic_loc          = res.gm_mic_loc
-    Range               = gm_mic_loc[:,0].reshape(N_gm_x ,N_gm_y )
-    Span                = gm_mic_loc[:,1].reshape(N_gm_x ,N_gm_y ) 
-    max_SPL_contour_gm  = np.max(res.SPL_contour,axis=0)
-    SPL_gm              = max_SPL_contour_gm.reshape(N_gm_x ,N_gm_y ) 
-    levs                = np.linspace(40,120,25)   
-    Range               = Range/Units.nmi
-    Span                = Span/Units.nmi
-    CS                  = axes_21.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both') 
-    CS                  = axes_21.contourf(Range ,-Span, SPL_gm, levels = levs, cmap=plt.cm.jet, extend='both')
+ 
+    res = [res_Q1,res_Q2,res_Q3,res_Q4]
     
-    xi, yi = np.meshgrid(np.linspace(np.min(Range),np.max(Range), 10),np.linspace(-np.max(Span),np.max(Span), 5) )
-    axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
-    axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
-    
+    for Q_idx in range(len(res)): 
+        #   Noise     
+        N_gm_x              = res[Q_idx].N_gm_x
+        N_gm_y              = res[Q_idx].N_gm_y   
+        gm_mic_loc          = res[Q_idx].gm_mic_loc
+        Range               = gm_mic_loc[:,0].reshape(N_gm_x ,N_gm_y )
+        Span                = gm_mic_loc[:,1].reshape(N_gm_x ,N_gm_y ) 
+        SPL_contour         = res[Q_idx].SPL_contour
+        SPL_contour[SPL_contour>120] = 0
+        max_SPL_contour_gm  = np.max(SPL_contour,axis=0)
+        SPL_gm              = max_SPL_contour_gm.reshape(N_gm_x ,N_gm_y ) 
+        levs                = np.linspace(30,120,25)   # 9 is every 10 dB
+        Range               = Range/Units.nmi
+        Span                = Span/Units.nmi
+        CS                  = axes_21.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both') 
+        CS                  = axes_21.contourf(Range ,-Span, SPL_gm, levels = levs, cmap=plt.cm.jet, extend='both')
+        
+    #xi, yi = np.meshgrid(np.linspace(np.min(Range),np.max(Range), 10),np.linspace(-np.max(Span),np.max(Span), 5) )
+    #axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
+    #axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
+        
     fig.subplots_adjust(right=0.8)
     axes_23 = fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
     cbar    = fig.colorbar(CS, ax=axes_23)
@@ -374,7 +450,7 @@ def plot_flight_profile_noise_contours(res,line_width,ms,ls, col ,col2,vehicle_n
     plt.axis('off')	
     plt.grid(None)      
     
-    plt.savefig(filename+'.png')
+    plt.savefig(filename+'.pdf')
     
     return 
   
@@ -704,7 +780,7 @@ def set_up_axes(figure_width,figure_height,ls):
     axes_9.set_ylabel('$V_{OC}$ (V)')   
     axes_9.minorticks_on()  
     axes_9.set_xlabel(r'$\hat{t}$')     
-    axes_9.set_ylim(400, 800)        
+    axes_9.set_ylim(400, 850)        
     fig_9.tight_layout()
 
     # ------------------------------------------------------------------
@@ -716,7 +792,7 @@ def set_up_axes(figure_width,figure_height,ls):
     axes_21.set_ylabel('$V_{UL}$ (V)')   
     axes_21.minorticks_on()  
     axes_21.set_xlabel(r'$\hat{t}$')     
-    axes_21.set_ylim(400, 1300)        
+    axes_21.set_ylim(400, 800)        
     fig_21.tight_layout()    
     
     # ------------------------------------------------------------------
@@ -846,7 +922,7 @@ def set_up_axes(figure_width,figure_height,ls):
     axes_19 = fig_19.add_subplot(1,1,1)        
     axes_19.set_xlabel(r'$\hat{t}$')
     axes_19.set_ylabel(r'$\eta_{motor}$') 
-    axes_19.set_ylim(0.85, 1.)             
+    axes_19.set_ylim(0.87, 1.02)             
     axes_19.minorticks_on()     
     fig_19.tight_layout() 
     
@@ -858,7 +934,7 @@ def set_up_axes(figure_width,figure_height,ls):
     axes_20 = fig_20.add_subplot(1,1,1)        
     axes_20.set_xlabel(r'$\hat{t}$')
     axes_20.set_ylabel('$M_{tip}$')  
-    axes_20.set_ylim(0, 0.75)  
+    axes_20.set_ylim(0, 0.85)  
     axes_20.minorticks_on()     
     fig_20.tight_layout() 
     
@@ -875,27 +951,27 @@ def save_figures(fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
                  fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
                  fig_17,fig_18,fig_19,fig_20):
     
-    fig_1.savefig("Flight_Conditions_Altitude.png") 
-    fig_2.savefig("Flight_Conditions_Range.png") 
-    fig_3.savefig("Flight_Conditions_Noise.png") 
-    fig_4.savefig("Aero_Conditions_AoA.png") 
-    fig_5.savefig("Aero_Conditions_CL.png") 
-    fig_6.savefig("Aero_Conditions_CD.png") 
-    fig_7.savefig("Aero_Conditions_L_D.png") 
-    fig_8.savefig("Battery_Pack_Performance_E.png") 
-    fig_9.savefig("Battery_Pack_Performance_V.png") 
-    fig_10.savefig("Battery_Pack_Performance_DL.png") 
-    fig_11.savefig("Battery_Pack_Performance_PL.png") 
-    fig_12.savefig("Battery_Pack_Performance_C_rate.png") 
-    fig_13.savefig("Battery_Pack_Performance_T.png") 
-    fig_14.savefig("Battery_Pack_Performance_SOC.png")
-    fig_15.savefig("Propeller_Performance_RPM.png") 
-    fig_16.savefig("Propeller_Performance_T.png") 
-    fig_17.savefig("Propeller_Performance_Q.png") 
-    fig_18.savefig("Propeller_Performance_Prop_eff.png") 
-    fig_19.savefig("Propeller_Performance_Mot_eff.png") 
-    fig_20.savefig("Propeller_Performance_Mach_Tip.png")  
-    fig_21.savefig("Battery_Pack_Performance_Vul.png") 
+    fig_1.savefig("Flight_Conditions_Altitude.pdf") 
+    fig_2.savefig("Flight_Conditions_Range.pdf") 
+    fig_3.savefig("Flight_Conditions_Noise.pdf") 
+    fig_4.savefig("Aero_Conditions_AoA.pdf") 
+    fig_5.savefig("Aero_Conditions_CL.pdf") 
+    fig_6.savefig("Aero_Conditions_CD.pdf") 
+    fig_7.savefig("Aero_Conditions_L_D.pdf") 
+    fig_8.savefig("Battery_Pack_Performance_E.pdf") 
+    fig_9.savefig("Battery_Pack_Performance_V.pdf") 
+    fig_10.savefig("Battery_Pack_Performance_DL.pdf") 
+    fig_11.savefig("Battery_Pack_Performance_PL.pdf") 
+    fig_12.savefig("Battery_Pack_Performance_C_rate.pdf") 
+    fig_13.savefig("Battery_Pack_Performance_T.pdf") 
+    fig_14.savefig("Battery_Pack_Performance_SOC.pdf")
+    fig_15.savefig("Propeller_Performance_RPM.pdf") 
+    fig_16.savefig("Propeller_Performance_T.pdf") 
+    fig_17.savefig("Propeller_Performance_Q.pdf") 
+    fig_18.savefig("Propeller_Performance_Prop_eff.pdf") 
+    fig_19.savefig("Propeller_Performance_Mot_eff.pdf") 
+    fig_20.savefig("Propeller_Performance_Mach_Tip.pdf")  
+    fig_21.savefig("Battery_Pack_Performance_Vul.pdf") 
     
     return  
 

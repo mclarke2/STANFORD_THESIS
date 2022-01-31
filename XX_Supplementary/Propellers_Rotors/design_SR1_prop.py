@@ -71,7 +71,7 @@ def design_SR1_prop():
     prop.airfoil_cl_surrogates      = airfoil_cl_surs
     prop.airfoil_cd_surrogates      = airfoil_cd_surs    
     propeller_sweep                 = 23*Units.degrees
-    prop.mid_chord_aligment         = prop.radius_distribution*np.tan(propeller_sweep)  
+    prop.mid_chord_alignment         = prop.radius_distribution*np.tan(propeller_sweep)  
     prop.number_of_airfoil_section_points = 100
     prop.airfoil_data               = import_airfoil_geometry(prop.airfoil_geometry, npoints = prop.number_of_airfoil_section_points)
     prop.airfoil_flag               = True 

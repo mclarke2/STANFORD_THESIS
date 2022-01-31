@@ -36,86 +36,129 @@ except ImportError:
 # ----------------------------------------------------------------------
 
 def main():   
-
+    
     simulated_days   = 1
-    flights_per_day  = 1
+    flights_per_day  = 1 
     aircraft_range   = 70 *Units.nmi
     reserve_segment  = False 
     plot_geometry    = False
-    recharge_battery = False 
+    recharge_battery = False
+    run_analysis     = True
+    plot_mission     = False
     control_points   = 10
-    N_gm_x           = 10  
-    N_gm_y           = 7  
+    N_gm_x           = 10
+    N_gm_y           = 4
+
+    run_noise_model   = False 
+    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y)
+ 
+    run_noise_model   = True 
+    run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y)
     
-    # ------------------------------------------------------------------------------------------------
-    # Full Mission 
-    # ------------------------------------------------------------------------------------------------  
-    run_noise_model   = True     
-    ti                = time.time()  
-    vehicle           = vehicle_setup()   
-    #write(vehicle, "ECTOL") 
+    return 
+
+
+def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y):  
+
+    min_y             = 1E-1
+    max_y             = 0.25*Units.nmi
+    min_x             = 1E-1
+    max_x             = aircraft_range 
+
+    ti                = time.time() 
+    vehicle           = vehicle_setup()
+    #write(vehicle,"ECTOL") 
     configs           = configs_setup(vehicle) 
-    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model) 
+    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model) 
     base_mission      = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery)
     missions_analyses = missions_setup(base_mission) 
     analyses          = SUAVE.Analyses.Analysis.Container()
     analyses.configs  = configs_analyses
-    analyses.missions = missions_analyses  
+    analyses.missions = missions_analyses 
     configs.finalize()
-    analyses.finalize()   
-    
-    evtol_breakdown = empty(configs.base,contingency_factor=1.1)
-    print(evtol_breakdown)    
+    analyses.finalize()      
+    mission           = analyses.missions.base
+    mission_results   = mission.evaluate()   
+    filename          = 'ECTOL_Full_Mission' 
+    save_results(mission_results,filename)   
+
+    # weight plot breakdown 
+    print('WEIGHT BREAKDOWN')
+    breakdown = empty(configs.base,contingency_factor=1.0)
+    print(breakdown)
+
+    # plot geoemtry 
     if plot_geometry: 
-        plot_vehicle(configs.base, elevation_angle = 0,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)   
-        plt.show()       
-    
-    # mission analysis
-    mission  = analyses.missions.base
-    mission_results  = mission.evaluate()     
-    filename = 'ECTOL_Full_Mission'
-    save_results(mission_results,filename)    
-    plot_results( mission_results,run_noise_model) 
-        
-    tf = time.time()
+        plot_vehicle(configs.base, elevation_angle = 90,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)       
+
+    if plot_mission: 
+        plot_results(mission_results,run_noise_model)   
+
+    tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
     elapsed_range = mission_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
-    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')     
-    
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
 
-    ## ------------------------------------------------------------------------------------------------    
-    ## Noise Analysis Mission  
-    ## ------------------------------------------------------------------------------------------------  
-      
-    #run_noise_model   = True
-    #ti                = time.time()  
-    #vehicle           = vehicle_setup()   
-    #configs           = configs_setup(vehicle) 
-    #configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model) 
-    #base_mission      = noise_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery)
-    #missions_analyses = missions_setup(base_mission) 
-    #analyses          = SUAVE.Analyses.Analysis.Container()
-    #analyses.configs  = configs_analyses
-    #analyses.missions = missions_analyses  
-    #configs.finalize()
-    #analyses.finalize()      
-    #mission           = analyses.missions.base
-    #noise_results     = mission.evaluate()   
-    #filename          = 'ECTOL_Noise_Mission'
-    #save_results(noise_results,filename) 
-    ##plot_results(noise_results,run_noise_model) 
-        
-    #tf = time.time()
-    #print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
-    #elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
-    #print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')    
-     
-    return
+    return 
+
+def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y): 
+
+    Y_LIM = np.linspace(1E-1,5*Units.nmi,3)    
+    end_distance = aircraft_range/((N_gm_x-2)*2)
+    X_LIM = np.linspace(-end_distance+1E1,aircraft_range + end_distance+1E1,3)            
+
+    ti                = time.time() 
+    vehicle           = vehicle_setup() 
+    configs           = configs_setup(vehicle)  
+    Q_idx             = 1
+
+    for i in range(len(X_LIM)-1):
+        for j in range(len(Y_LIM)-1): 
+            print('Running Quardant:' + str(Q_idx))
+            min_x = X_LIM[i]
+            max_x = X_LIM[i+1]
+            min_y = Y_LIM[j]
+            max_y = Y_LIM[j+1]
+
+            # ------------------------------------------------------------------------------------------------
+            # Noise Mission 
+            # ------------------------------------------------------------------------------------------------   
+            configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model) 
+            noise_mission     = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery )
+            missions_analyses = missions_setup(noise_mission) 
+            analyses          = SUAVE.Analyses.Analysis.Container()
+            analyses.configs  = configs_analyses
+            analyses.missions = missions_analyses 
+            configs.finalize()
+            analyses.finalize()      
+            noise_mission     = analyses.missions.base
+            noise_results     = noise_mission.evaluate()   
+            filename          = 'ECTOL_Noise_Mission_Q' + str(Q_idx)
+            save_results(noise_results,filename)  
+            Q_idx += 1 
+
+    if plot_mission: 
+        plot_results(noise_results,run_noise_model)       
+
+    tf = time.time() 
+    print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
+    elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
+
+    return  
 
 # ------------------------------------------------------------------
 #   Base Analysis  
 # ------------------------------------------------------------------
-def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
+def base_analysis(vehicle,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model):
 
     # ------------------------------------------------------------------
     #   Initialize the Analyses
@@ -154,10 +197,10 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
         noise.geometry = vehicle
         noise.settings.level_ground_microphone_x_resolution = N_gm_x
         noise.settings.level_ground_microphone_y_resolution = N_gm_y
-        noise.settings.level_ground_microphone_min_y        = 1E-6
-        noise.settings.level_ground_microphone_max_y        = 450
-        noise.settings.level_ground_microphone_min_x        = 0.0 
-        noise.settings.level_ground_microphone_max_x        = 70*Units.nmi
+        noise.settings.level_ground_microphone_min_y        = min_y
+        noise.settings.level_ground_microphone_max_y        = max_y
+        noise.settings.level_ground_microphone_min_x        = min_x
+        noise.settings.level_ground_microphone_max_x        = max_x
         analyses.append(noise)
 
     # ------------------------------------------------------------------
@@ -197,9 +240,9 @@ def vehicle_setup():
     # ------------------------------------------------------------------
 
     # mass properties
-    vehicle.mass_properties.max_takeoff   = 2550. * Units.pounds
-    vehicle.mass_properties.takeoff       = 2550. * Units.pounds
-    vehicle.mass_properties.max_zero_fuel = 2550. * Units.pounds 
+    vehicle.mass_properties.max_takeoff   = 2850. * Units.pounds
+    vehicle.mass_properties.takeoff       = 2850. * Units.pounds
+    vehicle.mass_properties.max_zero_fuel = 2850. * Units.pounds 
     vehicle.envelope.ultimate_load        = 5.7
     vehicle.envelope.limit_load           = 3.8 
     vehicle.reference_area                = 14.76
@@ -665,13 +708,13 @@ def vehicle_setup():
 # ----------------------------------------------------------------------
 #   Define the Vehicle Analyses
 # ---------------------------------------------------------------------- 
-def analyses_setup(configs,N_gm_x,N_gm_y,aircraft_range,run_noise_model):
+def analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model):
 
     analyses = SUAVE.Analyses.Analysis.Container()
 
     # build a base analysis for each config
     for tag,config in configs.items():
-        analysis = base_analysis(config,N_gm_x,N_gm_y,aircraft_range,run_noise_model)
+        analysis = base_analysis(config,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model)
         analyses[tag] = analysis
 
     return analyses 
@@ -697,7 +740,7 @@ def configs_setup(vehicle):
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
     config.tag = 'landing' 
-    config.networks.battery_propeller.pitch_command                          = -12.0 * Units.degrees  
+    config.networks.battery_propeller.pitch_command  = 0 #  -12.0 * Units.degrees  
     configs.append(config)     
 
     # done!
@@ -749,66 +792,64 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     base_segment.charging_current                            = bat.charging_current
     base_segment.charging_voltage                            = bat.charging_voltage 
     base_segment.battery_discharge                           = True   
-     
-     
-    ## ------------------------------------------------------------------
-    ##  Final Approach Segment Flight 1  
-    ## ------------------------------------------------------------------ 
-    #segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
-    #segment_name = 'Final_Approach'  
-    #segment.tag = segment_name          
-    #segment.analyses.extend( analyses.landing)     
-    #segment.state.unknowns.throttle                          = 0.8 * ones_row(1)
-    #segment.state.unknowns.propeller_power_coefficient       = 0.3 *  ones_row(1)      
-    #segment.altitude_start                                   = 500.0 * Units.feet
-    #segment.altitude_end                                     = 00.0 * Units.feet
-    #segment.air_speed_start                                  = Vstall*1.1  
-    #segment.air_speed_end                                    = Vstall 
-    #segment.climb_rate                                       = -300 * Units['ft/min'] 
-    #segment.battery_energy                                  = vehicle.networks.battery_propeller.battery.max_energy   
-    #segment.state.unknowns.throttle                          =  0.8 * ones_row(1)  
-    #segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3  )  
-    #mission.append_segment(segment)   
-    
+      
+    # ------------------------------------------------------------------
+    #  Final Approach Segment Flight 1  
+    # ------------------------------------------------------------------ 
+    segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
+    segment_name = 'Final_Approach_1' 
+    segment.tag = segment_name          
+    segment.analyses.extend( analyses.landing)     
+    segment.battery_energy                                  = vehicle.networks.battery_propeller.battery.max_energy * 0.6 
+    segment.state.unknowns.throttle                          = 0.8 * ones_row(1)
+    segment.state.unknowns.propeller_power_coefficient       = 0.3 *  ones_row(1)      
+    segment.altitude_start                                   = 500.0 * Units.feet
+    segment.altitude_end                                     = 0.0 * Units.feet
+    segment.air_speed_start                                  = Vstall*1.1  
+    segment.air_speed_end                                    = Vstall 
+    segment.climb_rate                                       = -300 * Units['ft/min'] 
+    segment.state.unknowns.throttle                          =  0.8 * ones_row(1)  
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3  )  
+    mission.append_segment(segment)   
 
-    ## ------------------------------------------------------------------
-    ##   Landing  
-    ## ------------------------------------------------------------------ 
-    #segment = Segments.Ground.Landing(base_segment)
-    #segment.tag = "Landing" 
-    #segment.analyses.extend( analyses.landing)
-    #segment.velocity_start            = Vstall  
-    #segment.velocity_end              = Vstall*0.1  
-    #segment.friction_coefficient      = 0.04 
-    #segment.state.unknowns.time       = 30.            
-    #segment.altitude                  = 0.0 
-    #segment.state.unknowns.velocity_x = 0.1* Vstall * ones_row(1)   
-    #segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
-    ## add to misison
-    #mission.append_segment(segment)   
+    # ------------------------------------------------------------------
+    #   Landing  
+    # ------------------------------------------------------------------ 
+    segment = Segments.Ground.Landing(base_segment)
+    segment.tag = "Landing" 
+    segment.analyses.extend( analyses.landing)
+    segment.velocity_start            = Vstall  
+    segment.velocity_end              = Vstall*0.1  
+    segment.friction_coefficient      = 0.04 
+    segment.state.unknowns.time       = 30.            
+    segment.altitude                  = 0.0 
+    segment.state.unknowns.velocity_x = 0.1* Vstall * ones_row(1)   
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
+    # add to misison
+    mission.append_segment(segment)   
      
     # ------------------------------------------------------------------
-    #   Takeoff 
-    # ------------------------------------------------------------------ 
+    #   Takeoff Roll
+    # ------------------------------------------------------------------
+
     segment = Segments.Ground.Takeoff(base_segment)
-    segment.tag = "Takeoff" 
+    segment.tag = "Takeoff"  
     segment.analyses.extend( analyses.base )
     segment.velocity_start            = Vstall*0.1  
     segment.velocity_end              = Vstall  
     segment.friction_coefficient      = 0.04 
     segment.state.unknowns.time       = 10.            
     segment.altitude                  = 0.0 
-    segment.state.unknowns.velocity_x = 0.5* Vstall * ones_row(1) 
-    segment.battery_energy                                  = vehicle.networks.battery_propeller.battery.max_energy  
+    segment.state.unknowns.velocity_x = 0.5* Vstall * ones_row(1)    
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
     # add to misison
-    mission.append_segment(segment)
-    
+    mission.append_segment(segment) 
+     
     # ------------------------------------------------------------------
     #   Departure End of Runway Segment Flight 1 : 
     # ------------------------------------------------------------------ 
     segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment) 
-    segment.tag = 'Departure_End_of_Runway'       
+    segment.tag = 'Departure_End_of_Runway'    
     segment.analyses.extend( analyses.base )           
     segment.altitude_start                                   = 0.0 * Units.feet
     segment.altitude_end                                     = 50.0 * Units.feet
@@ -817,14 +858,13 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment.climb_rate                                       = 600 * Units['ft/min']  
     segment.state.unknowns.throttle                          = 0.9 * ones_row(1)  
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
-    mission.append_segment(segment) 
-      
+    mission.append_segment(segment)  
                 
     # ------------------------------------------------------------------
     #   Initial Climb Area Segment Flight 1  
     # ------------------------------------------------------------------ 
     segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment) 
-    segment.tag = 'Initial_CLimb_Area'  
+    segment.tag = 'Initial_CLimb_Area' 
     segment.analyses.extend( analyses.base )   
     segment.altitude_start                                   = 50.0 * Units.feet
     segment.altitude_end                                     = 500.0 * Units.feet
@@ -834,7 +874,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment.state.unknowns.throttle                          = 0.85 * ones_row(1)  
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.05)  
     mission.append_segment(segment) 
-                       
+               
     
     return mission
 
@@ -902,7 +942,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             # ------------------------------------------------------------------
         
             segment = Segments.Ground.Takeoff(base_segment)
-            segment.tag = "Takeoff" 
+            segment.tag = "Takeoff"  + "_F_" + str(flight_no) + "_D_" + str (day)  
             segment.analyses.extend( analyses.base )
             segment.velocity_start            = Vstall*0.1  
             segment.velocity_end              = Vstall  
@@ -970,7 +1010,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.tag = 'Cruise'  + "_F_" + str(flight_no) + "_D" + str (day) 
             segment.analyses.extend(analyses.base) 
             segment.air_speed                                        = 175.* Units['mph']        
-            cruise_distance                                          = aircraft_range - 24.3715*Units.nmi  
+            cruise_distance                                          = aircraft_range - 25.2615*Units.nmi  
             segment.distance                                         = cruise_distance 
             segment.state.unknowns.throttle                          = 0.8 * ones_row(1)              
             segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
@@ -1087,7 +1127,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             #   Landing  
             # ------------------------------------------------------------------ 
             segment = Segments.Ground.Landing(base_segment)
-            segment.tag = "Landing" 
+            segment.tag = "Landing"  + "_F_" + str(flight_no) + "_D_" + str (day)  
             segment.analyses.extend( analyses.landing)
             segment.velocity_start            = Vstall  
             segment.velocity_end              = Vstall*0.1  
@@ -1190,6 +1230,15 @@ def save_results(results,filename):
     with open(pickle_file, 'wb') as file:
         pickle.dump(results, file) 
     return   
+# ------------------------------------------------------------------
+#   Load Results
+# ------------------------------------------------------------------   
+def load_results(filename):  
+    load_file = filename + '.pkl' 
+    with open(load_file, 'rb') as file:
+        results = pickle.load(file)
+        
+    return results
 
 if __name__ == '__main__': 
     main()    
