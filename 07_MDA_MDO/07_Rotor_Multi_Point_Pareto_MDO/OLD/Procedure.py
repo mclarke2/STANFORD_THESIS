@@ -21,7 +21,7 @@ from SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics import Aerodynamics
 
 def set_up(): 
     procedure                   = Process()
-    procedure.modify_propeller  = update_geometry
+    procedure.modify_rotor  = update_geometry
     procedure.post_process      = post_process   
         
     return procedure  

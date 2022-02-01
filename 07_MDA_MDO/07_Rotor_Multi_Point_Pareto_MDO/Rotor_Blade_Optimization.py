@@ -1,81 +1,78 @@
-# Optimize.py 
+# low_noise_rotor_design.py 
+## @ingroup Methods-Propulsion
 
 # ----------------------------------------------------------------------        
 #   Imports
 # ----------------------------------------------------------------------  
+# SUAVE Imports 
 import SUAVE
-from SUAVE.Core import Units, Data 
-import numpy as np
-import Vehicles 
-import Procedure 
+from SUAVE.Core                                                                           import Units, Data  
 from SUAVE.Analyses.Mission.Segments.Segment                                              import Segment 
 from SUAVE.Methods.Noise.Fidelity_One.Propeller.propeller_mid_fidelity                    import propeller_mid_fidelity
-import SUAVE.Optimization.Package_Setups.scipy_setup as scipy_setup
-from SUAVE.Optimization       import Nexus      
+import SUAVE.Optimization.Package_Setups.scipy_setup                                      as scipy_setup
+from SUAVE.Optimization                                                                   import Nexus      
+from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry import import_airfoil_geometry  
+from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars  import compute_airfoil_polars 
+from SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics                              import Aerodynamics 
+
+# Optimization file imports 
+import Vehicles 
+import Procedure
+
+# Python package imports
 import numpy as np 
 import scipy as sp 
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry \
-     import import_airfoil_geometry  
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars \
-     import compute_airfoil_polars 
-from SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics import Aerodynamics 
 import time 
 
-# ----------------------------------------------------------------------        
-#   Run the whole thing
-# ----------------------------------------------------------------------  
+## @ingroup Methods-Propulsion
 def low_noise_rotor_design(rotor,
-                           number_of_stations       = 20, 
+                           number_of_stations               = 20, 
                            number_of_airfoil_section_points = 100,
-                           solver_name              = 'differential_evolution',  
-                           print_iter               = True):  
+                           solver_name                      = 'SLSQP'):  
     
-    
-    N             = number_of_stations       # this number determines the discretization of the propeller into stations 
-    B             = rotor.number_of_blades
+    # Unpack rotor geometry  
+    N             = number_of_stations       
+    B             = rotor.number_of_blades    
     R             = rotor.tip_radius
     Rh            = rotor.hub_radius 
     design_thrust = rotor.design_thrust
     design_power  = rotor.design_power
+    chi0          = Rh/R  
+    chi           = np.linspace(chi0,1,N+1)  
+    chi           = chi[0:N]
     a_geo         = rotor.airfoil_geometry
     a_pol         = rotor.airfoil_polars        
-    a_loc         = rotor.airfoil_polar_stations 
+    a_loc         = rotor.airfoil_polar_stations  
     
-    
-    # Determine target values 
+    # determine target values 
     if (design_thrust == None) and (design_power== None):
-        raise AssertionError('Specify either design thrust or design power!')
-    
+        raise AssertionError('Specify either design thrust or design power!') 
     elif (design_thrust!= None) and (design_power!= None):
-        raise AssertionError('Specify either design thrust or design power!')
-    
+        raise AssertionError('Specify either design thrust or design power!') 
     if rotor.rotation == None:
         rotor.rotation = list(np.ones(int(B))) 
         
+    # compute airfoil polars for airfoils 
     if  a_pol != None and a_loc != None:
         if len(a_loc) != N:
             raise AssertionError('\nDimension of airfoil sections must be equal to number of stations on rotor')
-        # compute airfoil polars for airfoils 
         airfoil_polars  = compute_airfoil_polars(a_geo, a_pol)  
         cl_sur = airfoil_polars.lift_coefficient_surrogates 
         cd_sur = airfoil_polars.drag_coefficient_surrogates  
     else:
         raise AssertionError('\nDefine rotor airfoil') 
- 
-    chi0    = Rh/R # Where the rotor blade actually starts
-    chi     = np.linspace(chi0,1,N+1) # Vector of nondimensional radii
-    chi     = chi[0:N]
-    
-    
-    airfoil_geometry_data                  = import_airfoil_geometry(rotor.airfoil_geometry)
-    t_c                                    = np.take(airfoil_geometry_data.thickness_to_chord,a_loc,axis=0) 
+  
+    # append additional rotor properties for optimization 
+    airfoil_geometry_data                  = import_airfoil_geometry(rotor.airfoil_geometry)  
     rotor.number_of_blades                 = int(B)  
-    rotor.thickness_to_chord               = t_c  
+    rotor.thickness_to_chord               = np.take(airfoil_geometry_data.thickness_to_chord,a_loc,axis=0)
     rotor.radius_distribution              = chi
     rotor.airfoil_cl_surrogates            = cl_sur
     rotor.airfoil_cd_surrogates            = cd_sur 
-    rotor.airfoil_flag                     = True  
-    rotor.minimum_taper_constraint         = 0.3     
+    rotor.airfoil_flag                     = True      
+    rotor.number_of_airfoil_section_points = number_of_airfoil_section_points
+    
+    # assign intial conditions for twist and chord distribution functions
     rotor.chord_r                          = 0.1*R     
     rotor.chord_p                          = 1.0       
     rotor.chord_q                          = 0.5       
@@ -83,33 +80,33 @@ def low_noise_rotor_design(rotor,
     rotor.twist_r                          = np.pi/6   
     rotor.twist_p                          = 1.0       
     rotor.twist_q                          = 0.5       
-    rotor.twist_t                          = np.pi/10  
-    rotor.number_of_airfoil_section_points = number_of_airfoil_section_points
+    rotor.twist_t                          = np.pi/10   
     
-    
-    
+    # start optimization 
     ti = time.time()   
     optimization_problem = low_noise_rotor_optimization_setup(rotor)
-    output = scipy_setup.SciPy_Solve(optimization_problem,solver=solver_name, sense_step = 1E-4, tolerance = 1E-3)  
-    print (output) 
-     
+    output = scipy_setup.SciPy_Solve(optimization_problem,solver=solver_name, sense_step = 1E-8, tolerance = 1E-5)    
     tf           = time.time()
     elapsed_time = round((tf-ti)/60,2)
     print('Rotor Otimization Simulation Time: ' + str(elapsed_time))   
-
+    
+    # print optimization results 
+    print (output)  
+    
+    # set remaining rotor variables using optimized parameters 
     rotor = set_optimized_rotor_planform(rotor,optimization_problem)
     
     return rotor
   
 def low_noise_rotor_optimization_setup(rotor): 
-    nexus = Nexus()
-    problem = Data()
+    nexus                      = Nexus()
+    problem                    = Data()
     nexus.optimization_problem = problem
 
     # -------------------------------------------------------------------
     # Inputs
     # -------------------------------------------------------------------  
-    R = rotor.tip_radius  
+    R      = rotor.tip_radius  
     inputs = []
     inputs.append([ 'chord_r'    , 0.1*R     , 0.05*R , 0.2*R    , 1.0     ,  1*Units.less])
     inputs.append([ 'chord_p'    , 2         , 0.25   , 2.0      , 1.0     ,  1*Units.less])
@@ -134,14 +131,12 @@ def low_noise_rotor_optimization_setup(rotor):
     # -------------------------------------------------------------------  
     constraints = [] 
     constraints.append([ 'thrust_power_residual'    ,  '>'  ,  0.0 ,   1.0   , 1*Units.less]), 
-    constraints.append([ 'blade_taper_constraint_1'     ,  '>'  ,  0.3 ,   1.0   , 1*Units.less]), 
-    constraints.append([ 'blade_taper_constraint_2'     ,  '<'  ,  0.8 ,   1.0   , 1*Units.less]),  
-    #constraints.append([ 'design_cl_residual'       ,  '>'  ,  0.0 ,   1.0   , 1*Units.less]), 
-    constraints.append([ 'chord_p_to_q_ratio'       ,  '>'  ,  0.5,   1.0    , 1*Units.less])   
-    constraints.append([ 'twist_p_to_q_ratio'       ,  '>'  ,  0.5,   1.0    , 1*Units.less])     
-    #constraints.append([ 'blade_solidity_residual'  ,  '>'  ,  0.0 ,   1.0   , 1*Units.less]),  
-    #constraints.append([ 'figure_of_merit_residual' ,  '>'  ,  0.0 ,   1.0   , 1*Units.less]) 
-    problem.constraints =  np.array(constraints,dtype=object)                                      
+    constraints.append([ 'blade_taper_constraint_1' ,  '>'  ,  0.2 ,   1.0   , 1*Units.less]), 
+    constraints.append([ 'blade_taper_constraint_2' ,  '<'  ,  0.7 ,   1.0   , 1*Units.less]),  
+    constraints.append([ 'chord_p_to_q_ratio'       ,  '>'  ,  0.5 ,   1.0   , 1*Units.less])   
+    constraints.append([ 'twist_p_to_q_ratio'       ,  '>'  ,  0.5 ,   1.0   , 1*Units.less])   
+    problem.constraints =  np.array(constraints,dtype=object)                
+    
     # -------------------------------------------------------------------
     #  Aliases
     # ------------------------------------------------------------------- 
@@ -156,13 +151,10 @@ def low_noise_rotor_optimization_setup(rotor):
     aliases.append([ 'twist_t'                   , 'vehicle_configurations.*.networks.battery_propeller.lift_rotors.rotor.twist_t' ]) 
     aliases.append([ 'Aero_Acoustic_Obj'         , 'summary.Aero_Acoustic_Obj'       ])  
     aliases.append([ 'thrust_power_residual'     , 'summary.thrust_power_residual'   ]) 
-    aliases.append([ 'blade_taper_constraint_1'      , 'summary.blade_taper_constraint_1'    ])  
-    aliases.append([ 'blade_taper_constraint_2'      , 'summary.blade_taper_constraint_2'    ])  
-    #aliases.append([ 'design_cl_residual'        , 'summary.design_cl_residual'      ]) 
+    aliases.append([ 'blade_taper_constraint_1'  , 'summary.blade_taper_constraint_1'    ])  
+    aliases.append([ 'blade_taper_constraint_2'  , 'summary.blade_taper_constraint_2'    ])  
     aliases.append([ 'chord_p_to_q_ratio'        , 'summary.chord_p_to_q_ratio'    ])  
     aliases.append([ 'twist_p_to_q_ratio'        , 'summary.twist_p_to_q_ratio'    ])     
-    #aliases.append([ 'blade_solidity_residual'   , 'summary.blade_solidity_residual' ])
-    #aliases.append([ 'figure_of_merit_residual'  , 'summary.figure_of_merit_residual']) 
     
     problem.aliases = aliases
     
@@ -190,7 +182,7 @@ def low_noise_rotor_optimization_setup(rotor):
     #  Summary
     # -------------------------------------------------------------------    
     nexus.summary = Data()     
-    return nexus  
+    return nexus   
  
 def set_optimized_rotor_planform(rotor,optimization_problem):
     r                        = rotor.radius_distribution
@@ -218,7 +210,7 @@ def set_optimized_rotor_planform(rotor,optimization_problem):
     ctrl_pts       = 1 
 
     # Run Conditions     
-    theta                   = np.array([45,90,135])*Units.degrees + 1E-1
+    theta                   = np.array([90,112.5,135])*Units.degrees + 1E-1
     S                       = 10.  
 
     # microphone locations

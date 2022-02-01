@@ -61,16 +61,17 @@ def single_design_point():
      # DEFINE ROTOR OPERATING CONDITIONS 
     rotor                                 = SUAVE.Components.Energy.Converters.Rotor() 
     rotor.tag                             = 'rotor'     
-    rotor.tip_radius                      = 1.25 
+    rotor.tip_radius                      = 1.3
     rotor.hub_radius                      = 0.15 * rotor.tip_radius
     rotor.design_tip_mach                 = 0.65 # gives better noise results and more realistic blade 
     rotor.number_of_blades                = 3  
-    rotor.freestream_velocity             = 130 * Units.mph  # 10  
-    rotor.angular_velocity                = rotor.design_tip_mach*340  /rotor.tip_radius 
-    rotor.design_Cl                       = 0.7
+    inflow_ratio                          = 0.1
+    rotor.angular_velocity                = rotor.design_tip_mach*343 /rotor.tip_radius
+    #rotor.freestream_velocity             = 0.1 # 500* Units['ft/min'] #130 * Units.mph  
+    rotor.freestream_velocity             = inflow_ratio*rotor.angular_velocity*rotor.tip_radius   
     Hover_Load                            = 2300*9.81      # hover load   
-    rotor.design_altitude                 = 500 * Units.feet                             
-    rotor.design_thrust                   = (Hover_Load/(8-1))    
+    rotor.design_altitude                 = 0 * Units.feet                             
+    rotor.design_thrust                   = (Hover_Load/(8))    
     rotor.airfoil_geometry                 = [ '../../XX_Supplementary/Airfoils/NACA_4412.txt']
     rotor.airfoil_polars                   = [['../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
                                              '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_100000.txt',
@@ -82,19 +83,17 @@ def single_design_point():
      # OPTIMIZATION PARAMETERS 
     rotor.optimization_parameters          = Data()
     opt_params                             = rotor.optimization_parameters
-    opt_params.ideal_SPL                   = None 
-    opt_params.ideal_power                 = None 
-    opt_params.ideal_thrust                = None 
-    opt_params.slack_constaint             = 0.01 # slack constraint 
-    opt_params.aeroacoustic_weight         = 1     # 1 means only perfomrance optimization 0.5 to weight noise equally
+    opt_params.slack_constaint             = 1E-6 # slack constraint 
+    opt_params.ideal_SPL                   = 45
+    opt_params.aeroacoustic_weight         = 0    # 1 means only perfomrance optimization 0.5 to weight noise equally
     
     # DESING ROTOR 
-    rotor                                  = low_noise_rotor_design(rotor,number_of_airfoil_section_points=100,solver_name='SLSQP')  
+    rotor                                  = low_noise_rotor_design(rotor,number_of_airfoil_section_points=100)  
   
     # save rotor geomtry
     opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
     opt_weight = opt_weight.replace('.','_')    
-    name = 'Single_Point_Rotor_Design_Thrust_' + str(int(rotor.design_thrust)) + '_Opt_Weight_' + opt_weight
+    name       = 'Single_Point_Rotor_Design_Thrust_' + str(int(rotor.design_thrust)) + '_Opt_Weight_' + opt_weight
     save_blade_geometry(rotor,name)
     
     plot_propeller(rotor)  
@@ -107,61 +106,48 @@ def pareto_fronteir():
     # Add to rotor definition  
     objective_weights = [0,1,0.25,0.5,0.75]
     
-    for i in range(len(objective_weights)):
-              
-                  
-        
-        if i == 0:
-        
-            rotor.optimization_parameters = Data()
-            rotor.optimization_parameters.slack_constaint             = 0.001 # slack constraint 
-            rotor.optimization_parameters.aeroacoustic_weight         = 1.0   
-            rotor.optimization_parameters.ideal_SPL_dBA = None            
-       
+    for i in range(len(objective_weights)): 
+    
         # DEFINE ROTOR OPERATING CONDITIONS 
         rotor                                 = SUAVE.Components.Energy.Converters.Rotor() 
         rotor.tag                             = 'rotor'     
-        Hover_Load                            = 2300*9.81      # hover load 
-        rotor.tip_radius                      = 1.25 
+        rotor.tip_radius                      = 1.3
         rotor.hub_radius                      = 0.15 * rotor.tip_radius
         rotor.design_tip_mach                 = 0.65 # gives better noise results and more realistic blade 
         rotor.number_of_blades                = 3  
-        rotor.freestream_velocity             = 130 * Units.mph  # 10  
-        rotor.angular_velocity                = rotor.design_tip_mach*340  /rotor.tip_radius 
-        rotor.design_Cl                       = 0.7
-        rotor.design_altitude                 = 500 * Units.feet                             
-        rotor.design_thrust                   = (Hover_Load/(8-1))   
-        
-        # ASSIGN SECTIONAL PROPERTIES 
+        inflow_ratio                          = 0.1
+        rotor.angular_velocity                = rotor.design_tip_mach*343 /rotor.tip_radius
+        #rotor.freestream_velocity             = 0.1 # 500* Units['ft/min'] #130 * Units.mph  
+        rotor.freestream_velocity             = inflow_ratio*rotor.angular_velocity*rotor.tip_radius   
+        Hover_Load                            = 2300*9.81      # hover load   
+        rotor.design_altitude                 = 0 * Units.feet                             
+        rotor.design_thrust                   = (Hover_Load/(8))    
         rotor.airfoil_geometry                 = [ '../../XX_Supplementary/Airfoils/NACA_4412.txt']
         rotor.airfoil_polars                   = [['../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
                                                  '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_100000.txt',
                                                  '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_200000.txt',
                                                  '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_500000.txt',
                                                  '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt']]   
-        rotor.airfoil_polar_stations           = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]   
+        rotor.airfoil_polar_stations           = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]      
         
-        
-        # OPTIMIZATION PARAMETERS 
-        opt_params                             = rotor.optimization_parameters 
-        # 1 means only perfomrance optimization 0.5 to weight noise equally
-        opt_params.aeroacoustic_weight         = objective_weights[i] 
+         # OPTIMIZATION PARAMETERS 
+        rotor.optimization_parameters          = Data()
+        opt_params                             = rotor.optimization_parameters
+        opt_params.slack_constaint             = 1E-6 # slack constraint 
+        opt_params.ideal_SPL                   = 45
+        opt_params.aeroacoustic_weight         = objective_weights[i]     
         
         # DESING ROTOR 
-        rotor                                  = low_noise_rotor_design(rotor,number_of_airfoil_section_points=100,solver_name='SLSQP')  
+        rotor                                  = low_noise_rotor_design(rotor,number_of_airfoil_section_points=100)  
       
         # save rotor geomtry
-        opt_weight = str(rotor.noise_aero_acoustic_obj_weight)
+        opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
         opt_weight = opt_weight.replace('.','_')    
-        name = 'Pareto_Rotor_Design_Thrust_' + str(int(rotor.design_thrust)) + '_Opt_Weight_' + opt_weight
+        name       = 'Pareto_Rotor_Design_Thrust_' + str(int(rotor.design_thrust)) + '_Opt_Weight_' + opt_weight
         save_blade_geometry(rotor,name)
-    
-        if rotor.noise_aero_acoustic_obj_weight == 0: 
-            rotor.ideal_power                      = rotor.design_thrust
-            rotor.ideal_thrust                     = rotor.design_power
-        elif rotor.noise_aero_acoustic_obj_weight == 1: 
-            rotor.ideal_SPL                        = rotor.design_SPL_dBA
-    
+          
+        if objective_weights[i] == 0: 
+            opt_params.ideal_SPL                      = rotor.design_SPL_dBA 
    
     return  
 

@@ -72,8 +72,7 @@ def low_noise_rotor_design(rotor,
     rotor.radius_distribution       = chi
     rotor.airfoil_cl_surrogates     = cl_sur
     rotor.airfoil_cd_surrogates     = cd_sur 
-    rotor.airfoil_flag              = True  
-    rotor.minimum_taper_constraint  = 0.3    
+    rotor.airfoil_flag              = True   
     rotor.radial_pivots             = np.linspace(0,1,rotor.blade_optimization_pivots) 
     rotor.chord_pivots              = np.linspace(0.4,0.1,rotor.blade_optimization_pivots) 
     rotor.twist_pivots              = np.linspace(30,10,rotor.blade_optimization_pivots)*Units.degrees    

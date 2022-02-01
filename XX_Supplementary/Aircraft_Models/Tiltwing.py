@@ -44,7 +44,7 @@ def main():
     plot_geometry    = False
     recharge_battery = False
     run_analysis     = True
-    plot_mission     = False
+    plot_mission     = True # False 
     control_points   = 10
     N_gm_x           = 10
     N_gm_y           = 4
@@ -108,7 +108,7 @@ def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segme
     # plot geoemtry 
     if plot_geometry: 
         plot_vehicle(configs.base, elevation_angle = 90,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)       
-        
+        plt.show()
     if plot_mission: 
         plot_results(mission_results,run_noise_model)   
         
