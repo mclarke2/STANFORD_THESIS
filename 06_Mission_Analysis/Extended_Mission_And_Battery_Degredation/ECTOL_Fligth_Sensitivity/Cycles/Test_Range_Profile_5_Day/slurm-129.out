@@ -1,0 +1,280 @@
+Run: 1
+
+
+ Climb Rate: 500.0 ft/min
+Descent Rate: 300.0 ft/min 
+
+Cruise Speed : 54.8922 m/s
+Cruise Distance : 60908.3743 m 
+ 
+Reserve Cruise Speed : 54.8922 m/s
+Reserve Cruise Distance : 721.2361 m 
+ 
+
+The total elapsed time of run 1 : 0.617 Hrs 
+ 
+ 
+Run: 2
+
+
+ Climb Rate: 500.0 ft/min
+Descent Rate: 300.0 ft/min 
+
+Cruise Speed : 54.8962 m/s
+Cruise Distance : 68955.0943 m 
+ 
+Reserve Cruise Speed : 54.8962 m/s
+Reserve Cruise Distance : 1525.9081 m 
+ 
+
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last ten iterations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+The total elapsed time of run 2 : 0.77 Hrs 
+ 
+ 
+Run: 3
+
+
+ Climb Rate: 500.0 ft/min
+Descent Rate: 300.0 ft/min 
+
+Cruise Speed : 54.8993 m/s
+Cruise Distance : 77001.8143 m 
+ 
+Reserve Cruise Speed : 54.8993 m/s
+Reserve Cruise Distance : 2330.5801 m 
+ 
+
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last ten iterations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last ten iterations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 3 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last ten iterations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 4 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+The total elapsed time of run 3 : 0.746 Hrs 
+ 
+ 
+Run: 4
+
+
+ Climb Rate: 500.0 ft/min
+Descent Rate: 300.0 ft/min 
+
+Cruise Speed : 54.9019 m/s
+Cruise Distance : 85048.5343 m 
+ 
+Reserve Cruise Speed : 54.9019 m/s
+Reserve Cruise Distance : 3135.2521 m 
+ 
+
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last ten iterations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 0 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 1
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 3
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 1 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 2
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+Segment did not converge. Segment Tag: Reverse Thrust Day 2 Flight 4
+Error Message:
+The iteration is not making good progress, as measured by the 
+  improvement from the last five Jacobian evaluations.
+The total elapsed time of run 4 : 0.67 Hrs 
+ 
+ 
+Run: 5
+
+
+ Climb Rate: 500.0 ft/min
+Descent Rate: 300.0 ft/min 
+
+Cruise Speed : 54.904 m/s
+Cruise Distance : 93095.2543 m 
+ 
+Reserve Cruise Speed : 54.904 m/s
+Reserve Cruise Distance : 3939.9241 m 
+ 
+
+The total elapsed time of run 5 : 0.64 Hrs 
+ 
+ 

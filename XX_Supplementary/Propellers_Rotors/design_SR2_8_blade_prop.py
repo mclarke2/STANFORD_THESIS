@@ -30,10 +30,9 @@ def design_SR2_8_blade_prop():
                                                 0.13764,0.12896,0.11304,0.085])     
     delta_beta                      = np.array([23.325,20.851,14.355,10.098,
                                          8.185,6.394,4.726,3.058,1.483,0.000,-1.405,-3.243,-5.188,
-                                         -6.394 ,-7.083 ])
-       
+                                         -6.394 ,-7.083 ]) 
     dim = 20
-    new_radius_distribution         = np.linspace(0.239,0.98,dim)
+    new_radius_distribution         = np.linspace(0.239,0.99,dim)
     func_twist_distribution         = interp1d(r_R_data, delta_beta *Units.degrees , kind='cubic')
     func_chord_distribution         = interp1d(r_R_data, b_D_data*2*prop.tip_radius   , kind='cubic')
     func_radius_distribution        = interp1d(r_R_data, r_R_data *prop.tip_radius  , kind='cubic')
@@ -48,13 +47,13 @@ def design_SR2_8_blade_prop():
     separator = os.path.sep
     rel_path  = os.path.dirname(ospath) + separator 
     prop.airfoil_geometry           = [ rel_path +'../Airfoils/NACA_65_215.txt',
-                                        rel_path +'../Airfoils/NACA_15.txt']
+                                        rel_path +'../Airfoils/NACA_16.txt']
     prop.airfoil_polars             = [[rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_50000.txt'    ,rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_100000.txt',
                                         rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_200000.txt'   ,rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_500000.txt',
-                                        rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_1000000.txt'],[rel_path +'../Airfoils/Polars/NACA_15_polar_Re_50000.txt',
-                                        rel_path +'../Airfoils/Polars/NACA_15_polar_Re_100000.txt'       ,rel_path +'../Airfoils/Polars/NACA_15_polar_Re_200000.txt',
-                                        rel_path +'../Airfoils/Polars/NACA_15_polar_Re_500000.txt'       ,rel_path +'../Airfoils/Polars/NACA_15_polar_Re_1000000.txt']] 
-    airfoil_polar_stations          =  np.zeros(dim)
+                                        rel_path +'../Airfoils/Polars/NACA_65_215_polar_Re_1000000.txt'],[rel_path +'../Airfoils/Polars/NACA_16_polar_Re_50000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_16_polar_Re_100000.txt'       ,rel_path +'../Airfoils/Polars/NACA_16_polar_Re_200000.txt',
+                                        rel_path +'../Airfoils/Polars/NACA_16_polar_Re_500000.txt'       ,rel_path +'../Airfoils/Polars/NACA_16_polar_Re_1000000.txt']] 
+    airfoil_polar_stations          =  np.ones(dim)
     n                               = len(prop.twist_distribution)  
     airfoil_polar_stations[round(n*0.40):] = 1
     prop.airfoil_polar_stations     = list(airfoil_polar_stations.astype(int) ) 

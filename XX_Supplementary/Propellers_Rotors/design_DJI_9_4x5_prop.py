@@ -16,7 +16,7 @@ def design_DJI_9_4x5_prop():
     prop.inputs.y_axis_rotation     = 0.
     prop.tag                        = 'DJI_9_4x5_Propeller'
     prop.tip_radius                 = 4.75*Units.inches
-    prop.hub_radius                 = prop.tip_radius*0.08 
+    prop.hub_radius                 = prop.tip_radius*0.15
     prop.number_of_blades           = 2  
     prop.thrust_angle               = 0. 
     dimensionless_radius_chord      = np.array([[0.08, 0.15231660784126677              ],[0.10113994085662492, 0.1733749880759324],[0.12981970809882665, 0.1956295907660020],[0.14898883907278448, 0.2166908327768767],[0.17289897929981873, 0.2365415434513020],
@@ -51,8 +51,6 @@ def design_DJI_9_4x5_prop():
     
     new_radius_distribution         = np.linspace(0.239,0.98,dim) 
     func_max_thickness_distribution = interp1d(r_R_data, t_b_data*b_D_data*2*prop.tip_radius, kind='cubic')   
-    prop.max_thickness_distribution = func_max_thickness_distribution(new_radius_distribution) 
-    prop.thickness_to_chord         = prop.max_thickness_distribution/prop.chord_distribution 
     
     beta                            = dimensionless_radius_twist[:,1]  
     prop.twist_distribution         = beta[::2]*Units.degrees
@@ -69,7 +67,9 @@ def design_DJI_9_4x5_prop():
                                         rel_path +'../Airfoils/Polars/E63_polar_Re_1000000.txt']  ,[rel_path +'../Airfoils/Polars/Clark_y_polar_Re_50000.txt',
                                         rel_path +'../Airfoils/Polars/Clark_y_polar_Re_100000.txt',rel_path +'../Airfoils/Polars/Clark_y_polar_Re_200000.txt',
                                         rel_path +'../Airfoils/Polars/Clark_y_polar_Re_500000.txt',rel_path +'../Airfoils/Polars/Clark_y_polar_Re_1000000.txt']] 
-    prop.airfoil_polar_stations     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]  
+    
+    airfoil_polar_stations          =  np.zeros(len(prop.thickness_to_chord)) 
+    prop.airfoil_polar_stations     = list(airfoil_polar_stations.astype(int) )  
     airfoil_polars                  = compute_airfoil_polars(prop.airfoil_geometry, prop.airfoil_polars)  
     airfoil_cl_surs                 = airfoil_polars.lift_coefficient_surrogates 
     airfoil_cd_surs                 = airfoil_polars.drag_coefficient_surrogates         

@@ -13,7 +13,7 @@ import os
 def design_SR2_4_blade_prop():
     prop                            = SUAVE.Components.Energy.Converters.Propeller()
     prop.inputs                     = Data()
-    prop.inputs.pitch_command       = 0 
+    prop.inputs.pitch_command       = 0
     prop.inputs.y_axis_rotation     = 0.
     prop.tag                        = 'SR2_4_blade_Propeller'  
     prop.tip_radius                 = 0.295656
