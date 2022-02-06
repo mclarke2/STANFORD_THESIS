@@ -2,21 +2,23 @@
 import SUAVE
 from SUAVE.Core import Units, Data 
 from SUAVE.Components.Energy.Networks.Battery_Propeller                                   import Battery_Propeller 
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars  import compute_airfoil_polars
 from SUAVE.Methods.Noise.Fidelity_One.Propeller.propeller_mid_fidelity                    import propeller_mid_fidelity
 from SUAVE.Analyses.Mission.Segments.Conditions                                           import Aerodynamics
 from SUAVE.Analyses.Mission.Segments.Segment                                              import Segment 
 from SUAVE.Methods.Aerodynamics.Airfoil_Panel_Method.airfoil_analysis      import airfoil_analysis 
 import matplotlib.pyplot as plt   
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_naca_4series \
-     import  compute_naca_4series
-from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.import_airfoil_geometry\
-     import import_airfoil_geometry
+     import  compute_naca_4series 
+from SUAVE.Methods.Noise.Fidelity_One.Noise_Tools.dbA_noise                    import A_weighting  
+from SUAVE.Methods.Noise.Fidelity_One.Noise_Tools                              import SPL_harmonic_to_third_octave
+from SUAVE.Methods.Noise.Fidelity_One.Propeller.compute_source_coordinates     import compute_point_source_coordinates
 from SUAVE.Plots.Geometry import plot_propeller
 
 # Python Imports 
 import time 
 import numpy as np  
+import scipy as sp
+from scipy.special import jv 
 from scipy.special import fresnel
 import matplotlib.pyplot as plt  
 
@@ -71,15 +73,232 @@ def main():
     plot_parameters.Rlm              = 'o'                            # Ref_Code_line_markers    
     plot_parameters.Rls              = '--'                           # Ref_Code_line_styles     
      
-
-    Harmonic_Stength(plot_parameters)
-    Harmonic_Directivty(plot_parameters) 
-    Broadband(plot_parameters)
-    High_Fidelity_Comparison_1(plot_parameters) 
-    High_Fidelity_Comparison_2(plot_parameters) 
+    
+    Harmonic_Spectrum_Shape_Sensitivity(plot_parameters)
+    Harmonic_Stength_Validation(plot_parameters)
+    Harmonic_Directivty_Validation(plot_parameters) 
+    Broadband_Spectrum_Validation(plot_parameters) 
+    Broadband_Spectrum_Shape_Sensitivity(plot_parameters) 
+    Broadband_Noise_Validation(plot_parameters)
+    High_Fidelity_Validation_1(plot_parameters) 
+    High_Fidelity_Validation_2(plot_parameters) 
     return 
 
-def Harmonic_Directivty(PP):
+
+
+
+# ------------------------------------------------------------------ 
+# Harmonic Specturm Shape Sensitivity
+# ------------------------------------------------------------------     
+def Harmonic_Spectrum_Shape_Sensitivity(PP):
+    '''This regression script is for validation and verification of the mid-fidelity acoustics
+    analysis routine. "Experimental Data is obtained from Comparisons of predicted propeller
+    noise with windtunnel ..." by Weir, D and Powers, J.
+    '''   
+    
+    M                     = [0.5,0.75,1,1.25,1.5]   
+    sensitivity_variables = ['omega','0.75 %\beta_c%','chord','dT/dr','dQ/dr','t/c','M.C.A']
+    sensitivity_name      = ['omega','beta_c','chord','dT_dr','dQ_dr','t_c','MCA']
+    M_name                = ['50 % ','75 % ','100 % ','125 % ','150 % ']   
+
+ 
+
+    for var_idx in range(len(sensitivity_variables)):
+        multipliers = np.ones(8) 
+        fig_1  = plt.figure() 
+        axis_1 = fig_1.add_subplot(1,1,1) 
+        axis_1.set_ylim(0,90)
+        axis_1.set_ylabel('SPL (dBA)') 
+        axis_1.set_xlabel('Blade Passing Frequency')                
+        for idx in range(len(M)):
+            multipliers[var_idx] = M[idx]  
+
+            # Define Network 
+            net                                = Battery_Propeller()     
+            net.number_of_propeller_engines    = 1
+            net.identical_propellers           = True
+            prop                               = design_F8745D4_prop()
+            net.propellers.append(prop)
+        
+        
+            # Set-up Validation Conditions 
+            a                       = 343.376
+            T                       = 288.16889478  
+            density                 = 1.2250	
+            dynamic_viscosity       = 1.81E-5  
+            theta                   = np.array([-30])*Units.degrees
+            S                       = np.array([4]) # np.linspace(2,10,5) 
+            omega                   = np.array([2390]) * Units.rpm * multipliers[0]      
+        
+            # Set twist target
+            three_quarter_twist     = 21 * Units.degrees  * multipliers[1] 
+            n                       = len(prop.twist_distribution)
+            beta                    = prop.twist_distribution
+            beta_75                 = beta[round(n*0.75)] 
+            delta_beta              = three_quarter_twist-beta_75
+            prop.twist_distribution = beta + delta_beta 
+            prop.chord_distribution = prop.chord_distribution * multipliers[2] 
+            prop.thickness_to_chord = prop.thickness_to_chord * multipliers[5] 
+            rotor.mid_chord_alignment = rotor.mid_chord_alignment
+        
+            # microphone locations
+            ctrl_pts                = len(omega) 
+            dim_theta               = len(theta)
+            dim_S                   = len(S) 
+            num_mic                 = dim_S*dim_theta
+        
+            theta                   = np.repeat(np.repeat(np.atleast_2d(theta).T ,dim_S , axis = 1)[np.newaxis,:,:],ctrl_pts, axis = 0)  
+            S                       = np.repeat(np.repeat(np.atleast_2d(S)       ,dim_theta, axis = 0)[np.newaxis,:,:],ctrl_pts, axis = 0) 
+            x_vals                  = S*np.sin(theta)
+            y_vals                  = -S*np.cos(theta)
+            z_vals                  = np.zeros_like(x_vals) 
+        
+            mic_locations           = np.zeros((ctrl_pts,num_mic,3))   
+            mic_locations[:,:,0]    = x_vals.reshape(ctrl_pts,num_mic) 
+            mic_locations[:,:,1]    = y_vals.reshape(ctrl_pts,num_mic) 
+            mic_locations[:,:,2]    = z_vals.reshape(ctrl_pts,num_mic)     
+        
+            # Set up for Propeller Model
+            prop.inputs.omega                            = np.atleast_2d(omega).T
+            prop.inputs.pitch_command                    = 0.
+            conditions                                   = Aerodynamics()
+            conditions._size                             = 3
+            conditions.freestream.density                = np.ones((ctrl_pts,1)) * density
+            conditions.freestream.dynamic_viscosity      = np.ones((ctrl_pts,1)) * dynamic_viscosity   
+            conditions.freestream.speed_of_sound         = np.ones((ctrl_pts,1)) * a 
+            conditions.freestream.temperature            = np.ones((ctrl_pts,1)) * T 
+            conditions.frames.inertial.velocity_vector   = np.array([[77.2, 0. ,0.],[ 77.0,0.,0.], [ 77.2, 0. ,0.]])
+            conditions.propulsion.throttle               = np.ones((ctrl_pts,1))*1.0
+            conditions.aerodynamics.angle_of_attack      = np.ones((ctrl_pts,1))* 0. * Units.degrees 
+            conditions.frames.body.transform_to_inertial = np.array([[[1., 0., 0.],[0., 1., 0.],[0., 0., 1.]]])
+            conditions.noise.total_microphone_locations  = mic_locations
+         
+        
+            # Run Propeller model 
+            F, Q, P, Cp , aeroacoustic_data , etap       = prop.spin(conditions)   
+            
+            # Prepare Inputs for Noise Model    
+            segment                                                = Segment() 
+            segment.state.conditions                               = conditions
+            segment.state.conditions.expand_rows(ctrl_pts)
+            settings                                               = Data()
+            settings                                               = setup_noise_settings(segment)
+        
+            num_mic                                                = len(conditions.noise.total_microphone_locations[0] )  
+            conditions.noise.number_of_microphones                 = num_mic   
+        
+            # unpack 
+            conditions           = segment.state.conditions
+            microphone_locations = conditions.noise.total_microphone_locations
+            angle_of_attack      = conditions.aerodynamics.angle_of_attack 
+            velocity_vector      = conditions.frames.inertial.velocity_vector
+            freestream           = conditions.freestream  
+            harmonics            = settings.harmonics    
+         
+        
+            # compute position vector from point source at rotor hub to microphones
+            position_vector = compute_point_source_coordinates(conditions,net.propellers,microphone_locations,settings)  
+        
+            num_h        = len(harmonics)     
+            num_cpt      = len(angle_of_attack)
+            num_mic      = len(position_vector[0,:,0,0])
+            num_rot      = len(position_vector[0,0,:,0])  
+            rotor        = net.propellers[list(net.propellers.keys())[0]] 
+            num_r        = len(rotor.radius_distribution) 
+            orientation  = np.array(rotor.orientation_euler_angles) * 1 
+            body2thrust  = sp.spatial.transform.Rotation.from_rotvec(orientation).as_matrix()
+        
+            # ----------------------------------------------------------------------------------
+            # Rotational Noise  Thickness and Loading Noise
+            # ----------------------------------------------------------------------------------  
+            # [control point ,microphones, rotors, radial distribution, harmonics]  
+            m              = np.tile(harmonics[None,None,None,None,:],(num_cpt,num_mic,num_rot,num_r,1))                 # harmonic number 
+            m_1d           = harmonics                                                                                         
+            p_ref          = 2E-5                                                                                        # referece atmospheric pressure
+            a              = np.tile(freestream.speed_of_sound[:,:,None,None,None],(1,num_mic,num_rot,num_r,num_h))      # speed of sound
+            rho            = np.tile(freestream.density[:,:,None,None,None],(1,num_mic,num_rot,num_r,num_h))             # air density   
+            alpha          = np.tile((angle_of_attack + np.arccos(body2thrust[0,0]))[:,:,None,None,None],(1,num_mic,num_rot,num_r,num_h))           
+            x              = np.tile(position_vector[:,:,:,0][:,:,:,None,None],(1,1,1,num_r,num_h))                      # x component of position vector of rotor to microphone 
+            y              = np.tile(position_vector[:,:,:,1][:,:,:,None,None],(1,1,1,num_r,num_h))                      # y component of position vector of rotor to microphone
+            z              = np.tile(position_vector[:,:,:,2][:,:,:,None,None],(1,1,1,num_r,num_h))                      # z component of position vector of rotor to microphone
+            Vx             = np.tile(velocity_vector[:,0][:,None,None,None,None],(1,num_mic,num_rot,num_r,num_h))        # x velocity of rotor  
+            Vy             = np.tile(velocity_vector[:,1][:,None,None,None,None],(1,num_mic,num_rot,num_r,num_h))        # y velocity of rotor 
+            Vz             = np.tile(velocity_vector[:,2][:,None,None,None,None],(1,num_mic,num_rot,num_r,num_h))        # z velocity of rotor 
+            B              = rotor.number_of_blades                                                                      # number of rotor blades
+            omega          = np.tile(aeroacoustic_data.omega[:,:,None,None,None],(1,num_mic,num_rot,num_r,num_h))        # angular velocity       
+            dT_dr          = np.tile(aeroacoustic_data.blade_dT_dr[:,None,None,:,None],(1,num_mic,num_rot,1,num_h)) * multipliers[3]      # nondimensionalized differential thrust distribution 
+            dQ_dr          = np.tile(aeroacoustic_data.blade_dQ_dr[:,None,None,:,None],(1,num_mic,num_rot,1,num_h))* multipliers[4]       # nondimensionalized differential torque distribution
+            R              = np.tile(rotor.radius_distribution[None,None,None,:,None],(num_cpt,num_mic,num_rot,1,num_h)) # radial location     
+            c              = np.tile(rotor.chord_distribution[None,None,None,:,None],(num_cpt,num_mic,num_rot,1,num_h))  # blade chord    
+            R_tip          = rotor.tip_radius                                                     
+            t_c            = np.tile(rotor.thickness_to_chord[None,None,None,:,None],(num_cpt,num_mic,num_rot,1,num_h)) # thickness to chord ratio
+            MCA            = np.tile(rotor.mid_chord_alignment[None,None,None,:,None],(num_cpt,num_mic,num_rot,1,num_h)) # Mid Chord Alighment  
+            f              = B*omega*m/(2*np.pi) 
+            D              = 2*R[0,0,0,-1,:]                                                                             # rotor diameter    
+            r              = R/R[0,0,0,-1,:]                                                                             # non dimensional radius distribution  
+            S              = np.sqrt(x**2 + y**2 + z**2)                                                                 # distance between rotor and the observer    
+            theta          = np.arccos(x/S)                                                            
+            Y              = np.sqrt(y**2 + z**2)                                                                        # observer distance from rotor axis          
+            V              = np.sqrt(Vx**2 + Vy**2 + Vz**2)                                                              # velocity magnitude
+            M_x            = V/a                                                                                         
+            V_tip          = R_tip*omega                                                                                 # blade_tip_speed 
+            M_t            = V_tip/a                                                                                     # tip Mach number 
+            M_r            = np.sqrt(M_x**2 + (r**2)*(M_t**2))                                                           # section relative Mach number     
+            B_D            = c/D                                                                                         
+            phi            = np.arctan(z/y)                                                                              # tangential angle   
+        
+            # retarted  theta angle in the retarded reference frame
+            theta_r        = np.arccos(np.cos(theta)*np.sqrt(1 - (M_x**2)*(np.sin(theta))**2) + M_x*(np.sin(theta))**2 )   
+            theta_r_prime  = np.arccos(np.cos(theta_r)*np.cos(alpha) + np.sin(theta_r)*np.sin(phi)*np.sin(alpha) )
+        
+            # initialize thickness and loading noise matrices
+            psi_L          = np.zeros((num_cpt,num_mic,num_rot,num_r,num_h))
+            psi_V          = np.zeros((num_cpt,num_mic,num_rot,num_r,num_h))
+        
+            # normalized thickness  and loading shape functions                
+            k_x               = ((2*m*B*B_D*M_t)/(M_r*(1 - M_x*np.cos(theta_r))))      # wave number 
+            psi_V[:,:,:,0,:]  = 2/3   
+            psi_L[:,:,:,0,:]  = 1     
+            psi_V[:,:,:,1:,:] = (8/(k_x[:,:,:,1:,:]**2))*((2/k_x[:,:,:,1:,:])*np.sin(0.5*k_x[:,:,:,1:,:]) - np.cos(0.5*k_x[:,:,:,1:,:]))    
+            psi_L[:,:,:,1:,:] = (2/k_x[:,:,:,1:,:])*np.sin(0.5*k_x[:,:,:,1:,:])                  
+        
+            # sound pressure for thickness noise   
+            Jmb               = jv(m*B,((m*B*r*M_t*np.sin(theta_r_prime))/(1 - M_x*np.cos(theta_r))))  
+            phi_s             = ((2*m*B*M_t)/(M_r*(1 - M_x*np.cos(theta_r))))*(MCA/D)
+            phi_prime         = np.arccos((np.sin(theta_r)/np.sin(theta_r_prime))*np.cos(phi))      
+            S_r               = Y/(np.sin(theta_r))                                # distance in retarded reference frame                                                                             
+            exponent_fraction = np.exp(1j*m_1d*B*((omega*S_r/a) +  phi_prime - np.pi/2))/(1 - M_x*np.cos(theta_r))
+            p_mT_H_integral   = -((M_r**2)*(t_c)*np.exp(1j*phi_s)*Jmb*(k_x**2)*psi_V ) * ((rho*(a**2)*B*np.sin(theta_r))/(4*np.sqrt(2)*np.pi*(Y/D)))* exponent_fraction
+            p_mT_H            = np.trapz(p_mT_H_integral,x = r[0,0,0,:,0], axis =3) 
+        
+            p_mT_H_abs        = abs(p_mT_H)             
+            p_mL_H_integral   = (((np.cos(theta_r_prime)/(1 - M_x*np.cos(theta_r)))*dT_dr - (1/((r**2)*M_t*R_tip))*dQ_dr)
+                                 * np.exp(1j*phi_s)*Jmb * psi_L)*(m_1d*B*M_t*np.sin(theta_r)/ (2*np.sqrt(2)*np.pi*Y*R_tip)) *exponent_fraction
+            p_mL_H            = np.trapz(p_mL_H_integral,x = r[0,0,0,:,0], axis = 3 ) 
+            p_mL_H_abs        =  abs(p_mL_H)  
+        
+            # sound pressure levels  
+            SPL_prop_harmonic_bpf_spectrum     = 20*np.log10((abs(p_mL_H_abs + p_mT_H_abs))/p_ref) 
+            SPL_prop_harmonic_bpf_spectrum_dBA = A_weighting(SPL_prop_harmonic_bpf_spectrum,f[:,:,:,0,:])        
+             
+
+            axis_1.semilogx(f[:,:,:,0,:],SPL_prop_harmonic_bpf_spectrum_dBA,color = PP.colors[idx], 
+                            linestyle = PP.line_styles[idx], marker = PP.markers[idx],
+                          label = M_name[idx] + sensitivity_variables[var_idx])      
+            axis_1.legend(loc='upper right', ncol= 2, prop={'size': PP.legend_font_size})     
+            axis_1.set_ylim([20,120])
+        fig_1.tight_layout()  
+        fig_1_name = "Harmonic_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
+        fig_1.savefig(fig_1_name  + '.pdf')     
+     
+    return    
+
+
+
+# ------------------------------------------------------------------ 
+# Harmonic Directivty Validation
+# ------------------------------------------------------------------     
+def Harmonic_Directivty_Validation(PP):
 
     # Define Network
     net                              = Battery_Propeller()
@@ -238,7 +457,11 @@ def Harmonic_Directivty(PP):
     
     return     
 
-def Harmonic_Stength(PP):
+
+# ------------------------------------------------------------------ 
+# Harmonic Noise Validation 1 
+# ------------------------------------------------------------------     
+def Harmonic_Stength_Validation(PP):
     '''This regression script is for validation and verification of the mid-fidelity acoustics
     analysis routine. "Experimental Data is obtained from Comparisons of predicted propeller
     noise with windtunnel ..." by Weir, D and Powers, J.
@@ -401,7 +624,7 @@ def Harmonic_Stength(PP):
     axes.plot(harmonics, SUAVE_SPL_Case_1_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw)
     axes.set_ylabel('SPL (dB)')
     axes.set_xlabel('Harmonic no.')  
-    #axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
+    axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     # Test Case 2
     fig32 = plt.figure('Harmonic_Validation_Case_2_60')
@@ -413,7 +636,7 @@ def Harmonic_Stength(PP):
     #axes.set_title('Case 2, Power Coefficient: ' +  str(round(Cp[1,0],3)))
     axes.set_ylabel('SPL (dB)') 
     axes.set_xlabel('Harmonic no.')      
-    #axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
+    axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     fig35 = plt.figure('Harmonic_Validation_Case_2_90')
     fig35.set_size_inches(fig_size_width, fig_size_height)   
@@ -423,7 +646,7 @@ def Harmonic_Stength(PP):
     axes.plot(harmonics, SUAVE_SPL_Case_2_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw)
     axes.set_ylabel('SPL (dB)')                 
     axes.set_xlabel('Harmonic no.')  
-    #axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
+    axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     # Test Case 3
     fig33 = plt.figure('Harmonic_Validation_Case_3_60')
@@ -435,7 +658,7 @@ def Harmonic_Stength(PP):
     axes.set_title('Case 3') 
     #axes.set_title('Case 3, Power Coefficient: ' +  str(round(Cp[2,0],3)))
     axes.set_ylabel('SPL (dB)') 
-    #axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
+    axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     fig36 = plt.figure('Harmonic_Validation_Case_3_90')
     fig36.set_size_inches(fig_size_width, fig_size_height)   
@@ -445,7 +668,7 @@ def Harmonic_Stength(PP):
     axes.plot(harmonics, SUAVE_SPL_Case_3_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw) # label = r'SUAVE 90 $\degree$ mic.')  
     axes.set_ylabel('SPL (dB)')
     axes.set_xlabel('Harmonic no.') 
-    #axes.legend(loc='lower left', prop={'size': PP.legend_font})   
+    axes.legend(loc='lower left', prop={'size': PP.legend_font})   
 
 
     # ----------------------------------------------------------------------------------------------------------------------------------------
@@ -465,12 +688,12 @@ def Harmonic_Stength(PP):
     fig34.tight_layout() 
     fig35.tight_layout()
     fig36.tight_layout()    
-    fig31_name = 'Harmonic_Validation_Case_1_60' 
-    fig32_name = 'Harmonic_Validation_Case_1_90' 
-    fig33_name = 'Harmonic_Validation_Case_2_60' 
-    fig34_name = 'Harmonic_Validation_Case_2_90'  
-    fig35_name = 'Harmonic_Validation_Case_3_60' 
-    fig36_name = 'Harmonic_Validation_Case_3_90'          
+    fig31_name = 'Harmonic_Noise_Validation_Case_1_60' 
+    fig32_name = 'Harmonic_Noise_Validation_Case_1_90' 
+    fig33_name = 'Harmonic_Noise_Validation_Case_2_60' 
+    fig34_name = 'Harmonic_Noise_Validation_Case_2_90'  
+    fig35_name = 'Harmonic_Noise_Validation_Case_3_60' 
+    fig36_name = 'Harmonic_Noise_Validation_Case_3_90'          
     fig31.savefig(fig31_name  + '.pdf')               
     fig32.savefig(fig32_name  + '.pdf')               
     fig33.savefig(fig33_name  + '.pdf')               
@@ -479,7 +702,270 @@ def Harmonic_Stength(PP):
     fig36.savefig(fig36_name  + '.pdf')  
     return    
 
-def Broadband(PP):  
+
+
+# ------------------------------------------------------------------ 
+# Examine Broadband Spectrum Shape Sensitivities 
+# ------------------------------------------------------------------ 
+def Broadband_Spectrum_Shape_Sensitivity(PP):
+
+    '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
+
+    M                     = [0.5,0.75,1,1.25,1.5]   
+    sensitivity_variables = ['Re','$\alpha$','$\delta$','$\delta*$','dp/dx', '$C_f$', 'Ue' , '$\theta$' ]
+    sensitivity_name      =  ['Re','alpha','delta','delta_star','dp_dx', 'C_f', 'Ue' , 'theta' ]
+    M_name                = ['50 % ','75 % ','100 % ','125 % ','150 % ']   
+
+    
+
+    for var_idx in range(len(sensitivity_variables)):
+        multipliers = np.ones(8) 
+        fig_1  = plt.figure() 
+        axis_1 = fig_1.add_subplot(1,1,1) 
+        axis_1.set_ylim(50,90)
+        axis_1.set_ylabel('10log10($\Phi$)') 
+        axis_1.set_xlabel('Frequency (Hz)')                
+        for idx in range(len(M)):
+            multipliers[var_idx] = M[idx] 
+
+            pi           = np.pi 
+            rho          = 1.2                                               
+            kine_visc    = np.array([[0.0000150]])                        
+            num_sec      = 1 # number of sections  
+            N_r          = 1
+            ctrl_pts     = 1
+            BSR          = 100 # broadband spectrum resolution
+            frequency    = np.linspace(1E2,1E4,BSR) 
+            w            = 2*pi*frequency
+            Re           = np.array([[1.5E6]]) * multipliers[0] 
+            alpha        = np.array([[6.]]) *Units.degrees * multipliers[1]                                        
+            V_inf        = 69.5
+            chord        = Re*kine_visc/V_inf
+            kine_visc    = vectorize(kine_visc,ctrl_pts,num_sec,N_r,BSR,method = 1)
+            delta        = np.zeros((ctrl_pts,N_r,num_sec,BSR,2))  
+            delta_star   = np.zeros_like(delta)
+            dp_dx        = np.zeros_like(delta)
+            C_f          = np.zeros_like(delta)
+            tau_w        = np.zeros_like(delta)
+            Ue           = np.zeros_like(delta)
+            Theta        = np.zeros_like(delta)
+
+            # ------------------------------------------------------------
+            # ****** TRAILING EDGE BOUNDARY LAYER PROPERTY CALCULATIONS  ******  
+            npanel                  = 50
+            Re_batch                = np.atleast_2d(np.ones(num_sec)*Re[0,0]).T 
+            AoA_batch               = np.atleast_2d(np.ones(num_sec)*alpha[0,0]).T       
+            airfoil_geometry        = compute_naca_4series(0.0,0.0,0.12,npoints=npanel) 
+            airfoil_stations        = [0] * num_sec
+            AP                      = airfoil_analysis(airfoil_geometry,AoA_batch,Re_batch, npanel, batch_analysis = False, airfoil_stations = airfoil_stations)     
+
+            TE_idx                  = -4 
+            delta[:,:,:,:,0]        = vectorize(AP.delta[:,TE_idx]                         ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[2]             
+            delta[:,:,:,:,1]        = vectorize(AP.delta[:,-TE_idx]                        ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[2]  
+            delta_star[:,:,:,:,0]   = vectorize(AP.delta_star[:,TE_idx]                    ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[3]                    
+            delta_star[:,:,:,:,1]   = vectorize(AP.delta_star[:,-TE_idx]                   ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[3]   
+            surface_dcp_dx          = (np.diff(AP.Cp*0.5*rho*(V_inf**2),axis = 1)/(np.diff(AP.x,axis = 1)*chord))  
+            dp_dx[:,:,:,:,0]        = vectorize(abs(surface_dcp_dx[:,TE_idx]),ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[4]         
+            dp_dx[:,:,:,:,1]        = vectorize(abs(surface_dcp_dx[:,-TE_idx]),ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[4]               
+            C_f[:,:,:,:,0]          = vectorize(AP.Cf[:,TE_idx]                            ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[5]                        
+            C_f[:,:,:,:,1]          = vectorize(AP.Cf[:,-TE_idx]                           ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[5]          
+            Ue[:,:,:,:,0]           = vectorize(AP.Ue_Vinf[:,TE_idx]*V_inf                 ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[6]                     
+            Ue[:,:,:,:,1]           = vectorize(AP.Ue_Vinf[:,-TE_idx]*V_inf                ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[6]                                    
+            Theta[:,:,:,:,0]        = vectorize(AP.theta[:,TE_idx]                         ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[7]                     
+            Theta[:,:,:,:,1]        = vectorize(AP.theta[:,-TE_idx]                        ,ctrl_pts,num_sec,N_r,BSR,method = 2)* multipliers[7]    
+            tau_w                   = C_f*(0.5*rho*(Ue**2))
+
+            # ------------------------------------------------------------
+            # ****** BLADE MOTION CALCULATIONS ******  
+            omega   = vectorize(w,ctrl_pts,num_sec,N_r,BSR,method = 3)                                                
+
+            # ------------------------------------------------------------
+            # ****** EMPIRICAL WALL PRESSURE SPECTRUM ******  
+            # equation 8 
+            mu_tau              = (tau_w/rho)**0.5 
+            ones                = np.ones_like(mu_tau)  
+            R_T                 = (delta/Ue)/(kine_visc/(mu_tau**2))       
+            beta_c              =  (Theta/tau_w)*dp_dx                                                    
+            Delta               = delta/delta_star    
+            e                   = 3.7 + 1.5*beta_c             
+            d                   =  4.76*((1.4/Delta)**0.75)*(0.375*e - 1)                            
+            PI                  = 0.8*((beta_c + 0.5)**3/4)                        
+            a                   = (2.82*(Delta**2)*((6.13*(Delta**(-0.75)) + d)**e))*(4.2*(PI/Delta) + 1)   
+            h_star              = np.minimum(3*ones,(0.139 + 3.1043*beta_c)) + 7  
+            d_star              = d   
+            d_star[beta_c<0.5]  = np.maximum(ones,1.5*d)[beta_c<0.5] 
+            expression_F        = (omega*delta_star/Ue)     
+            expression_C        = np.maximum(a, (0.25*beta_c - 0.52)*a)*(expression_F**2) 
+            expression_D        = (4.76*(expression_F**0.75) + d_star)**e                                
+            expression_E        = (8.8*(R_T**(-0.57))*expression_F)**h_star                              
+            Phi_pp_expression   =  expression_C/( expression_D + expression_E)                           
+            Phi_pp              = ((tau_w**2)*delta_star*Phi_pp_expression)/Ue      
+            var                 = 10*np.log10((Phi_pp)/((2E-5)**2))   
+
+            axis_1.semilogx(frequency,var[0,0,0,:,0],color = PP.colors[idx], 
+                            linestyle = PP.line_styles[idx], marker = PP.markers[idx],
+                          label = M_name[idx] + sensitivity_variables[var_idx])      
+            axis_1.legend(loc='upper right', ncol= 2, prop={'size': PP.legend_font_size})    
+
+
+        fig_1.tight_layout()  
+        fig_1_name = "Broadband_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
+        fig_1.savefig(fig_1_name  + '.pdf')                
+
+    return   
+
+# ------------------------------------------------------------------ 
+# Broadband Spectrum Validation
+# ------------------------------------------------------------------     
+def Broadband_Spectrum_Validation(PP):
+
+    '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
+
+
+    fig_1  = plt.figure('Broadband_Spectrum_Comparison')   
+    axis_1 = fig_1.add_subplot(2,3,1) 
+    axis_1.set_ylim(50,90)
+    axis_1.set_ylabel('10log10($\Phi$)') 
+    axis_1.set_xlabel('Frequency (Hz)')   
+
+    pi           = np.pi 
+    rho          = 1.2                                               
+    kine_visc    = np.array([[0.0000150]])                        
+    num_sec      = 1 # number of sections  
+    N_r          = 1
+    ctrl_pts     = 1
+    BSR          = 100 # broadband spectrum resolution
+    frequency    = np.linspace(1E2,1E4,BSR) 
+    w            = 2*pi*frequency
+    Re           = np.array([[1.5E6]])  
+    alpha        = np.array([[6.]]) *Units.degrees                                      
+    V_inf        = 69.5
+    chord        = Re*kine_visc/V_inf
+    kine_visc    = vectorize(kine_visc,ctrl_pts,num_sec,N_r,BSR,method = 1)
+    delta        = np.zeros((ctrl_pts,N_r,num_sec,BSR,2))  
+    delta_star   = np.zeros_like(delta)
+    dp_dx        = np.zeros_like(delta)
+    C_f          = np.zeros_like(delta)
+    tau_w        = np.zeros_like(delta)
+    Ue           = np.zeros_like(delta)
+    Theta        = np.zeros_like(delta)
+
+    # ------------------------------------------------------------
+    # ****** TRAILING EDGE BOUNDARY LAYER PROPERTY CALCULATIONS  ******  
+    npanel                  = 50
+    Re_batch                = np.atleast_2d(np.ones(num_sec)*Re[0,0]).T 
+    AoA_batch               = np.atleast_2d(np.ones(num_sec)*alpha[0,0]).T       
+    airfoil_geometry        = compute_naca_4series(0.0,0.0,0.12,npoints=npanel) 
+    airfoil_stations        = [0] * num_sec
+    AP                      = airfoil_analysis(airfoil_geometry,AoA_batch,Re_batch, npanel, batch_analysis = False, airfoil_stations = airfoil_stations)     
+
+    TE_idx                  = -4 
+    delta[:,:,:,:,0]        = vectorize(AP.delta[:,TE_idx]                         ,ctrl_pts,num_sec,N_r,BSR,method = 2)              
+    delta[:,:,:,:,1]        = vectorize(AP.delta[:,-TE_idx]                        ,ctrl_pts,num_sec,N_r,BSR,method = 2)   
+    delta_star[:,:,:,:,0]   = vectorize(AP.delta_star[:,TE_idx]                    ,ctrl_pts,num_sec,N_r,BSR,method = 2)                     
+    delta_star[:,:,:,:,1]   = vectorize(AP.delta_star[:,-TE_idx]                   ,ctrl_pts,num_sec,N_r,BSR,method = 2)    
+    surface_dcp_dx          = (np.diff(AP.Cp*0.5*rho*(V_inf**2),axis = 1)/(np.diff(AP.x,axis = 1)*chord))  
+    dp_dx[:,:,:,:,0]        = vectorize(abs(surface_dcp_dx[:,TE_idx]),ctrl_pts,num_sec,N_r,BSR,method = 2)       
+    dp_dx[:,:,:,:,1]        = vectorize(abs(surface_dcp_dx[:,-TE_idx]),ctrl_pts,num_sec,N_r,BSR,method = 2)           
+    C_f[:,:,:,:,0]          = vectorize(AP.Cf[:,TE_idx]                            ,ctrl_pts,num_sec,N_r,BSR,method = 2)                        
+    C_f[:,:,:,:,1]          = vectorize(AP.Cf[:,-TE_idx]                           ,ctrl_pts,num_sec,N_r,BSR,method = 2)          
+    Ue[:,:,:,:,0]           = vectorize(AP.Ue_Vinf[:,TE_idx]*V_inf                 ,ctrl_pts,num_sec,N_r,BSR,method = 2)                     
+    Ue[:,:,:,:,1]           = vectorize(AP.Ue_Vinf[:,-TE_idx]*V_inf                ,ctrl_pts,num_sec,N_r,BSR,method = 2)                                    
+    Theta[:,:,:,:,0]        = vectorize(AP.theta[:,TE_idx]                         ,ctrl_pts,num_sec,N_r,BSR,method = 2)                     
+    Theta[:,:,:,:,1]        = vectorize(AP.theta[:,-TE_idx]                        ,ctrl_pts,num_sec,N_r,BSR,method = 2)    
+    tau_w                   = C_f*(0.5*rho*(Ue**2))
+
+    # ------------------------------------------------------------
+    # ****** BLADE MOTION CALCULATIONS ******  
+    omega   = vectorize(w,ctrl_pts,num_sec,N_r,BSR,method = 3)                                                
+
+    # ------------------------------------------------------------
+    # ****** EMPIRICAL WALL PRESSURE SPECTRUM ******  
+    # equation 8 
+    mu_tau              = (tau_w/rho)**0.5 
+    ones                = np.ones_like(mu_tau)  
+    R_T                 = (delta/Ue)/(kine_visc/(mu_tau**2))       
+    beta_c              =  (Theta/tau_w)*dp_dx                                                    
+    Delta               = delta/delta_star    
+    e                   = 3.7 + 1.5*beta_c             
+    d                   =  4.76*((1.4/Delta)**0.75)*(0.375*e - 1)                            
+    PI                  = 0.8*((beta_c + 0.5)**3/4)                        
+    a                   = (2.82*(Delta**2)*((6.13*(Delta**(-0.75)) + d)**e))*(4.2*(PI/Delta) + 1)   
+    h_star              = np.minimum(3*ones,(0.139 + 3.1043*beta_c)) + 7  
+    d_star              = d   
+    d_star[beta_c<0.5]  = np.maximum(ones,1.5*d)[beta_c<0.5] 
+    expression_F        = (omega*delta_star/Ue)     
+    expression_C        = np.maximum(a, (0.25*beta_c - 0.52)*a)*(expression_F**2) 
+    expression_D        = (4.76*(expression_F**0.75) + d_star)**e                                
+    expression_E        = (8.8*(R_T**(-0.57))*expression_F)**h_star                              
+    Phi_pp_expression   =  expression_C/( expression_D + expression_E)                           
+    Phi_pp              = ((tau_w**2)*delta_star*Phi_pp_expression)/Ue      
+    var                 = 10*np.log10((Phi_pp)/((2E-5)**2))  
+
+
+    reference_spectrum  = reference_wall_pressure_spectrum_model()   
+
+    axis_1.semilogx(frequency,var[0,0,0,:,0],color = 'red', 
+                    linestyle = '-', marker = 's',
+                  label = 'SUAVE')      
+
+    axis_1.semilogx(frequency,reference_spectrum,color = 'black', 
+                    linestyle = '-', label = 'Ref.')      
+
+    axis_1.legend(loc='upper right', ncol= 2, prop={'size': PP.legend_font_size})           
+
+
+
+    fig_1.tight_layout()  
+    fig_1_name = "Broadband_Spectrum_Comparison"  
+    fig_1.savefig(fig_1_name  + '.pdf')
+
+    return 
+
+# ------------------------------------------------------------------ 
+# Reference  Wall Pressure Specturm
+# ------------------------------------------------------------------     
+def reference_wall_pressure_spectrum_model():
+
+    BSR          = 100 # broadband spectrum resolution
+    frequency    = np.linspace(1E2,1E4,BSR) 
+    w            = 2*np.pi*frequency 
+
+    delta        = 0.0142
+    delta_star   = 0.00236
+    Cf           = 0.00217
+    nu           = 0.0000150
+    rho          = 1.2
+    Ue           = 64.6
+    beta_c       = 3.51
+    tau_w        = Cf*(0.5*rho*(Ue**2))
+    mu_tau       = (tau_w/rho)**0.5 
+    R_T          = (delta/Ue)/(nu/(mu_tau**2)) 
+    Delta        = delta/delta_star  
+    PI           = 0.8*((beta_c + 0.5)**3/4)
+    SS           = Ue/((tau_w**2)*delta_star)
+    FS           = delta_star/Ue
+    b            = 2
+    c            = 0.75
+    e            = 3.7 + 1.5*beta_c
+    d            = 4.76*((1.4/Delta)**0.75)*(0.375*e - 1)
+    f            = 8.8
+    g            = -0.57 
+    a            = (2.82*(Delta**2)*((6.13*(Delta**(-0.75)) + d)**e))*(4.2*(PI/Delta) + 1)
+    criteria_b   = (19/np.sqrt(R_T))
+    h            = np.minimum(3,criteria_b) + 7
+    i            = 4.76
+
+    phi_ros    = (a*(w*FS)**b)/(( i*(w*FS)**c  + d)**e + ((f*R_T**g)*(w*FS))**h  ) 
+    var2       = 10*np.log10((phi_ros/SS)/((2E-5)**2))  
+
+    return var2
+
+
+# ------------------------------------------------------------------ 
+# Broadband Noise Validation
+# ------------------------------------------------------------------     
+def Broadband_Noise_Validation(PP):  
     APC_SF = design_APC_11x_4_7_prop()   
     APC_SF_inflow_ratio = 0.08 
     
@@ -642,7 +1128,10 @@ def Broadband(PP):
 
 
 
-def High_Fidelity_Comparison_1(PP): 
+# ------------------------------------------------------------------ 
+# High Fidelity Comparison
+# ------------------------------------------------------------------     
+def High_Fidelity_Validation_1(PP): 
 
     DJI_CF = design_DJI_9_4x5_prop()
     DJI_CF_inflow_ratio = 0.001 
@@ -1194,7 +1683,10 @@ def High_Fidelity_Comparison_1(PP):
     return 
 
 
-def High_Fidelity_Comparison_2(PP): 
+# ------------------------------------------------------------------ 
+# High Fidelity Validation 2 
+# ------------------------------------------------------------------     
+def High_Fidelity_Validation_2(PP): 
     # Define Network
     net                              = Battery_Propeller()
     net.number_of_propeller_engines  = 1                                      
@@ -1346,6 +1838,25 @@ def setup_noise_settings(sts):
     sts.level_ground_microphone_x_resolution = 16 
     sts.level_ground_microphone_y_resolution = 4      
     return sts 
+
+# ------------------------------------------------------------------ 
+# Vectorize Function
+# ------------------------------------------------------------------ 
+def vectorize(vec,ctrl_pts,num_sec,N_r,BSR,method):
+    vec = np.atleast_2d(vec)
+    if method == 1:
+        res = np.repeat(np.repeat(np.repeat(np.repeat(vec,N_r,axis = 1)[:,:,np.newaxis],
+                                            num_sec,axis = 2)[:,:,:,np.newaxis],BSR,axis = 3)[:,:,:,:,np.newaxis],2,axis = 4)
+
+    elif method == 2:
+        res = np.repeat(np.repeat(np.repeat(vec,N_r,axis = 1)[:,:,np.newaxis],num_sec,axis = 2)[:,:,:,np.newaxis],BSR,axis = 3) 
+
+
+    elif method == 3:
+        res = np.repeat(np.repeat(np.repeat(vec[:,np.newaxis,:],N_r,axis = 0)[:,:,np.newaxis,:],num_sec,axis = 0)[:,:,:,:,np.newaxis],2,axis = 4) 
+
+    return res 
+
 
 def realign_polar_xticks(ax):
     for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
