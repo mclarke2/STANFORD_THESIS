@@ -83,7 +83,7 @@ def test_rotor_planform_function():
 # ------------------------------------------------------------------ 
 def single_design_point():
     
-    objective_weights = np.array([1.0])# np.linspace(0.0,1.0,51) 
+    objective_weights = np.linspace(0.0,1.0,51) 
     for i in range(len(objective_weights)):
  
         # DEFINE ROTOR OPERATING CONDITIONS 
