@@ -45,9 +45,9 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = True 
-    control_points   = 10
+    control_points   = 16
     N_gm_x           = 10
-    N_gm_y           = 4
+    N_gm_y           = 5
     
     #run_noise_model   = False
     #hover_noise_test  = False
@@ -176,8 +176,8 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM        = np.linspace(1E-3,5*Units.nmi,3)     
-    X_LIM        = np.linspace(1E-3, 4.38*Units.nmi,3)       
+    Y_LIM        = np.linspace(1E-6,0.5*Units.nmi,3) 
+    X_LIM        = np.linspace(1E-6, 4.38*Units.nmi,3)       
     
     ti                = time.time() 
     vehicle           = vehicle_setup() 
