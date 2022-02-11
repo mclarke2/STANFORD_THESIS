@@ -21,6 +21,7 @@ import scipy as sp
 from scipy.special import jv 
 from scipy.special import fresnel
 import matplotlib.pyplot as plt  
+import matplotlib.cm as cm 
 
 # import propeller/rotors geometries  
 import sys
@@ -59,7 +60,9 @@ def main():
     plot_parameters.figure_height    = 7 
     plot_parameters.marker_size      = 10 
     plot_parameters.legend_font_size = 20 
-    plot_parameters.plot_grid        = True     
+    plot_parameters.plot_grid        = True   
+    plot_parameters.markers          = ['o','v','s','P','p','^','D','X','*']
+    plot_parameters.colors           = cm.viridis(np.linspace(0,1,5))     
     plot_parameters.lw               = 2                              # line_width               
     plot_parameters.m                = 14                             # markersize               
     plot_parameters.legend_font      = 20                             # legend_font_size         
@@ -74,14 +77,14 @@ def main():
     plot_parameters.Rls              = '--'                           # Ref_Code_line_styles     
      
     
-    Harmonic_Spectrum_Shape_Sensitivity(plot_parameters)
+    #Harmonic_Spectrum_Shape_Sensitivity(plot_parameters)
     Harmonic_Stength_Validation(plot_parameters)
-    Harmonic_Directivty_Validation(plot_parameters) 
-    Broadband_Spectrum_Validation(plot_parameters) 
-    Broadband_Spectrum_Shape_Sensitivity(plot_parameters) 
-    Broadband_Noise_Validation(plot_parameters)
-    High_Fidelity_Validation_1(plot_parameters) 
-    High_Fidelity_Validation_2(plot_parameters) 
+    #Harmonic_Directivty_Validation(plot_parameters) 
+    #Broadband_Spectrum_Validation(plot_parameters) 
+    #Broadband_Spectrum_Shape_Sensitivity(plot_parameters) 
+    #Broadband_Noise_Validation(plot_parameters)
+    #High_Fidelity_Validation_1(plot_parameters) 
+    #High_Fidelity_Validation_2(plot_parameters) 
     return 
 
 
@@ -97,7 +100,7 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
     '''   
     
     M                     = [0.5,0.75,1,1.25,1.5]   
-    sensitivity_variables = ['omega','0.75 %\beta_c%','chord','dT/dr','dQ/dr','t/c','M.C.A']
+    sensitivity_variables = [r'$\Omega$',r'0.75 $\beta_c$','chord',r'$dT/dr$',r'$dQ/dr$',r'$t/c$','M.C.A']
     sensitivity_name      = ['omega','beta_c','chord','dT_dr','dQ_dr','t_c','MCA']
     M_name                = ['50 % ','75 % ','100 % ','125 % ','150 % ']   
 
@@ -106,6 +109,7 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
     for var_idx in range(len(sensitivity_variables)):
         multipliers = np.ones(8) 
         fig_1  = plt.figure() 
+        fig_1.set_size_inches(PP.figure_width,PP.figure_height)    
         axis_1 = fig_1.add_subplot(1,1,1) 
         axis_1.set_ylim(0,90)
         axis_1.set_ylabel('SPL (dBA)') 
@@ -138,8 +142,7 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
             delta_beta              = three_quarter_twist-beta_75
             prop.twist_distribution = beta + delta_beta 
             prop.chord_distribution = prop.chord_distribution * multipliers[2] 
-            prop.thickness_to_chord = prop.thickness_to_chord * multipliers[5] 
-            rotor.mid_chord_alignment = rotor.mid_chord_alignment
+            prop.thickness_to_chord = prop.thickness_to_chord * multipliers[5]  
         
             # microphone locations
             ctrl_pts                = len(omega) 
@@ -167,7 +170,7 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
             conditions.freestream.dynamic_viscosity      = np.ones((ctrl_pts,1)) * dynamic_viscosity   
             conditions.freestream.speed_of_sound         = np.ones((ctrl_pts,1)) * a 
             conditions.freestream.temperature            = np.ones((ctrl_pts,1)) * T 
-            conditions.frames.inertial.velocity_vector   = np.array([[77.2, 0. ,0.],[ 77.0,0.,0.], [ 77.2, 0. ,0.]])
+            conditions.frames.inertial.velocity_vector   = np.array([[77.2, 0. ,0.]])
             conditions.propulsion.throttle               = np.ones((ctrl_pts,1))*1.0
             conditions.aerodynamics.angle_of_attack      = np.ones((ctrl_pts,1))* 0. * Units.degrees 
             conditions.frames.body.transform_to_inertial = np.array([[[1., 0., 0.],[0., 1., 0.],[0., 0., 1.]]])
@@ -282,11 +285,11 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
             SPL_prop_harmonic_bpf_spectrum_dBA = A_weighting(SPL_prop_harmonic_bpf_spectrum,f[:,:,:,0,:])        
              
 
-            axis_1.semilogx(f[:,:,:,0,:],SPL_prop_harmonic_bpf_spectrum_dBA,color = PP.colors[idx], 
-                            linestyle = PP.line_styles[idx], marker = PP.markers[idx],
-                          label = M_name[idx] + sensitivity_variables[var_idx])      
-            axis_1.legend(loc='upper right', ncol= 2, prop={'size': PP.legend_font_size})     
-            axis_1.set_ylim([20,120])
+            axis_1.plot(harmonics,SPL_prop_harmonic_bpf_spectrum_dBA[0,0,0],color = PP.colors[idx], 
+                            linestyle = PP.line_style, markersize = PP.m, marker = PP.markers[idx],
+                          label = M_name[idx] + sensitivity_variables[var_idx] )      
+            axis_1.legend(loc='upper right', ncol= 3, prop={'size': PP.legend_font_size})     
+            axis_1.set_ylim([0,135])
         fig_1.tight_layout()  
         fig_1_name = "Harmonic_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
         fig_1.savefig(fig_1_name  + '.pdf')     
@@ -607,6 +610,7 @@ def Harmonic_Stength_Validation(PP):
 
     # plot results
     fig31 = plt.figure('Harmonic_Validation_Case_1_60')
+    print('Case 1, $C_P$ = ' +  str(round(Cp[0,0],3)))  
     fig31.set_size_inches(fig_size_width, fig_size_height)   
     axes = fig31.add_subplot(1,1,1) 
     axes.plot(harmonics, ANOPP_PAS_Case_1_60deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw,  label = r'ANOPP PAS')       
@@ -619,21 +623,21 @@ def Harmonic_Stength_Validation(PP):
     fig34 = plt.figure('Harmonic_Validation_Case_1_90')
     fig34.set_size_inches(fig_size_width, fig_size_height)   
     axes = fig34.add_subplot(1,1,1)       
-    axes.plot(harmonics, ANOPP_PAS_Case_1_90deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw)    
-    axes.plot(harmonics, Exp_Test_Case_1_90deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw)
-    axes.plot(harmonics, SUAVE_SPL_Case_1_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw)
+    axes.plot(harmonics, ANOPP_PAS_Case_1_90deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw,  label = r'ANOPP PAS')    
+    axes.plot(harmonics, Exp_Test_Case_1_90deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw,  label = r'Exp.')   
+    axes.plot(harmonics, SUAVE_SPL_Case_1_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')     
     axes.set_ylabel('SPL (dB)')
     axes.set_xlabel('Harmonic no.')  
     axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     # Test Case 2
+    print('Case 2, $C_P$ = ' +  str(round(Cp[1,0],3)))  
     fig32 = plt.figure('Harmonic_Validation_Case_2_60')
     fig32.set_size_inches(fig_size_width, fig_size_height)   
     axes = fig32.add_subplot(1,1,1)  
-    axes.plot(harmonics, ANOPP_PAS_Case_2_60deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw)     
-    axes.plot(harmonics, Exp_Test_Case_2_60deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw)
-    axes.plot(harmonics, SUAVE_SPL_Case_2_60deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw)
-    #axes.set_title('Case 2, Power Coefficient: ' +  str(round(Cp[1,0],3)))
+    axes.plot(harmonics, ANOPP_PAS_Case_2_60deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw,  label = r'ANOPP PAS')      
+    axes.plot(harmonics, Exp_Test_Case_2_60deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw,  label = r'Exp.')   
+    axes.plot(harmonics, SUAVE_SPL_Case_2_60deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')      
     axes.set_ylabel('SPL (dB)') 
     axes.set_xlabel('Harmonic no.')      
     axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
@@ -641,31 +645,30 @@ def Harmonic_Stength_Validation(PP):
     fig35 = plt.figure('Harmonic_Validation_Case_2_90')
     fig35.set_size_inches(fig_size_width, fig_size_height)   
     axes = fig35.add_subplot(1,1,1)                
-    axes.plot(harmonics, ANOPP_PAS_Case_2_90deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw)
-    axes.plot(harmonics, Exp_Test_Case_2_90deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw)
-    axes.plot(harmonics, SUAVE_SPL_Case_2_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw)
+    axes.plot(harmonics, ANOPP_PAS_Case_2_90deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw,  label = r'ANOPP PAS') 
+    axes.plot(harmonics, Exp_Test_Case_2_90deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw,  label = r'Exp.')   
+    axes.plot(harmonics, SUAVE_SPL_Case_2_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')     
     axes.set_ylabel('SPL (dB)')                 
     axes.set_xlabel('Harmonic no.')  
     axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     # Test Case 3
+    print('Case 3, $C_P$ = ' +  str(round(Cp[2,0],3)))  
     fig33 = plt.figure('Harmonic_Validation_Case_3_60')
     fig33.set_size_inches(fig_size_width, fig_size_height)   
     axes = fig33.add_subplot(1,1,1)  
-    axes.plot(harmonics, ANOPP_PAS_Case_3_60deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw) 
-    axes.plot(harmonics, Exp_Test_Case_3_60deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw)
-    axes.plot(harmonics, SUAVE_SPL_Case_3_60deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw)
-    axes.set_title('Case 3') 
-    #axes.set_title('Case 3, Power Coefficient: ' +  str(round(Cp[2,0],3)))
+    axes.plot(harmonics, ANOPP_PAS_Case_3_60deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw,  label = r'ANOPP PAS')  
+    axes.plot(harmonics, Exp_Test_Case_3_60deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw,  label = r'Exp.')   
+    axes.plot(harmonics, SUAVE_SPL_Case_3_60deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')       
     axes.set_ylabel('SPL (dB)') 
     axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     fig36 = plt.figure('Harmonic_Validation_Case_3_90')
     fig36.set_size_inches(fig_size_width, fig_size_height)   
     axes = fig36.add_subplot(1,1,1)       
-    axes.plot(harmonics, ANOPP_PAS_Case_3_90deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw)# label = r'ANOPP PAS 90 $\degree$ mic.')  
-    axes.plot(harmonics, Exp_Test_Case_3_90deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw)#label = r'Exp. 90 $\degree$ mic. ')    
-    axes.plot(harmonics, SUAVE_SPL_Case_3_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw) # label = r'SUAVE 90 $\degree$ mic.')  
+    axes.plot(harmonics, ANOPP_PAS_Case_3_90deg, color = PP.Rlc[0] , linestyle = PP.Rls, marker = PP.Rlm,  markersize = PP.m , linewidth = PP.lw,  label = r'ANOPP PAS') 
+    axes.plot(harmonics, Exp_Test_Case_3_90deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw,  label = r'Exp.')   
+    axes.plot(harmonics, SUAVE_SPL_Case_3_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')     
     axes.set_ylabel('SPL (dB)')
     axes.set_xlabel('Harmonic no.') 
     axes.legend(loc='lower left', prop={'size': PP.legend_font})   
@@ -712,18 +715,19 @@ def Broadband_Spectrum_Shape_Sensitivity(PP):
     '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
 
     M                     = [0.5,0.75,1,1.25,1.5]   
-    sensitivity_variables = ['Re','$\alpha$','$\delta$','$\delta*$','dp/dx', '$C_f$', 'Ue' , '$\theta$' ]
+    sensitivity_variables = [r'Re',r'$\alpha$',r'$\delta$',r'$\delta*$',r'$dp/dx$', r'$C_f$', r'$U_e$' , r'$\theta$' ]
     sensitivity_name      =  ['Re','alpha','delta','delta_star','dp_dx', 'C_f', 'Ue' , 'theta' ]
-    M_name                = ['50 % ','75 % ','100 % ','125 % ','150 % ']   
+    M_name                = [r'50 % ',r'75 % ',r'100 % ',r'125 % ',r'150 % ']   
 
     
 
     for var_idx in range(len(sensitivity_variables)):
         multipliers = np.ones(8) 
         fig_1  = plt.figure() 
+        fig_1.set_size_inches(PP.figure_width,PP.figure_height) 
         axis_1 = fig_1.add_subplot(1,1,1) 
-        axis_1.set_ylim(50,90)
-        axis_1.set_ylabel('10log10($\Phi$)') 
+        axis_1.set_ylim(50,120)
+        axis_1.set_ylabel(r'$10log_{10}$ ($\Phi$)') 
         axis_1.set_xlabel('Frequency (Hz)')                
         for idx in range(len(M)):
             multipliers[var_idx] = M[idx] 
@@ -803,9 +807,9 @@ def Broadband_Spectrum_Shape_Sensitivity(PP):
             var                 = 10*np.log10((Phi_pp)/((2E-5)**2))   
 
             axis_1.semilogx(frequency,var[0,0,0,:,0],color = PP.colors[idx], 
-                            linestyle = PP.line_styles[idx], marker = PP.markers[idx],
+                            linestyle = PP.line_style, markersize = PP.m, marker = PP.markers[idx],
                           label = M_name[idx] + sensitivity_variables[var_idx])      
-            axis_1.legend(loc='upper right', ncol= 2, prop={'size': PP.legend_font_size})    
+            axis_1.legend(loc='upper right', ncol= 3, prop={'size': PP.legend_font_size})    
 
 
         fig_1.tight_layout()  
@@ -822,8 +826,9 @@ def Broadband_Spectrum_Validation(PP):
     '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
 
 
-    fig_1  = plt.figure('Broadband_Spectrum_Comparison')   
-    axis_1 = fig_1.add_subplot(2,3,1) 
+    fig_1  = plt.figure('Broadband_Spectrum_Comparison')  
+    fig_1.set_size_inches(PP.figure_width,PP.figure_height)  
+    axis_1 = fig_1.add_subplot(1,1,1) 
     axis_1.set_ylim(50,90)
     axis_1.set_ylabel('10log10($\Phi$)') 
     axis_1.set_xlabel('Frequency (Hz)')   
@@ -905,11 +910,11 @@ def Broadband_Spectrum_Validation(PP):
 
     reference_spectrum  = reference_wall_pressure_spectrum_model()   
 
-    axis_1.semilogx(frequency,var[0,0,0,:,0],color = 'red', 
-                    linestyle = '-', marker = 's',
+    axis_1.semilogx(frequency,var[0,0,0,:,0],color = 'red', linewidth = PP.line_width,
+                    linestyle = '-', marker = 's',markersize = PP.m,
                   label = 'SUAVE')      
 
-    axis_1.semilogx(frequency,reference_spectrum,color = 'black', 
+    axis_1.semilogx(frequency,reference_spectrum,color = 'black', linewidth = PP.line_width, 
                     linestyle = '-', label = 'Ref.')      
 
     axis_1.legend(loc='upper right', ncol= 2, prop={'size': PP.legend_font_size})           

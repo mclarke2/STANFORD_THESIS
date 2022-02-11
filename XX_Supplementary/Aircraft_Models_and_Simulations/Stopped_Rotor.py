@@ -59,11 +59,17 @@ def main():
 
     run_noise_model   = True 
     hover_noise_test  = False   
-    run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y)
     
-    
+
+    run_noise_model   = True 
+    hover_noise_test  = False   
+    run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y)    
+
 
     hover_noise_test  = True 
     run_noise_model   = True    
@@ -119,13 +125,14 @@ def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segme
   
     return 
 
-def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+
+def run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM = np.linspace(1E-1,5*Units.nmi,3)    
+    Y_LIM = np.linspace(1E-3,5*Units.nmi,3)    
     end_distance = aircraft_range/((N_gm_x-2)*2)
-    X_LIM = np.linspace(-end_distance+1E1,aircraft_range + end_distance+1E1,3)           
+    X_LIM = np.linspace(-end_distance+1E-3,aircraft_range + end_distance+1E-3,3)          
     
     ti                = time.time() 
     vehicle           = vehicle_setup() 
@@ -144,7 +151,7 @@ def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
             # Noise Mission 
             # ------------------------------------------------------------------------------------------------   
             configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test) 
-            noise_mission     = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
+            noise_mission     = approach_departure_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
             missions_analyses = missions_setup(noise_mission) 
             analyses          = SUAVE.Analyses.Analysis.Container()
             analyses.configs  = configs_analyses
@@ -153,7 +160,55 @@ def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
             analyses.finalize()      
             noise_mission     = analyses.missions.base
             noise_results     = noise_mission.evaluate()   
-            filename          = 'Stopped_Rotor_Noise_Mission_Q' + str(Q_idx)
+            filename          = 'Stopped_Rotor_Full_Mission_Noise_Q' + str(Q_idx)+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+            save_results(noise_results,filename)  
+            Q_idx += 1 
+        
+    if plot_mission: 
+        plot_results(noise_results,run_noise_model)       
+                
+    tf = time.time() 
+    print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
+    elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
+    
+    return 
+
+
+def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y): 
+
+    Y_LIM = np.linspace(1E-3,5*Units.nmi,3)       
+    X_LIM = np.linspace(0, 5.79*Units.nmi,3)            
+    
+    ti                = time.time() 
+    vehicle           = vehicle_setup() 
+    configs           = configs_setup(vehicle)  
+    Q_idx             = 1
+
+    for i in range(len(X_LIM)-1):
+        for j in range(len(Y_LIM)-1): 
+            print('Running Quardant:' + str(Q_idx))
+            min_x = X_LIM[i]
+            max_x = X_LIM[i+1]
+            min_y = Y_LIM[j]
+            max_y = Y_LIM[j+1]
+            
+            # ------------------------------------------------------------------------------------------------
+            # Noise Mission 
+            # ------------------------------------------------------------------------------------------------   
+            configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test) 
+            noise_mission     = approach_departure_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
+            missions_analyses = missions_setup(noise_mission) 
+            analyses          = SUAVE.Analyses.Analysis.Container()
+            analyses.configs  = configs_analyses
+            analyses.missions = missions_analyses 
+            configs.finalize()
+            analyses.finalize()      
+            noise_mission     = analyses.missions.base
+            noise_results     = noise_mission.evaluate()   
+            filename          = 'Stopped_Rotor_Approach_Departure_Noise_Q' + str(Q_idx)+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
             save_results(noise_results,filename)  
             Q_idx += 1 
         
@@ -167,6 +222,8 @@ def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
     
     return 
   
+  
+    
 def run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
@@ -189,7 +246,7 @@ def run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
     analyses.finalize()     
     mission           = analyses.missions.base
     hover_results     = mission.evaluate()   
-    filename          = 'Stopped_Rotor_Hover_Mission'
+    filename          = 'Stopped_Rotor_Hover_Mission'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
     save_results(hover_results,filename)  
     
     tf = time.time() 
@@ -1301,7 +1358,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
 # ------------------------------------------------------------------
 #   Noise (Approach/Departure) Mission Setup
 # ------------------------------------------------------------------
-def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
+def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test):
 
 
     starting_elevation = 0*Units.feet

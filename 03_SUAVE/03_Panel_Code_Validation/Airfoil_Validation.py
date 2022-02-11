@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_naca_4series \
      import  compute_naca_4series
 from SUAVE.Plots.Performance.Airfoil_Plots import * 
+import matplotlib.cm as cm 
 import numpy as np    
 
 

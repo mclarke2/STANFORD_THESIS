@@ -8,6 +8,7 @@ import SUAVE
 from SUAVE.Core import Units 
 import numpy as np   
 import matplotlib.pyplot        as plt  
+import os
 import pickle
 from copy import deepcopy
 import time 
@@ -45,20 +46,26 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = False
-    control_points   = 10
-    N_gm_x           = 10
-    N_gm_y           = 4
+    control_points   = 16
+    N_gm_x           = 15
+    N_gm_y           = 5
 
-    run_noise_model   = False 
-    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                     plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     control_points,N_gm_x,N_gm_y)
+    #run_noise_model   = False 
+    #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     #plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     #control_points,N_gm_x,N_gm_y)
  
     run_noise_model   = True 
-    run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y)
     
+    
+
+    #run_noise_model   = True 
+    #run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y)    
     return 
 
 
@@ -107,11 +114,11 @@ def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segme
 
     return 
 
-def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+def run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM = np.linspace(1E-1,5*Units.nmi,3)    
+    Y_LIM = np.linspace(1E-1,0.5*Units.nmi,3)    
     end_distance = aircraft_range/((N_gm_x-2)*2)
     X_LIM = np.linspace(-end_distance+1E1,aircraft_range + end_distance+1E1,3)            
 
@@ -141,7 +148,55 @@ def run_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
             analyses.finalize()      
             noise_mission     = analyses.missions.base
             noise_results     = noise_mission.evaluate()   
-            filename          = 'ECTOL_Noise_Mission_Q' + str(Q_idx)
+            filename          = 'ECTOL_Full_Mission_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+            save_results(noise_results,filename)  
+            Q_idx += 1 
+
+    if plot_mission: 
+        plot_results(noise_results,run_noise_model)       
+
+    tf = time.time() 
+    print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
+    elapsed_range = noise_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
+
+    return  
+
+
+def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y): 
+
+    Y_LIM        = np.linspace(1E-6,0.5*Units.nmi,3)     
+    X_LIM        = np.linspace(1E-3, 3.92 *Units.nmi,3)              
+
+    ti                = time.time() 
+    vehicle           = vehicle_setup() 
+    configs           = configs_setup(vehicle)  
+    Q_idx             = 1
+
+    for i in range(len(X_LIM)-1):
+        for j in range(len(Y_LIM)-1): 
+            print('Running Quardant:' + str(Q_idx))
+            min_x = X_LIM[i]
+            max_x = X_LIM[i+1]
+            min_y = Y_LIM[j]
+            max_y = Y_LIM[j+1]
+
+            # ------------------------------------------------------------------------------------------------
+            # Noise Mission 
+            # ------------------------------------------------------------------------------------------------   
+            configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model) 
+            noise_mission     = approach_departure_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery )
+            missions_analyses = missions_setup(noise_mission) 
+            analyses          = SUAVE.Analyses.Analysis.Container()
+            analyses.configs  = configs_analyses
+            analyses.missions = missions_analyses 
+            configs.finalize()
+            analyses.finalize()      
+            noise_mission     = analyses.missions.base
+            noise_results     = noise_mission.evaluate()   
+            filename          = 'ECTOL_Approach_Departure_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
             save_results(noise_results,filename)  
             Q_idx += 1 
 
@@ -632,12 +687,15 @@ def vehicle_setup():
     prop.rotation               = -1
     prop.symmetry               = True
     prop.variable_pitch         = True 
-    prop.airfoil_geometry       =  ['../Airfoils/NACA_4412.txt']
-    prop.airfoil_polars         = [['../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                    '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                    '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                    '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                    '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator 
+    prop.airfoil_geometry       =  [rel_path + '../Airfoils/NACA_4412.txt']
+    prop.airfoil_polars         = [[rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                    rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                    rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                    rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                    rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]
 
     prop.airfoil_polar_stations = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     prop                        = propeller_design(prop)
@@ -732,17 +790,8 @@ def configs_setup(vehicle):
 
     base_config = SUAVE.Components.Configs.Config(vehicle)
     base_config.tag = 'base'
-    configs.append(base_config) 
-
- 
-    # ------------------------------------------------------------------
-    #   Hover Configuration
-    # ------------------------------------------------------------------
-    config = SUAVE.Components.Configs.Config(base_config)
-    config.tag = 'landing' 
-    config.networks.battery_propeller.pitch_command  = 0 #  -12.0 * Units.degrees  
-    configs.append(config)     
-
+    configs.append(base_config)  
+    
     # done!
     return configs 
  
@@ -750,7 +799,7 @@ def configs_setup(vehicle):
 # ----------------------------------------------------------------------
 #   Noise (Approach/Departure) Mission Setup
 # ---------------------------------------------------------------------- 
-def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery):   
+def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery):   
      
     # Determine Stall Speed 
     m     = vehicle.mass_properties.max_takeoff
@@ -799,7 +848,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
     segment_name = 'Final_Approach_1' 
     segment.tag = segment_name          
-    segment.analyses.extend( analyses.landing)     
+    segment.analyses.extend( analyses.base)     
     segment.battery_energy                                  = vehicle.networks.battery_propeller.battery.max_energy * 0.6 
     segment.state.unknowns.throttle                          = 0.8 * ones_row(1)
     segment.state.unknowns.propeller_power_coefficient       = 0.3 *  ones_row(1)      
@@ -817,7 +866,7 @@ def noise_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft
     # ------------------------------------------------------------------ 
     segment = Segments.Ground.Landing(base_segment)
     segment.tag = "Landing" 
-    segment.analyses.extend( analyses.landing)
+    segment.analyses.extend( analyses.base)
     segment.velocity_start            = Vstall  
     segment.velocity_end              = Vstall*0.1  
     segment.friction_coefficient      = 0.04 
@@ -1110,7 +1159,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment = Segments.Climb.Linear_Speed_Constant_Rate(base_segment)
             segment_name = 'Final_Approach' + "_F_" + str(flight_no) + "_D" + str (day)
             segment.tag = segment_name          
-            segment.analyses.extend( analyses.landing)     
+            segment.analyses.extend( analyses.base)     
             segment.state.unknowns.throttle                          = 0.8 * ones_row(1)
             segment.state.unknowns.propeller_power_coefficient       = 0.3 *  ones_row(1)      
             segment.altitude_start                                   = 500.0 * Units.feet
@@ -1128,7 +1177,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             # ------------------------------------------------------------------ 
             segment = Segments.Ground.Landing(base_segment)
             segment.tag = "Landing"  + "_F_" + str(flight_no) + "_D_" + str (day)  
-            segment.analyses.extend( analyses.landing)
+            segment.analyses.extend( analyses.base)
             segment.velocity_start            = Vstall  
             segment.velocity_end              = Vstall*0.1  
             segment.friction_coefficient      = 0.04 
