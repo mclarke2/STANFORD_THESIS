@@ -43,18 +43,18 @@ def main():
     fig = plt.figure("Flight_Conditions_Noise")
     fig.set_size_inches(plot_parameters.figure_width,plot_parameters.figure_height)
     axes = fig.add_subplot(1,1,1)   
-    axes.set_ylim(30,130)   
+    axes.set_ylim(40,100)   
     axes.set_ylabel('SPL$_{Amax}$ (dBA)')  
     #axes.set_xlabel(r'$\hat{t}$') 
     axes.minorticks_on()   
      
-    N_gm_x = 15# 12
-    N_gm_y = 5 # 4
+    N_gm_x = 5# 12
+    N_gm_y = 3 # 4
     header =  '../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
     
-    plot_ECTOL_results = True
+    plot_ECTOL_results = False
     plot_SR_results    = False 
-    plot_TW_results    = False 
+    plot_TW_results    = True
     plot_MR_results    = False 
     
     
@@ -92,27 +92,27 @@ def main():
         sr_hover_results           = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name    = 'SR', noise_analysis = True)
         plot_results(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'SR')    
         plot_aircraft_hover_noise_contours(1,sr_hover_results,plot_parameters,vehicle_name = 'SR') 
-        plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'SR') 
+        plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name = 'SR') 
      
     if plot_TW_results:
         tw_noise_filename_Q1       = header + 'Tiltwing_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
         tw_noise_filename_Q2       = header + 'Tiltwing_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
         tw_noise_filename_Q3       = header + 'Tiltwing_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
         tw_noise_filename_Q4       = header + 'Tiltwing_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        tw_hover_filename          = header + 'Tiltwing_Hover_Mission' 
+        #tw_hover_filename          = header + 'Tiltwing_Hover_Mission' 
         tw_noise_results_raw_Q1    = load_results(tw_noise_filename_Q1)
         tw_noise_results_raw_Q2    = load_results(tw_noise_filename_Q2)
         tw_noise_results_raw_Q3    = load_results(tw_noise_filename_Q3)
         tw_noise_results_raw_Q4    = load_results(tw_noise_filename_Q4)
-        tw_hover_results_raw       = load_results(tw_hover_filename) 
+        #tw_hover_results_raw       = load_results(tw_hover_filename) 
         tw_noise_res_Q1            = process_results(tw_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
         tw_noise_res_Q2            = process_results(tw_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
         tw_noise_res_Q3            = process_results(tw_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
         tw_noise_res_Q4            = process_results(tw_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'TW', noise_analysis = True)
-        tw_hover_results           = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'TW', noise_analysis = True)
+        #tw_hover_results           = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'TW', noise_analysis = True)
         plot_results(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,axes,plot_parameters,vehicle_name = 'TW')    
-        plot_aircraft_hover_noise_contours(2,tw_hover_results,plot_parameters,vehicle_name = 'TW')
-        plot_flight_profile_noise_contours(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,axes,plot_parameters,vehicle_name = 'TW') 
+        #plot_aircraft_hover_noise_contours(2,tw_hover_results,plot_parameters,vehicle_name = 'TW')
+        plot_flight_profile_noise_contours(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,plot_parameters,vehicle_name = 'TW') 
     
      
     if plot_MR_results:
@@ -133,12 +133,12 @@ def main():
         mr_hover_results           = process_results(mr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'MR', noise_analysis = True) 
         plot_results(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'MR')  
         plot_aircraft_hover_noise_contours(3,mr_hover_results,plot_parameters,vehicle_name = 'MR') 
-        plot_flight_profile_noise_contours(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'MR') 
+        plot_flight_profile_noise_contours(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,plot_parameters,vehicle_name = 'MR') 
     
       
     fig.tight_layout()
     axes.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})    
-    fig.savefig("Flight_Conditions_Noise.pdf")  
+    fig.savefig("Flight_Conditions_Noise.png")  
           
     return
  
@@ -231,7 +231,7 @@ def plot_aircraft_hover_noise_contours(res_Q1,res_Q2,res_Q3,res_Q4,vehicle_name)
     axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
     axes.grid(False)  
     axes.minorticks_on()   
-    plt.savefig(fig_name + 'pdf')
+    plt.savefig(fig_name + 'png')
     return  
 
 # ------------------------------------------------------------------
@@ -257,33 +257,35 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     axes_22.set_xlim(0, max_mi)   
     axes_22.set_ylim(0, 500)     
     axes_22.minorticks_on()   
- 
- 
 
     # set size of matrices 
     N_gm_x       = res_Q1.N_gm_x
     N_gm_y       = res_Q1.N_gm_y 
     num_cpts     = res_Q1.num_ctrl_pts*res_Q1.num_segments
     aircraft_SPL = np.zeros((num_cpts,2*N_gm_x, 2*N_gm_y))
-    gm_mic_loc   = np.zeros((2*N_gm_x, 2*N_gm_y,3))
-    
+    gm_mic_loc   = np.zeros((2*N_gm_x, 2*N_gm_y,3)) 
     
     aircraft_SPL[:,0:N_gm_x,0:N_gm_y] = res_Q1.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)
     aircraft_SPL[:,0:N_gm_x,N_gm_y:]  = res_Q2.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
     aircraft_SPL[:,N_gm_x:,0:N_gm_y]  = res_Q3.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
-    aircraft_SPL[:,N_gm_x:,N_gm_y:]   = res_Q4.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
-
+    aircraft_SPL[:,N_gm_x:,N_gm_y:]   = res_Q4.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)   
+    
     gm_mic_loc[0:N_gm_x,0:N_gm_y,:]   = res_Q1.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
     gm_mic_loc[0:N_gm_x,N_gm_y:,:]    = res_Q2.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
     gm_mic_loc[N_gm_x:,0:N_gm_y,:]    = res_Q3.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
-    gm_mic_loc[N_gm_x:,N_gm_y:,:]     = res_Q4.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)    
+    gm_mic_loc[N_gm_x:,N_gm_y:,:]     = res_Q4.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)   
   
+    
     Range_x    = gm_mic_loc[:,0,0]/Units.nmi
     Range_y    = gm_mic_loc[0,:,1]/Units.nmi 
     Y, X       = np.meshgrid(Range_y, Range_x)
-    max_SPL    = np.max(aircraft_SPL,axis=0)   
-    levs       = np.linspace(30,120,29)    
-    max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=1.5, order=0) # SMOOTHING 
+    levs       = np.linspace(40,80,17)    
+    
+    # post processing 
+    #aircraft_SPL = np.nan_to_num(aircraft_SPL) #  CONVERT NANs TO NUMS
+    max_SPL    = np.max(aircraft_SPL[20:29],axis=0)   
+    #max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=1.5, order=0) # SMOOTHING 
+    
     CS         = axes_21.contourf(X , Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both') 
     CS         = axes_21.contourf(X ,-Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both')
         

@@ -841,7 +841,7 @@ def vehicle_setup():
     rotor.angular_velocity           = rotor.design_tip_mach* speed_of_sound /rotor.tip_radius   
     rotor.design_Cl                  = 0.7
     rotor.design_altitude            = 20 * Units.feet                     
-    rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition
+    rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     rotor.variable_pitch             = True 
     rotor.airfoil_geometry           =  ['../Airfoils/NACA_4412.txt']
     rotor.airfoil_polars             = [['../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,

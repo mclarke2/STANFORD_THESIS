@@ -315,7 +315,7 @@ def plot_aircraft_hover_noise_contours(res,vehicle_name):
     axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
     axes.grid(False)  
     axes.minorticks_on()   
-    plt.savefig(fig_name + 'pdf')
+    plt.savefig(fig_name + 'png')
     return  
 
 # ------------------------------------------------------------------
@@ -385,7 +385,7 @@ def plot_flight_profile_noise_contours(res_Q1,res_Q2,res_Q3,res_Q4,line_width,ms
     plt.axis('off')	
     plt.grid(None)      
     
-    plt.savefig(filename+'.pdf')
+    plt.savefig(filename+'.png')
     
     return 
   
@@ -844,26 +844,26 @@ def save_figures(fig_1,fig_2, fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
                  fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
                  fig_17,fig_18,fig_19,fig_20):
     
-    fig_1.savefig("Flight_Conditions_Altitude.pdf") 
-    fig_2.savefig("Flight_Conditions_Range.pdf")  
-    fig_4.savefig("Aero_Conditions_AoA.pdf") 
-    fig_5.savefig("Aero_Conditions_CL.pdf") 
-    fig_6.savefig("Aero_Conditions_CD.pdf") 
-    fig_7.savefig("Aero_Conditions_L_D.pdf") 
-    fig_8.savefig("Battery_Pack_Performance_E.pdf") 
-    fig_9.savefig("Battery_Pack_Performance_V.pdf") 
-    fig_10.savefig("Battery_Pack_Performance_DL.pdf") 
-    fig_11.savefig("Battery_Pack_Performance_PL.pdf") 
-    fig_12.savefig("Battery_Pack_Performance_C_rate.pdf") 
-    fig_13.savefig("Battery_Pack_Performance_T.pdf") 
-    fig_14.savefig("Battery_Pack_Performance_SOC.pdf")
-    fig_15.savefig("Propeller_Performance_RPM.pdf") 
-    fig_16.savefig("Propeller_Performance_T.pdf") 
-    fig_17.savefig("Propeller_Performance_Q.pdf") 
-    fig_18.savefig("Propeller_Performance_Prop_eff.pdf") 
-    fig_19.savefig("Propeller_Performance_Mot_eff.pdf") 
-    fig_20.savefig("Propeller_Performance_Mach_Tip.pdf")  
-    fig_21.savefig("Battery_Pack_Performance_Vul.pdf") 
+    fig_1.savefig("Flight_Conditions_Altitude.png") 
+    fig_2.savefig("Flight_Conditions_Range.png")  
+    fig_4.savefig("Aero_Conditions_AoA.png") 
+    fig_5.savefig("Aero_Conditions_CL.png") 
+    fig_6.savefig("Aero_Conditions_CD.png") 
+    fig_7.savefig("Aero_Conditions_L_D.png") 
+    fig_8.savefig("Battery_Pack_Performance_E.png") 
+    fig_9.savefig("Battery_Pack_Performance_V.png") 
+    fig_10.savefig("Battery_Pack_Performance_DL.png") 
+    fig_11.savefig("Battery_Pack_Performance_PL.png") 
+    fig_12.savefig("Battery_Pack_Performance_C_rate.png") 
+    fig_13.savefig("Battery_Pack_Performance_T.png") 
+    fig_14.savefig("Battery_Pack_Performance_SOC.png")
+    fig_15.savefig("Propeller_Performance_RPM.png") 
+    fig_16.savefig("Propeller_Performance_T.png") 
+    fig_17.savefig("Propeller_Performance_Q.png") 
+    fig_18.savefig("Propeller_Performance_Prop_eff.png") 
+    fig_19.savefig("Propeller_Performance_Mot_eff.png") 
+    fig_20.savefig("Propeller_Performance_Mach_Tip.png")  
+    fig_21.savefig("Battery_Pack_Performance_Vul.png") 
     
     return  
 

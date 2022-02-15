@@ -45,23 +45,22 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = True 
-    control_points   = 16
-    N_gm_x           = 10
+    control_points   = 15
+    N_gm_x           = 15
     N_gm_y           = 5
     
-    #run_noise_model   = False
-    #hover_noise_test  = False
-    #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                     #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     #control_points,N_gm_x,N_gm_y)
-    
-    
+    run_noise_model   = False
+    hover_noise_test  = False
+    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y)
+     
 
-    run_noise_model   = True
-    hover_noise_test  = False   
-    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)
+    #run_noise_model   = True
+    #hover_noise_test  = False   
+    #run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y)
     
 
     #run_noise_model   = True
@@ -574,7 +573,7 @@ def vehicle_setup():
     prop.angular_velocity         = prop.design_tip_mach*speed_of_sound/prop.tip_radius      
     prop.design_Cl                = 0.7
     prop.design_altitude          = 500 * Units.feet                   
-    prop.design_thrust            = Lift/(net.number_of_propeller_engines-1) # contingency for one-engine-inoperative condition 
+    prop.design_thrust            = Lift/(net.number_of_propeller_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     prop.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
     prop.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
                                         '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
@@ -1279,15 +1278,14 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     # ------------------------------------------------------------------ 
     segment                          = Segments.Cruise.Constant_Acceleration_Constant_Altitude(base_segment)  
     segment.tag                      = "Descent_Transition"   
-    segment.analyses.extend( analyses.descent_transition)   
+    segment.analyses.extend( analyses.descent_transition)    
     segment.altitude                 = 40.  * Units.ft+ starting_elevation 
     segment.air_speed_start          = 55 * Units['mph']    
     segment.air_speed_end            = 300. * Units['ft/min'] 
     segment.acceleration             = -0.5 * Units['m/s/s']   
     segment.pitch_initial            = 1. * Units.degrees
     segment.pitch_final              = 2. * Units.degrees               
-    segment.state.unknowns.throttle  = 0.6 * ones_row(1) 
-    segment.battery_energy                         = vehicle.networks.battery_propeller.battery.max_energy   
+    segment.state.unknowns.throttle  = 0.6 * ones_row(1)   
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment , initial_power_coefficient = 0.01) 
     mission.append_segment(segment)     
 
@@ -1297,7 +1295,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment                          = Segments.Hover.Descent(base_segment)
     segment.tag                      = "Vertical_Descent"   
     segment.analyses.extend( analyses.vertical_descent) 
-    segment.altitude_start           = 40.0  * Units.ft + starting_elevation 
+    segment.altitude_start           = 40.0  * Units.ft + starting_elevation  
     segment.altitude_end             = 0.  * Units.ft + starting_elevation 
     segment.descent_rate             = 300. * Units['ft/min']  
     segment.state.unknowns.throttle  = 0.6  * ones_row(1)  

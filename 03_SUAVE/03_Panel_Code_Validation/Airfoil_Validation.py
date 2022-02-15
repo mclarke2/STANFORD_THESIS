@@ -358,24 +358,24 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     fig17_name = 'Airfoil_BL_Cp_' +Re_tags[1] 
     fig18_name = 'Airfoil_BL_Cp_' +Re_tags[2]   
 
-    fig01.savefig(fig01_name + '.pdf')
-    fig02.savefig(fig02_name + '.pdf')
-    fig03.savefig(fig03_name + '.pdf')
-    fig04.savefig(fig04_name + '.pdf')
-    fig05.savefig(fig05_name + '.pdf')
-    fig06.savefig(fig06_name + '.pdf')
-    fig07.savefig(fig07_name + '.pdf')
-    fig08.savefig(fig08_name + '.pdf')
-    fig09.savefig(fig09_name + '.pdf')
-    fig10.savefig(fig10_name + '.pdf') 
-    fig11.savefig(fig11_name + '.pdf')
-    fig12.savefig(fig12_name + '.pdf')
-    fig13.savefig(fig13_name + '.pdf')
-    fig14.savefig(fig14_name + '.pdf')
-    fig15.savefig(fig15_name + '.pdf')
-    fig16.savefig(fig16_name + '.pdf')
-    fig17.savefig(fig17_name + '.pdf')
-    fig18.savefig(fig18_name + '.pdf') 
+    fig01.savefig(fig01_name + '.png')
+    fig02.savefig(fig02_name + '.png')
+    fig03.savefig(fig03_name + '.png')
+    fig04.savefig(fig04_name + '.png')
+    fig05.savefig(fig05_name + '.png')
+    fig06.savefig(fig06_name + '.png')
+    fig07.savefig(fig07_name + '.png')
+    fig08.savefig(fig08_name + '.png')
+    fig09.savefig(fig09_name + '.png')
+    fig10.savefig(fig10_name + '.png') 
+    fig11.savefig(fig11_name + '.png')
+    fig12.savefig(fig12_name + '.png')
+    fig13.savefig(fig13_name + '.png')
+    fig14.savefig(fig14_name + '.png')
+    fig15.savefig(fig15_name + '.png')
+    fig16.savefig(fig16_name + '.png')
+    fig17.savefig(fig17_name + '.png')
+    fig18.savefig(fig18_name + '.png') 
 
     return   
 
@@ -458,9 +458,9 @@ def plot_pressure_distribution(SUAVE_data,Xfoil_data,Re_tags,AoA_tags,PP):
     fig02_name = 'Airfoil_Cp_Distribution_' +Re_tags[1] 
     fig03_name = 'Airfoil_Cp_Distribution_' +Re_tags[2]   
 
-    fig01.savefig(fig01_name + '.pdf')
-    fig02.savefig(fig02_name + '.pdf')
-    fig03.savefig(fig03_name + '.pdf') 
+    fig01.savefig(fig01_name + '.png')
+    fig02.savefig(fig02_name + '.png')
+    fig03.savefig(fig03_name + '.png') 
     
     
     return 

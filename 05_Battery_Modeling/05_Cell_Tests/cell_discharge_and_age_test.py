@@ -96,8 +96,8 @@ def NMC_cell_discharge_test(PP):
      
     fig_name1 = 'NMC_Cell_Voltage_Comparison'   
     fig_name2 = 'NMC_Cell_Temp_Comparison'   
-    fig1.savefig(fig_name1  + '.pdf')    
-    fig2.savefig(fig_name2  + '.pdf')    
+    fig1.savefig(fig_name1  + '.png')    
+    fig2.savefig(fig_name2  + '.png')    
     
     
     return 
@@ -254,7 +254,7 @@ def plot_cell_degradation_results(Results,plot_parameters):
     fig.tight_layout()
      
     fig_name = 'NMC_Cell_Aging_Validation'   
-    fig.savefig(fig_name  + '.pdf')                
+    fig.savefig(fig_name  + '.png')                
     
      
     return 

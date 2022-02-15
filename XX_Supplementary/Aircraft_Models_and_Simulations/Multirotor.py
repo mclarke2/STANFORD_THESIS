@@ -459,7 +459,7 @@ def vehicle_setup():
     rotor.angular_velocity       = (design_tip_mach*speed_of_sound)/rotor.tip_radius   
     rotor.design_Cl              = 0.7
     rotor.design_altitude        = 1000 * Units.feet                   
-    rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition
+    rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     rotor.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
     rotor.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
                                         '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
@@ -962,7 +962,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.tag                              = "Descent_1"  
     segment.analyses.extend(analyses.cruise)
     segment.climb_rate                       = -200. * Units['ft/min']
-    segment.battery_energy                         = vehicle.networks.battery_propeller.battery.max_energy  
+    segment.battery_energy                   = vehicle.networks.battery_propeller.battery.max_energy  
     segment.air_speed_start                  = 75. * Units['mph']      
     segment.air_speed_end                    = 35. * Units['mph']      
     segment.altitude_start                   = 500.0 * Units.ft 
