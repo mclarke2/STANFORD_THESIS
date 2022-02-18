@@ -155,7 +155,7 @@ def plot_cell_degradation_results(Results,plot_parameters):
     fig.tight_layout()
      
     fig_name = 'NMC_Cell_Aging_Validation'   
-    fig.savefig(fig_name  + '.png')                
+    fig.savefig(fig_name  + '.pdf')                
     
      
     return 

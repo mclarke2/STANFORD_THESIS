@@ -44,10 +44,10 @@ def main():
     plot_geometry    = False
     recharge_battery = False
     run_analysis     = True
-    plot_mission     = False
+    plot_mission     = True
     control_points   = 10
     N_gm_x           = 10
-    N_gm_y           = 4
+    N_gm_y           = 5
     
     run_noise_model   = False
     hover_noise_test  = False
@@ -64,11 +64,11 @@ def main():
                       control_points,N_gm_x,N_gm_y)
     
 
-    run_noise_model   = True 
-    hover_noise_test  = False   
-    run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)    
+    #run_noise_model   = True 
+    #hover_noise_test  = False   
+    #run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y)    
 
 
     hover_noise_test  = True 
@@ -638,12 +638,12 @@ def vehicle_setup():
     nac_segment.width              = 0.2
     nacelle.append_segment(nac_segment)      
  
-    lift_rotor_nacelle_origins   = [[ 0.226, 1.413, 1.3] ,[ 0.226, -1.413 , 1.3],
-                           [ 4.630 , 1.413 , 1.3] ,[ 4.630 , -1.413 , 1.3],
-                           [ 0.409 , 4.022 , 1.4] ,[ 0.409 , -4.022 , 1.4],
-                           [ 4.413 , 4.022 , 1.4] ,[ 4.413 , -4.022 , 1.4],
-                           [ 0.409 , 6.630 , 1.5] , [0.409 , -6.630 , 1.5],
-                           [ 4.413 , 6.630 , 1.5] ,[ 4.413 , -6.630 , 1.5]]
+    lift_rotor_nacelle_origins   = [[ 0.226, 1.413, 0.85] ,[ 0.226, -1.413 , 0.85],
+                           [ 4.630 , 1.413 , 0.85] ,[ 4.630 , -1.413 , 0.85],
+                           [ 0.409 , 4.022 , 0.95] ,[ 0.409 , -4.022 , 0.95],
+                           [ 4.413 , 4.022 , 0.95] ,[ 4.413 , -4.022 , 0.95],
+                           [ 0.409 , 6.630 , 1.050] , [0.409 , -6.630 ,1.050],
+                           [ 4.413 , 6.630 , 1.050] ,[ 4.413 , -6.630 , 1.050]]
  
     for ii in range(12):
         rotor_nacelle          = deepcopy(nacelle)
@@ -837,8 +837,9 @@ def vehicle_setup():
     rotor.hub_radius                 = 0.1 * rotor.tip_radius  
     rotor.number_of_blades           = 3
     rotor.design_tip_mach            = 0.65   
-    rotor.freestream_velocity        = 500. * Units['ft/min']  
-    rotor.angular_velocity           = rotor.design_tip_mach* speed_of_sound /rotor.tip_radius   
+    rotor.inflow_ratio               = 0.06 
+    rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
+    rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
     rotor.design_Cl                  = 0.7
     rotor.design_altitude            = 20 * Units.feet                     
     rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
@@ -1311,7 +1312,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                           = 300. * Units['ft/min'] 
             segment.acceleration                            = -0.75              
             segment.pitch_initial                           =  5.  * Units.degrees  
-            segment.pitch_final                             = 20. * Units.degrees  
+            segment.pitch_final                             = 10. * Units.degrees  
             segment.state.unknowns.throttle                 = 0.9 *  ones_row(1)  
             segment.process.iterate.unknowns.mission        = SUAVE.Methods.skip
             segment.process.iterate.conditions.stability    = SUAVE.Methods.skip

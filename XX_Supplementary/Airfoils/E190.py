@@ -164,7 +164,7 @@ def vehicle_setup():
     #   Vehicle-level Properties
     # ------------------------------------------------------------------
 
-    # mass properties (http://www.embraercommercialaviation.com/AircraftPDF/E190_Weights.png)
+    # mass properties (http://www.embraercommercialaviation.com/AircraftPDF/E190_Weights.pdf)
     vehicle.mass_properties.max_takeoff               = 51800.   # kg
     vehicle.mass_properties.operating_empty           = 27837.   # kg
     vehicle.mass_properties.takeoff                   = 51800.   # kg

@@ -237,19 +237,19 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     handles, labels = axis1.get_legend_handles_labels()
     axis1.legend(flip(handles, 4), flip(labels, 4), loc='upper center', prop={'size': ls}, ncol=4)
         
-    save_filename_1 =  vehicle_name + "_Capacity_IRG_1Yr" + '.png'
+    save_filename_1 =  vehicle_name + "_Capacity_IRG_1Yr" + '.pdf'
     fig1.savefig(save_filename_1)            
     
-    save_filename_2 =  vehicle_name + "_Battery_Temperature_1Yr" + '.png'
+    save_filename_2 =  vehicle_name + "_Battery_Temperature_1Yr" + '.pdf'
     fig2.savefig(save_filename_2) 
 
-    save_filename_3 =  vehicle_name + "_Charge_1Yr" + '.png'
+    save_filename_3 =  vehicle_name + "_Charge_1Yr" + '.pdf'
     fig3.savefig(save_filename_3) 
 
-    save_filename_4 =  vehicle_name + "_C_Rate_1Yr" + '.png'
+    save_filename_4 =  vehicle_name + "_C_Rate_1Yr" + '.pdf'
     fig5.savefig(save_filename_4) 
 
-    save_filename_5 =  vehicle_name + "_Energy_1Yr" + '.png'
+    save_filename_5 =  vehicle_name + "_Energy_1Yr" + '.pdf'
     fig5.savefig(save_filename_5)        
     
     fig6, axis6,fig7, axis7,fig8, axis8, fig9,axis9, fig10,axis10, fig11,axis11 = setup_contour_plots(vehicle_name,figure_width,figure_height) 
@@ -274,7 +274,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     cbar6.ax.set_ylabel('E/E$_{0}$' , labelpad=20) 
     add_hash_background(axis6)
     fig6.tight_layout()
-    save_filename_6 =  vehicle_name + "_Capacity_Contour_1Yr" + '.png'
+    save_filename_6 =  vehicle_name + "_Capacity_Contour_1Yr" + '.pdf'
     fig6.savefig(save_filename_6)
     
     # ---------------------------------------
@@ -285,7 +285,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     cbar7.ax.set_ylabel('R/R$_{0}$' , labelpad=20) 
     add_hash_background(axis7)
     fig7.tight_layout()
-    save_filename_7 =   vehicle_name + "_IRG_Contour_1Yr" + '.png'
+    save_filename_7 =   vehicle_name + "_IRG_Contour_1Yr" + '.pdf'
     fig7.savefig(save_filename_7)
     
     # ---------------------------------------
@@ -296,7 +296,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     cbar8.ax.set_ylabel('Cell Temperature (K)' , labelpad=20)
     add_hash_background(axis8)  
     fig8.tight_layout()
-    save_filename_8 =   vehicle_name + "_Battery_Temperature_Contour_1Yr" + '.png'
+    save_filename_8 =   vehicle_name + "_Battery_Temperature_Contour_1Yr" + '.pdf'
     fig8.savefig(save_filename_8)
     
     # ---------------------------------------
@@ -307,7 +307,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     cbar9.ax.set_ylabel('Max C-Rate (1/hr)' , labelpad=20)  
     add_hash_background(axis9)
     fig9.tight_layout()
-    save_filename_9 =   vehicle_name + "_C_Rate_Contour_1Yr" + '.png'
+    save_filename_9 =   vehicle_name + "_C_Rate_Contour_1Yr" + '.pdf'
     fig9.savefig(save_filename_9)
     
     # ---------------------------------------
@@ -318,7 +318,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     cbar10.ax.set_ylabel('Charge Throughput(Ah)' , labelpad=20)
     add_hash_background(axis10)  
     fig10.tight_layout()
-    save_filename_10 =   vehicle_name + "_Charge_Contour_1Yr" + '.png'
+    save_filename_10 =   vehicle_name + "_Charge_Contour_1Yr" + '.pdf'
     fig10.savefig(save_filename_10)
     
     
@@ -330,7 +330,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     cbar11.ax.set_ylabel('Battery Energy (kWh)' , labelpad=20)
     add_hash_background(axis11)  
     fig11.tight_layout()
-    save_filename_11 =  vehicle_name + "_Energy_Contour_1Yr" + '.png'
+    save_filename_11 =  vehicle_name + "_Energy_Contour_1Yr" + '.pdf'
     fig11.savefig(save_filename_11)
     
     
@@ -351,7 +351,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     format_axis(axis12)   
     fig12.tight_layout()  
 
-    save_filename_12 =  vehicle_name + "_Comparison" + '.png'    
+    save_filename_12 =  vehicle_name + "_Comparison" + '.pdf'    
     fig12.savefig(save_filename_12)
     
     return 

@@ -45,8 +45,8 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = True 
-    control_points   = 15
-    N_gm_x           = 15
+    control_points   = 10
+    N_gm_x           = 10
     N_gm_y           = 5
     
     run_noise_model   = False
@@ -56,11 +56,11 @@ def main():
                      control_points,N_gm_x,N_gm_y)
      
 
-    #run_noise_model   = True
-    #hover_noise_test  = False   
-    #run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      #control_points,N_gm_x,N_gm_y)
+    run_noise_model   = True
+    hover_noise_test  = False   
+    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y)
     
 
     #run_noise_model   = True
@@ -69,11 +69,11 @@ def main():
                       #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       #control_points,N_gm_x,N_gm_y)
 
-    #hover_noise_test  = True 
-    #run_noise_model   = True    
-    #run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      #control_points,N_gm_x,N_gm_y) 
+    hover_noise_test  = True 
+    run_noise_model   = True    
+    run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y) 
     
     return 
 

@@ -36,7 +36,7 @@ def main():
     plot_mission     = False
     control_points   = 10
     N_gm_x           = 10
-    N_gm_y           = 4
+    N_gm_y           = 5
     
     run_noise_model   = False
     hover_noise_test  = False

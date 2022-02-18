@@ -292,7 +292,7 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
             axis_1.set_ylim([0,135])
         fig_1.tight_layout()  
         fig_1_name = "Harmonic_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
-        fig_1.savefig(fig_1_name  + '.png')     
+        fig_1.savefig(fig_1_name  + '.pdf')     
      
     return    
 
@@ -697,12 +697,12 @@ def Harmonic_Stength_Validation(PP):
     fig34_name = 'Harmonic_Noise_Validation_Case_2_90'  
     fig35_name = 'Harmonic_Noise_Validation_Case_3_60' 
     fig36_name = 'Harmonic_Noise_Validation_Case_3_90'          
-    fig31.savefig(fig31_name  + '.png')               
-    fig32.savefig(fig32_name  + '.png')               
-    fig33.savefig(fig33_name  + '.png')               
-    fig34.savefig(fig34_name  + '.png')     
-    fig35.savefig(fig35_name  + '.png')  
-    fig36.savefig(fig36_name  + '.png')  
+    fig31.savefig(fig31_name  + '.pdf')               
+    fig32.savefig(fig32_name  + '.pdf')               
+    fig33.savefig(fig33_name  + '.pdf')               
+    fig34.savefig(fig34_name  + '.pdf')     
+    fig35.savefig(fig35_name  + '.pdf')  
+    fig36.savefig(fig36_name  + '.pdf')  
     return    
 
 
@@ -814,7 +814,7 @@ def Broadband_Spectrum_Shape_Sensitivity(PP):
 
         fig_1.tight_layout()  
         fig_1_name = "Broadband_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
-        fig_1.savefig(fig_1_name  + '.png')                
+        fig_1.savefig(fig_1_name  + '.pdf')                
 
     return   
 
@@ -923,7 +923,7 @@ def Broadband_Spectrum_Validation(PP):
 
     fig_1.tight_layout()  
     fig_1_name = "Broadband_Spectrum_Comparison"  
-    fig_1.savefig(fig_1_name  + '.png')
+    fig_1.savefig(fig_1_name  + '.pdf')
 
     return 
 
@@ -1125,10 +1125,10 @@ def Broadband_Noise_Validation(PP):
     fig2_name = 'Noise_Validation_1_3_Spectrum_4800' 
     fig3_name = 'Noise_Validation_Broadband_1_3_Spectrum_45_deg' 
     fig4_name = 'Noise_Validation_Broadband_1_3_Spectrum_22_deg'   
-    fig1.savefig(fig1_name  + '.png')               
-    fig2.savefig(fig2_name  + '.png')               
-    fig3.savefig(fig3_name  + '.png')               
-    fig4.savefig(fig4_name  + '.png')        
+    fig1.savefig(fig1_name  + '.pdf')               
+    fig2.savefig(fig2_name  + '.pdf')               
+    fig3.savefig(fig3_name  + '.pdf')               
+    fig4.savefig(fig4_name  + '.pdf')        
     return 
 
 
@@ -1681,7 +1681,7 @@ def High_Fidelity_Validation_1(PP):
     axes1.grid(which='minor', linestyle=':', linewidth='0.5', color='grey')   
     fig1.tight_layout() 
     fig1_name = 'Noise_Validation_High_Fidelity_DJI'    
-    fig1.savefig(fig1_name  + '.png')   
+    fig1.savefig(fig1_name  + '.pdf')   
     
     
     
@@ -1808,7 +1808,7 @@ def High_Fidelity_Validation_2(PP):
     axes.set_xlim([40,140])    
     fig.tight_layout() 
     fig_name = 'Noise_Validation_High_Fidelity_SR2'    
-    fig.savefig(fig_name  + '.png')  
+    fig.savefig(fig_name  + '.pdf')  
         
     
     

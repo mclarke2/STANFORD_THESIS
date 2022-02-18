@@ -46,14 +46,14 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = False
-    control_points   = 16
-    N_gm_x           = 15
+    control_points   = 10
+    N_gm_x           = 10
     N_gm_y           = 5
 
-    #run_noise_model   = False 
-    #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                     #plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     #control_points,N_gm_x,N_gm_y)
+    run_noise_model   = False 
+    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y)
  
     run_noise_model   = True 
     run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
@@ -62,10 +62,10 @@ def main():
     
     
 
-    #run_noise_model   = True 
-    #run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      #plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      #control_points,N_gm_x,N_gm_y)    
+    run_noise_model   = True 
+    run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      control_points,N_gm_x,N_gm_y)    
     return 
 
 

@@ -43,7 +43,7 @@ def main():
     fig = plt.figure("Flight_Conditions_Noise")
     fig.set_size_inches(plot_parameters.figure_width,plot_parameters.figure_height)
     axes = fig.add_subplot(1,1,1)   
-    axes.set_ylim(40,100)   
+    axes.set_ylim(40,80)   
     axes.set_ylabel('SPL$_{Amax}$ (dBA)')  
     #axes.set_xlabel(r'$\hat{t}$') 
     axes.minorticks_on()   
@@ -138,7 +138,7 @@ def main():
       
     fig.tight_layout()
     axes.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})    
-    fig.savefig("Flight_Conditions_Noise.png")  
+    fig.savefig("Flight_Conditions_Noise.pdf")  
           
     return
  
@@ -231,7 +231,7 @@ def plot_aircraft_hover_noise_contours(res_Q1,res_Q2,res_Q3,res_Q4,vehicle_name)
     axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
     axes.grid(False)  
     axes.minorticks_on()   
-    plt.savefig(fig_name + 'png')
+    plt.savefig(fig_name + 'pdf')
     return  
 
 # ------------------------------------------------------------------
@@ -243,7 +243,9 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     filename      = 'Noise_Contour' + vehicle_name
     fig           = plt.figure(filename) 
     fig.set_size_inches(PP.figure_width ,PP.figure_height)   
-      
+
+    fig.tight_layout(rect= (0.05,0.05,1,1))
+          
     gs            = gridspec.GridSpec(8, 8)
     axes_21       = fig.add_subplot(gs[2:,:]) # contour 
     axes_22       = fig.add_subplot(gs[:2,:]) # altitude 
@@ -283,7 +285,7 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     
     # post processing 
     #aircraft_SPL = np.nan_to_num(aircraft_SPL) #  CONVERT NANs TO NUMS
-    max_SPL    = np.max(aircraft_SPL[20:29],axis=0)   
+    max_SPL    = np.max(aircraft_SPL,axis=0)   
     #max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=1.5, order=0) # SMOOTHING 
     
     CS         = axes_21.contourf(X , Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both') 
