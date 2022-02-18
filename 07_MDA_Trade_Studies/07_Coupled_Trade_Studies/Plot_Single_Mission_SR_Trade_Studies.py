@@ -51,91 +51,27 @@ def main():
     N_gm_x = 3# 12
     N_gm_y = 3 # 4
     header =  '../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
-    
-    plot_ECTOL_results = True
-    plot_SR_results    = False 
-    plot_TW_results    = False
-    plot_MR_results    = False 
-    
-    
-    if plot_ECTOL_results:  
-        ectol_noise_filename_Q1       = header + 'ECTOL_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        ectol_noise_filename_Q2       = header + 'ECTOL_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        ectol_noise_filename_Q3       = header + 'ECTOL_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        ectol_noise_filename_Q4       = header + 'ECTOL_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)  
-        ectol_noise_results_raw_Q1    = load_results(ectol_noise_filename_Q1)
-        ectol_noise_results_raw_Q2    = load_results(ectol_noise_filename_Q2)
-        ectol_noise_results_raw_Q3    = load_results(ectol_noise_filename_Q3)
-        ectol_noise_results_raw_Q4    = load_results(ectol_noise_filename_Q4)  
-        ectol_noise_res_Q1            = process_results(ectol_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL')
-        ectol_noise_res_Q2            = process_results(ectol_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL')
-        ectol_noise_res_Q3            = process_results(ectol_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL')
-        ectol_noise_res_Q4            = process_results(ectol_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'ECTOL') 
-        plot_results(0,ectol_noise_res_Q1,ectol_noise_res_Q2,ectol_noise_res_Q3,ectol_noise_res_Q4,axes,plot_parameters,vehicle_name = 'ECTOL')   
-        plot_flight_profile_noise_contours(0,ectol_noise_res_Q1,ectol_noise_res_Q2,ectol_noise_res_Q3,ectol_noise_res_Q4,plot_parameters,vehicle_name = 'ECTOL')
-   
-    if plot_SR_results:
-        sr_noise_filename_Q1       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        sr_noise_filename_Q2       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        sr_noise_filename_Q3       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        sr_noise_filename_Q4       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        sr_hover_filename          = header + 'Stopped_Rotor_Hover_Mission' 
-        sr_noise_results_raw_Q1    = load_results(sr_noise_filename_Q1)
-        sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
-        sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
-        sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4)
-        sr_hover_results_raw       = load_results(sr_hover_filename) 
-        sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_hover_results           = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name    = 'SR')
-        plot_results(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'SR')    
-        plot_aircraft_hover_noise_contours(1,sr_hover_results,plot_parameters,vehicle_name = 'SR') 
-        plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name = 'SR') 
      
-    if plot_TW_results:
-        tw_noise_filename_Q1       = header + 'Tiltwing_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        tw_noise_filename_Q2       = header + 'Tiltwing_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        tw_noise_filename_Q3       = header + 'Tiltwing_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        tw_noise_filename_Q4       = header + 'Tiltwing_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        #tw_hover_filename          = header + 'Tiltwing_Hover_Mission' 
-        tw_noise_results_raw_Q1    = load_results(tw_noise_filename_Q1)
-        tw_noise_results_raw_Q2    = load_results(tw_noise_filename_Q2)
-        tw_noise_results_raw_Q3    = load_results(tw_noise_filename_Q3)
-        tw_noise_results_raw_Q4    = load_results(tw_noise_filename_Q4)
-        #tw_hover_results_raw       = load_results(tw_hover_filename) 
-        tw_noise_res_Q1            = process_results(tw_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'TW')
-        tw_noise_res_Q2            = process_results(tw_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'TW')
-        tw_noise_res_Q3            = process_results(tw_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'TW')
-        tw_noise_res_Q4            = process_results(tw_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'TW')
-        #tw_hover_results           = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'TW')
-        plot_results(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,axes,plot_parameters,vehicle_name = 'TW')    
-        #plot_aircraft_hover_noise_contours(2,tw_hover_results,plot_parameters,vehicle_name = 'TW')
-        plot_flight_profile_noise_contours(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,plot_parameters,vehicle_name = 'TW') 
-    
      
-    if plot_MR_results:
-        mr_noise_filename_Q1       = header + 'Multirotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        mr_noise_filename_Q2       = header + 'Multirotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        mr_noise_filename_Q3       = header + 'Multirotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        mr_noise_filename_Q4       = header + 'Multirotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
-        mr_hover_filename          = header + 'Multirotor_Hover_Mission' 
-        mr_noise_results_raw_Q1    = load_results(mr_noise_filename_Q1)
-        mr_noise_results_raw_Q2    = load_results(mr_noise_filename_Q2)
-        mr_noise_results_raw_Q3    = load_results(mr_noise_filename_Q3)
-        mr_noise_results_raw_Q4    = load_results(mr_noise_filename_Q4)
-        mr_hover_results_raw       = load_results(mr_hover_filename) 
-        mr_noise_res_Q1            = process_results(mr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name  = 'MR')
-        mr_noise_res_Q2            = process_results(mr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name  = 'MR')
-        mr_noise_res_Q3            = process_results(mr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name  = 'MR')
-        mr_noise_res_Q4            = process_results(mr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'MR')
-        mr_hover_results           = process_results(mr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'MR') 
-        plot_results(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'MR')  
-        plot_aircraft_hover_noise_contours(3,mr_hover_results,plot_parameters,vehicle_name = 'MR') 
-        plot_flight_profile_noise_contours(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,plot_parameters,vehicle_name = 'MR') 
-    
-      
+    sr_noise_filename_Q1       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+    sr_noise_filename_Q2       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+    sr_noise_filename_Q3       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+    sr_noise_filename_Q4       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+    sr_hover_filename          = header + 'Stopped_Rotor_Hover_Mission' 
+    sr_noise_results_raw_Q1    = load_results(sr_noise_filename_Q1)
+    sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
+    sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
+    sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4)
+    sr_hover_results_raw       = load_results(sr_hover_filename) 
+    sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name = 'SR')
+    sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name = 'SR')
+    sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name = 'SR')
+    sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name = 'SR')
+    sr_hover_results           = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name    = 'SR')
+    plot_results(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'SR')    
+    plot_aircraft_hover_noise_contours(1,sr_hover_results,plot_parameters,vehicle_name = 'SR') 
+    plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name = 'SR') 
+ 
     fig.tight_layout()
     axes.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})    
     fig.savefig("Flight_Conditions_Noise.pdf")  

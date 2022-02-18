@@ -46,14 +46,14 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = False
-    control_points   = 10
-    N_gm_x           = 10
-    N_gm_y           = 5
+    control_points   = 5
+    N_gm_x           = 3 # 10
+    N_gm_y           = 3 # 5
 
-    run_noise_model   = False 
-    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                     plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     control_points,N_gm_x,N_gm_y)
+    #run_noise_model   = False 
+    #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     #plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     #control_points,N_gm_x,N_gm_y)
  
     run_noise_model   = True 
     run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
@@ -62,10 +62,10 @@ def main():
     
     
 
-    run_noise_model   = True 
-    run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)    
+    #run_noise_model   = True 
+    #run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y)    
     return 
 
 
@@ -834,7 +834,9 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     ones_row                                                 = base_segment.state.ones_row
     base_segment.process.initialize.initialize_battery       = SUAVE.Methods.Missions.Segments.Common.Energy.initialize_battery 
     base_segment.process.finalize.post_process.update_battery_state_of_health = SUAVE.Methods.Missions.Segments.Common.Energy.update_battery_state_of_health  
+    base_segment.process.finalize.inertial_position          = SUAVE.Methods.Missions.Segments.Common.Frames.integrate_inertial_horizontal_position
     base_segment.process.iterate.conditions.planet_position  = SUAVE.Methods.skip
+    base_segment.process.finalize.post_process.noise         = SUAVE.Methods.Missions.Segments.Common.Noise.compute_noise 
     base_segment.state.numerics.number_control_points        = control_points
     bat                                                      = vehicle.networks.battery_propeller.battery
     base_segment.charging_SOC_cutoff                         = bat.cell.charging_SOC_cutoff 
@@ -967,7 +969,9 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
     ones_row                                                 = base_segment.state.ones_row
     base_segment.process.initialize.initialize_battery       = SUAVE.Methods.Missions.Segments.Common.Energy.initialize_battery 
     base_segment.process.finalize.post_process.update_battery_state_of_health = SUAVE.Methods.Missions.Segments.Common.Energy.update_battery_state_of_health  
+    base_segment.process.finalize.inertial_position          = SUAVE.Methods.Missions.Segments.Common.Frames.integrate_inertial_horizontal_position
     base_segment.process.iterate.conditions.planet_position  = SUAVE.Methods.skip
+    base_segment.process.finalize.post_process.noise         = SUAVE.Methods.Missions.Segments.Common.Noise.compute_noise 
     base_segment.state.numerics.number_control_points        = control_points
     bat                                                      = vehicle.networks.battery_propeller.battery
     base_segment.charging_SOC_cutoff                         = bat.cell.charging_SOC_cutoff 

@@ -14,76 +14,51 @@ import numpy as np
 # ---------------------------------------------------------------------- 
 def main():
     
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    
-    n     = 100
-    S     = 15
-    theta = np.tile(np.linspace(-np.pi,-np.pi/2,n )[:,None],(1,n))
-    phi   = np.tile(np.linspace(0,2*np.pi,n )[None,:],(n,1)) 
-    
-    #strength = np.ones_like(theta)  
-    strength = np.tile(np.linspace(0,1,n )[:,None],(1,n)) #  np.random.rand(100,100)
-    
-    norm     = colors.Normalize(vmin = np.min(strength),
-                          vmax = np.max(strength), clip = False)
-    
-    x = S * np.sin(theta) * np.cos(phi)
-    y = S * np.sin(theta) * np.sin(phi)
-    z = S * np.cos(theta)
-    
-    ax.plot_surface(x, y, z, rstride=1, cstride=1, cmap=cm.coolwarm,
-                           linewidth=0, antialiased=False,
-                           facecolors=cm.coolwarm(norm(strength)))
-    
-    plt.show()
-    
-    
 
-    ## Add to rotor definition  
+    # Add to rotor definition  
 
-    #plt.rcParams['axes.linewidth'] = 2.
-    #plt.rcParams["font.family"] = "Times New Roman"
-    #parameters = {'axes.labelsize': 32,
-                  #'legend.fontsize': 22,
-                  #'xtick.labelsize': 28,
-                  #'ytick.labelsize': 28,
-                  #'axes.titlesize': 32}
-    #plt.rcParams.update(parameters)
-    #PP                  = Data()
-    #PP.line_width       = 2
-    #PP.line_styles      = ['--',':','-.']
-    #PP.figure_width     = 10
-    #PP.figure_height    = 7
-    #PP.marker_size      = 10
-    #PP.legend_font_size = 20
-    #PP.plot_grid        = True  
-    #PP.colors           = cm.inferno(np.linspace(0,1,6))    
+    plt.rcParams['axes.linewidth'] = 2.
+    plt.rcParams["font.family"] = "Times New Roman"
+    parameters = {'axes.labelsize': 32,
+                  'legend.fontsize': 22,
+                  'xtick.labelsize': 28,
+                  'ytick.labelsize': 28,
+                  'axes.titlesize': 32}
+    plt.rcParams.update(parameters)
+    PP                  = Data()
+    PP.line_width       = 2
+    PP.line_styles      = ['--',':','-.']
+    PP.figure_width     = 10
+    PP.figure_height    = 7
+    PP.marker_size      = 10
+    PP.legend_font_size = 20
+    PP.plot_grid        = True  
+    PP.colors           = cm.jet(np.linspace(0,1,6))    
     
     
-    #raw_plot_data = load_data()
-    #PD =  data_interpolation(raw_plot_data)
-    ## ------------------------------------------------------------------
-    ##   Twist Distribition
-    ## ------------------------------------------------------------------
-    #fig_1_name = "Rotor_Broadband_Noise_Compoments"
-    #fig_1 = plt.figure(fig_1_name)
-    #fig_1.set_size_inches(PP.figure_width,PP.figure_height)
-    #axis_1 = fig_1.add_subplot(1,1,1)
-    #axis_1.plot(PD.frequency,PD.BTE       , color = PP.colors[0], linestyle = PP.line_styles[0], linewidth = PP.line_width, label = "BTE"       )
-    #axis_1.plot(PD.frequency,PD.TIP       , color = PP.colors[1], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "TIP"       )
-    #axis_1.plot(PD.frequency,PD.LBL_VS    , color = PP.colors[2], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "LBL-VS"    )
-    #axis_1.plot(PD.frequency,PD.TBL_TE    , color = PP.colors[3], linestyle = PP.line_styles[0], linewidth = PP.line_width, label = "TBL-TE"    )
-    #axis_1.plot(PD.frequency,PD.BWI       , color = PP.colors[4], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "BWI"       )
-    #axis_1.plot(PD.frequency,PD.BVI       , color = PP.colors[5], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "BVI"       )
-    #axis_1.plot(PD.frequency,PD.Total_pred, color = 'gray' , linestyle = '-', linewidth = 3 , label = "Total pred")
-    #axis_1.plot(PD.frequency,PD.Measured  , color = 'black', linestyle = '-', linewidth = 3 , label = "Measured"  ) 
-    #axis_1.set_ylabel('SPL (dB)') 
-    #axis_1.set_xlabel('Frequency (kHz)')    
-    #axis_1.minorticks_on()   
+    raw_plot_data = load_data()
+    PD =  data_interpolation(raw_plot_data)
+    # ------------------------------------------------------------------
+    #   Twist Distribition
+    # ------------------------------------------------------------------
+    fig_1_name = "Rotor_Broadband_Noise_Compoments"
+    fig_1 = plt.figure(fig_1_name)
+    fig_1.set_size_inches(PP.figure_width,PP.figure_height)
+    axis_1 = fig_1.add_subplot(1,1,1)
+    axis_1.plot(PD.frequency,PD.BTE       , color = PP.colors[0], linestyle = '-', linewidth = 3, label = "BTE"       )
+    axis_1.plot(PD.frequency,PD.TIP       , color = PP.colors[1], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "TIP"       )
+    axis_1.plot(PD.frequency,PD.LBL_VS    , color = PP.colors[2], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "LBL-VS"    )
+    axis_1.plot(PD.frequency,PD.TBL_TE    , color = PP.colors[3], linestyle = PP.line_styles[0], linewidth = PP.line_width, label = "TBL-TE"    )
+    axis_1.plot(PD.frequency,PD.BWI       , color = PP.colors[4], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "BWI"       )
+    axis_1.plot(PD.frequency,PD.BVI       , color = PP.colors[5], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "BVI"       )
+    axis_1.plot(PD.frequency,PD.Total_pred, color = 'gray' , linestyle = '-', linewidth = 3 , label = "Total pred")
+    axis_1.plot(PD.frequency,PD.Measured  , color = 'black', linestyle = '-', linewidth = 3 , label = "Measured"  ) 
+    axis_1.set_ylabel('SPL (dB)') 
+    axis_1.set_xlabel('Frequency (kHz)')    
+    axis_1.minorticks_on()   
      
-    #fig_1.tight_layout()  
-    #fig_1.savefig(fig_1_name  + '.pdf')        
+    fig_1.tight_layout()  
+    fig_1.savefig(fig_1_name  + '.pdf')        
      
     return  
 

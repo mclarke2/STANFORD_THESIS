@@ -459,7 +459,7 @@ def vehicle_setup():
     rotor.angular_velocity       = (design_tip_mach*speed_of_sound)/rotor.tip_radius   
     rotor.design_Cl              = 0.7
     rotor.design_altitude        = 1000 * Units.feet                   
-    rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     rotor.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
     rotor.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
                                         '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
@@ -578,8 +578,9 @@ def configs_setup(vehicle):
     #   Hover Configuration
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
-    config.tag = 'hover'
-    config.networks.battery_propeller.pitch_command            = 0.  * Units.degrees 
+    config.tag = 'hover' 
+    for rotor in config.networks.battery_propeller.lift_rotors:  
+        rotor.inputs.pitch_command                     = 0.  * Units.degrees
     configs.append(config)
     
     # ------------------------------------------------------------------
@@ -587,7 +588,8 @@ def configs_setup(vehicle):
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
     config.tag = 'vertical_climb'   
-    config.networks.battery_propeller.pitch_command            = 0. * Units.degrees 
+    for rotor in config.networks.battery_propeller.lift_rotors:  
+        rotor.inputs.pitch_command                     = 0.  * Units.degrees
     configs.append(config)
     
   
@@ -596,7 +598,8 @@ def configs_setup(vehicle):
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
     config.tag = 'vertical_transition'   
-    config.networks.battery_propeller.pitch_command            = 3. * Units.degrees 
+    for rotor in config.networks.battery_propeller.lift_rotors:  
+        rotor.inputs.pitch_command                     = 3.  * Units.degrees
     configs.append(config)
       
       
@@ -605,7 +608,8 @@ def configs_setup(vehicle):
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
     config.tag = 'descent_transition'   
-    config.networks.battery_propeller.pitch_command            = 3. * Units.degrees 
+    for rotor in config.networks.battery_propeller.lift_rotors:  
+        rotor.inputs.pitch_command                     = 3.  * Units.degrees
     configs.append(config)
   
     
@@ -614,7 +618,8 @@ def configs_setup(vehicle):
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
     config.tag = 'climb'   
-    config.networks.battery_propeller.pitch_command            = 2. * Units.degrees 
+    for rotor in config.networks.battery_propeller.lift_rotors:  
+        rotor.inputs.pitch_command                     =2.  * Units.degrees
     configs.append(config) 
     
     # ------------------------------------------------------------------
@@ -622,7 +627,8 @@ def configs_setup(vehicle):
     # ------------------------------------------------------------------
     config = SUAVE.Components.Configs.Config(base_config)
     config.tag = 'cruise'   
-    config.networks.battery_propeller.pitch_command            = 5. * Units.degrees # 5 closest
+    for rotor in config.networks.battery_propeller.lift_rotors:  
+        rotor.inputs.pitch_command                     = 5.  * Units.degrees
     configs.append(config)     
     
     return configs
