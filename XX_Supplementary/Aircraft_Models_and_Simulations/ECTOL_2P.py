@@ -46,9 +46,9 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = False
-    control_points   = 5
-    N_gm_x           = 3 # 10
-    N_gm_y           = 3 # 5
+    control_points   = 20
+    N_gm_x           = 20
+    N_gm_y           = 5
 
     #run_noise_model   = False 
     #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
@@ -118,7 +118,7 @@ def run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve
                       plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM = np.linspace(1E-1,0.5*Units.nmi,3)    
+    Y_LIM        = np.linspace(1E-6,0.5*Units.nmi,3) 
     end_distance = aircraft_range/((N_gm_x-2)*2)
     X_LIM = np.linspace(-end_distance+1E1,aircraft_range + end_distance+1E1,3)            
 
@@ -167,7 +167,7 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
                       plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM        = np.linspace(1E-6,0.5*Units.nmi,3)     
+    Y_LIM        = np.linspace(1E-6,0.5*Units.nmi,3) 
     X_LIM        = np.linspace(1E-3, 3.92 *Units.nmi,3)              
 
     ti                = time.time() 

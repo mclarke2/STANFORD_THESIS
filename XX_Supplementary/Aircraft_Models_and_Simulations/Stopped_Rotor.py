@@ -179,7 +179,7 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM = np.linspace(1E-3,5*Units.nmi,3)       
+    Y_LIM = np.linspace(1E-6,0.5*Units.nmi,3)     
     X_LIM = np.linspace(0, 5.79*Units.nmi,3)            
     
     ti                = time.time() 
@@ -228,7 +228,7 @@ def run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    min_y = -0.25*Units.nmi
+    min_y = 1E-3 
     max_y = 0.25*Units.nmi
     min_x = -0.25*Units.nmi
     max_x = 0.25*Units.nmi

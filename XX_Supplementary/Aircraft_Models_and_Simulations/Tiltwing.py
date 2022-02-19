@@ -222,7 +222,7 @@ def run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segm
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    min_y = -0.25*Units.nmi
+    min_y = 1E-3 
     max_y = 0.25*Units.nmi
     min_x = -0.25*Units.nmi
     max_x = 0.25*Units.nmi

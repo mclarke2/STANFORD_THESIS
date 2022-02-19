@@ -22,8 +22,8 @@ from ECTOL_2P import  missions_setup , base_analysis , vehicle_setup , analyses_
 def main():
     
     time0            = time.time()   
-    simulated_days   = 8
-    flights_per_day  = 365 
+    simulated_days   = 2 # 365 
+    flights_per_day  = 4
     aircraft_range   = 70 *Units.nmi
     flight_segments  = 10
     reserve_segment  = False  
