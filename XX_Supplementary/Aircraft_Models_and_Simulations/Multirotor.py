@@ -7,6 +7,7 @@ import SUAVE
 from SUAVE.Core import Units, Data  
 import pickle
 import time 
+import os
 from copy import deepcopy
 from SUAVE.Plots.Performance.Mission_Plots import *  
 from SUAVE.Plots.Geometry  import *  
@@ -460,12 +461,15 @@ def vehicle_setup():
     rotor.design_Cl              = 0.7
     rotor.design_altitude        = 1000 * Units.feet                   
     rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
-    rotor.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
-    rotor.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator 
+    rotor.airfoil_geometry         =  [ rel_path + '../Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars           = [[ rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                        rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                        rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                        rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                        rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
     rotor.airfoil_polar_stations = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]      
     rotor.variable_pitch         = True 
     rotor                        = propeller_design(rotor)     

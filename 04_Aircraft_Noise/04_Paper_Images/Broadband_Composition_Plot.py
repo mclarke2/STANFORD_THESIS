@@ -5,17 +5,13 @@ from SUAVE.Core import Units , Data
 import numpy as np 
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm   
-import matplotlib.colors as colors  
-from mpl_toolkits.mplot3d import Axes3D  
 import numpy as np
+from scipy import interpolate
     
 # ----------------------------------------------------------------------
 #   Main
 # ---------------------------------------------------------------------- 
 def main():
-    
-
-    # Add to rotor definition  
 
     plt.rcParams['axes.linewidth'] = 2.
     plt.rcParams["font.family"] = "Times New Roman"
@@ -26,18 +22,22 @@ def main():
                   'axes.titlesize': 32}
     plt.rcParams.update(parameters)
     PP                  = Data()
-    PP.line_width       = 2
-    PP.line_styles      = ['--',':','-.']
-    PP.figure_width     = 10
-    PP.figure_height    = 7
+    PP.line_width       = 3
+    PP.line_styles      = ['--','--','--']
+    PP.figure_width     = 8
+    PP.figure_height    = 8
     PP.marker_size      = 10
     PP.legend_font_size = 20
     PP.plot_grid        = True  
-    PP.colors           = cm.jet(np.linspace(0,1,6))    
+    PP.colors  = ['darkred','firebrick','red','darkblue','green','darkorange']
+    
+    
+    PD = load_data() 
     
     
     raw_plot_data = load_data()
     PD =  data_interpolation(raw_plot_data)
+
     # ------------------------------------------------------------------
     #   Twist Distribition
     # ------------------------------------------------------------------
@@ -45,20 +45,23 @@ def main():
     fig_1 = plt.figure(fig_1_name)
     fig_1.set_size_inches(PP.figure_width,PP.figure_height)
     axis_1 = fig_1.add_subplot(1,1,1)
-    axis_1.plot(PD.frequency,PD.BTE       , color = PP.colors[0], linestyle = '-', linewidth = 3, label = "BTE"       )
-    axis_1.plot(PD.frequency,PD.TIP       , color = PP.colors[1], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "TIP"       )
-    axis_1.plot(PD.frequency,PD.LBL_VS    , color = PP.colors[2], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "LBL-VS"    )
-    axis_1.plot(PD.frequency,PD.TBL_TE    , color = PP.colors[3], linestyle = PP.line_styles[0], linewidth = PP.line_width, label = "TBL-TE"    )
-    axis_1.plot(PD.frequency,PD.BWI       , color = PP.colors[4], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "BWI"       )
-    axis_1.plot(PD.frequency,PD.BVI       , color = PP.colors[5], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "BVI"       )
-    axis_1.plot(PD.frequency,PD.Total_pred, color = 'gray' , linestyle = '-', linewidth = 3 , label = "Total pred")
-    axis_1.plot(PD.frequency,PD.Measured  , color = 'black', linestyle = '-', linewidth = 3 , label = "Measured"  ) 
+    axis_1.plot(PD.frequency,PD.BTE       ,color = PP.colors[0], linestyle = PP.line_styles[0], linewidth = PP.line_width, label = "BTE"       )
+    axis_1.plot(PD.frequency,PD.TIP       ,color = PP.colors[1], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "TIP"       )
+    axis_1.plot(PD.frequency,PD.LBL_VS    ,color = PP.colors[2], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "LBL-VS"    )
+    axis_1.plot(PD.frequency,PD.TBL_TE    ,color = PP.colors[3], linestyle = PP.line_styles[0], linewidth = PP.line_width, label = "TBL-TE"    )
+    axis_1.plot(PD.frequency,PD.BWI       ,color = PP.colors[4], linestyle = PP.line_styles[1], linewidth = PP.line_width, label = "BWI"       )
+    axis_1.plot(PD.frequency,PD.BVI       ,color = PP.colors[5], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = "BVI"       )
+    axis_1.plot(PD.frequency,PD.Total_pred,color = 'gray' , linestyle = '-', linewidth = 4 , label = "Total pred.")
+    axis_1.plot(PD.frequency,PD.Measured  ,color = 'black', linestyle = '-', linewidth = 5 , label = "Measured"  ) 
     axis_1.set_ylabel('SPL (dB)') 
     axis_1.set_xlabel('Frequency (kHz)')    
+    axis_1.legend(loc='upper right')
     axis_1.minorticks_on()   
-     
+    axis_1.set_ylim(0,100)  
+    axis_1.set_xlim(0.1,15)    
     fig_1.tight_layout()  
-    fig_1.savefig(fig_1_name  + '.pdf')        
+    fig_1.savefig(fig_1_name  + '.pdf')    
+    
      
     return  
 
@@ -67,14 +70,14 @@ def data_interpolation(raw_data):
     
     frequency = np.linspace(0,20,100)   
     
-    func_BTE         = np.interp1d(raw_data.BTE       [:,0] ,raw_data.BTE       [:,1] ,kind = 'cubic')    
-    func_TIP         = np.interp1d(raw_data.TIP       [:,0] ,raw_data.TIP       [:,1] ,kind = 'cubic')
-    func_LBL_VS      = np.interp1d(raw_data.LBL_VS    [:,0] ,raw_data.LBL_VS    [:,1] ,kind = 'cubic')
-    func_TBL_TE      = np.interp1d(raw_data.TBL_TE    [:,0] ,raw_data.TBL_TE    [:,1] ,kind = 'cubic')
-    func_BWI         = np.interp1d(raw_data.BWI       [:,0] ,raw_data.BWI       [:,1] ,kind = 'cubic')
-    func_BVI         = np.interp1d(raw_data.BVI       [:,0] ,raw_data.BVI       [:,1] ,kind = 'cubic')
-    func_Total_pred  = np.interp1d(raw_data.Total_pred[:,0] ,raw_data.Total_pred[:,1] ,kind = 'cubic')
-    func_Measured    = np.interp1d(raw_data.Measured  [:,0] ,raw_data.Measured  [:,1] ,kind = 'cubic') 
+    func_BTE         = interpolate.interp1d(raw_data.BTE[:,0] ,raw_data.BTE[:,1]               ,kind = 'cubic', fill_value = "extrapolate")    
+    func_TIP         = interpolate.interp1d(raw_data.TIP[:,0] ,raw_data.TIP[:,1]               ,kind = 'cubic', fill_value = "extrapolate")
+    func_LBL_VS      = interpolate.interp1d(raw_data.LBL_VS[:,0] ,raw_data.LBL_VS[:,1]         ,kind = 'cubic', fill_value = "extrapolate")
+    func_TBL_TE      = interpolate.interp1d(raw_data.TBL_TE[:,0] ,raw_data.TBL_TE[:,1]         ,kind = 'cubic', fill_value = "extrapolate")
+    func_BWI         = interpolate.interp1d(raw_data.BWI[:,0] ,raw_data.BWI[:,1]               ,kind = 'cubic', fill_value = "extrapolate")
+    func_BVI         = interpolate.interp1d(raw_data.BVI[:,0] ,raw_data.BVI[:,1]               ,kind = 'cubic', fill_value = "extrapolate")
+    func_Total_pred  = interpolate.interp1d(raw_data.Total_pred[:,0] ,raw_data.Total_pred[:,1] ,kind = 'cubic', fill_value = "extrapolate")
+    func_Measured    = interpolate.interp1d(raw_data.Measured[:,0] ,raw_data.Measured[:,1]     ,kind = 'cubic', fill_value = "extrapolate") 
     
     
     processed_BTE        = func_BTE(frequency)
@@ -200,12 +203,11 @@ def load_data():
                     [3.6515912897822442, 33.8513781026343],
                     [4.1206030150753765, 36.5829145728643],
                     [4.589614740368509, 19.67808740673062],
-                    [4.824120603015076, 13.86203746002740],
-                    [4.824120603015076, 17.49840109639103],
+                    [4.824120603015076, 13.86203746002740], 
                     [5.125628140703518, 19.86477843764277],
                     [5.226130653266332, 13.86569209684788],
                     [5.494137353433836, 22.59540124866757],
-                    [5.59463986599665, 0.9599512715090555]])
+                    [5.59463986599665 , 0.9599512715090555]])
 
 
     Total_pred = np.array([[0.16750418760468966, 96.183340947160],

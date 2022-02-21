@@ -75,16 +75,21 @@ def main():
     plot_parameters.Rlc              = ['mediumblue','blue','cyan']   # Ref_Code_line_colors     
     plot_parameters.Rlm              = 'o'                            # Ref_Code_line_markers    
     plot_parameters.Rls              = '--'                           # Ref_Code_line_styles     
-     
+
+    ti                = time.time()      
     
     #Harmonic_Spectrum_Shape_Sensitivity(plot_parameters)
     #Harmonic_Stength_Validation(plot_parameters)
     #Harmonic_Directivty_Validation(plot_parameters) 
     #Broadband_Spectrum_Validation(plot_parameters) 
     #Broadband_Spectrum_Shape_Sensitivity(plot_parameters) 
-    Broadband_Noise_Validation(plot_parameters)
+    #Broadband_Noise_Validation(plot_parameters)
     #High_Fidelity_Validation_1(plot_parameters) 
-    #High_Fidelity_Validation_2(plot_parameters) 
+    High_Fidelity_Validation_2(plot_parameters) 
+    
+
+    tf = time.time() 
+    print ('time taken: '+ str(round(((tf-ti)),3)) + ' sec')        
     return 
 
 

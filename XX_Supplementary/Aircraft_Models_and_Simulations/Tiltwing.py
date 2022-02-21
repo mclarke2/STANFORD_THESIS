@@ -19,6 +19,7 @@ from SUAVE.Methods.Noise.Fidelity_One.Noise_Tools.generate_microphone_points imp
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_planform import wing_planform
 from copy import deepcopy
 import numpy as np
+import os
 import pylab as plt 
 import pickle 
 import time  
@@ -574,12 +575,15 @@ def vehicle_setup():
     prop.design_Cl                = 0.7
     prop.design_altitude          = 500 * Units.feet                   
     prop.design_thrust            = Lift/(net.number_of_propeller_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
-    prop.airfoil_geometry         =  [ '../Airfoils/NACA_4412.txt']
-    prop.airfoil_polars           = [[ '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
-                                        '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
+    ospath    = os.path.abspath(__file__)
+    separator = os.path.sep
+    rel_path  = os.path.dirname(ospath) + separator 
+    prop.airfoil_geometry         =  [ rel_path + '../Airfoils/NACA_4412.txt']
+    prop.airfoil_polars           = [[ rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                                       rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                                       rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                                       rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                                       rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
     prop.airfoil_polar_stations   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     prop                          = propeller_design(prop)   
     prop.variable_pitch           = True 

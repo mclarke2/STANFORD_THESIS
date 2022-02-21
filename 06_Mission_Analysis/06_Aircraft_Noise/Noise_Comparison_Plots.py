@@ -27,8 +27,8 @@ def main():
     plot_parameters                  = Data()
     plot_parameters.line_width       = 3
     plot_parameters.line_style       = ['-','--']
-    plot_parameters.figure_width     = 10 
-    plot_parameters.figure_height    = 7 
+    plot_parameters.figure_width     = 12 
+    plot_parameters.figure_height    = 10 
     plot_parameters.marker_size      = 10 
     plot_parameters.legend_font_size = 20 
     plot_parameters.plot_grid        = True   
@@ -40,14 +40,14 @@ def main():
      
 
     fig = plt.figure("Flight_Conditions_Noise")
-    fig.set_size_inches(plot_parameters.figure_width,plot_parameters.figure_height)
+    fig.set_size_inches(10,7)
     axes = fig.add_subplot(1,1,1)   
-    axes.set_ylim(40,80)   
+    axes.set_ylim(30,75)   
     axes.set_ylabel('SPL$_{Amax}$ (dBA)')  
     axes.set_xlabel(r'$\hat{t}$') 
     axes.minorticks_on()   
      
-    N_gm_x = 15 # 12
+    N_gm_x = 20 # 12
     N_gm_y = 5 # 4
     header =  '../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
     
@@ -93,7 +93,7 @@ def main():
         sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name = 'SR')
         sr_hover_results           = process_results(sr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name    = 'SR')
         plot_results(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'SR')    
-        plot_aircraft_hover_noise_contours(sr_hover_results,plot_parameters,vehicle_name = 'SR') 
+        #plot_aircraft_hover_noise_contours(sr_hover_results,plot_parameters,vehicle_name = 'SR') 
         plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name = 'SR') 
      
     if plot_TW_results:
@@ -113,7 +113,7 @@ def main():
         tw_noise_res_Q4            = process_results(tw_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'TW')
         tw_hover_results           = process_results(tw_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'TW')
         plot_results(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,axes,plot_parameters,vehicle_name = 'TW')    
-        plot_aircraft_hover_noise_contours(tw_hover_results,plot_parameters,vehicle_name = 'TW')
+        #plot_aircraft_hover_noise_contours(tw_hover_results,plot_parameters,vehicle_name = 'TW')
         plot_flight_profile_noise_contours(2,tw_noise_res_Q1,tw_noise_res_Q2, tw_noise_res_Q3,tw_noise_res_Q4,plot_parameters,vehicle_name = 'TW') 
     
      
@@ -134,7 +134,7 @@ def main():
         mr_noise_res_Q4            = process_results(mr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name  = 'MR')
         mr_hover_results           = process_results(mr_hover_results_raw,N_gm_x ,N_gm_y,vehicle_name     = 'MR') 
         plot_results(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,axes,plot_parameters,vehicle_name = 'MR')  
-        plot_aircraft_hover_noise_contours(mr_hover_results,plot_parameters,vehicle_name = 'MR') 
+        #plot_aircraft_hover_noise_contours(mr_hover_results,plot_parameters,vehicle_name = 'MR') 
         plot_flight_profile_noise_contours(3,mr_noise_res_Q1,mr_noise_res_Q2, mr_noise_res_Q3,mr_noise_res_Q4,plot_parameters,vehicle_name = 'MR') 
     
       
@@ -233,11 +233,10 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
           
     # figure parameters
     filename      = 'Noise_Contour' + vehicle_name
-    fig           = plt.figure(filename) 
-    fig.set_size_inches(PP.figure_width ,PP.figure_height)   
-
-
     
+    
+    fig           = plt.figure(filename) 
+    fig.set_size_inches(PP.figure_width ,PP.figure_height)    
     gs            = gridspec.GridSpec(8, 8)
     axes_21       = fig.add_subplot(gs[2:,:]) # contour 
     axes_22       = fig.add_subplot(gs[:2,:]) # altitude 
@@ -273,12 +272,11 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     Range_x    = gm_mic_loc[:,0,0]/Units.nmi
     Range_y    = gm_mic_loc[0,:,1]/Units.nmi 
     Y, X       = np.meshgrid(Range_y, Range_x)
-    levs       = np.linspace(40,80,17)    
+    levs       = np.linspace(30,80,11)    
     
     # post processing 
-    #aircraft_SPL = np.nan_to_num(aircraft_SPL) #  CONVERT NANs TO NUMS
     max_SPL    = np.max(aircraft_SPL,axis=0)   
-    #max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=1.5, order=0) # SMOOTHING 
+    #max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=0.5, order=0) # SMOOTHING 
     
     CS         = axes_21.contourf(X , Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both') 
     CS         = axes_21.contourf(X ,-Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both')
@@ -295,8 +293,7 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
     plt.axis('off')	
     plt.grid(None)      
-    
-   # gs.tight_layout(fig,rect= [0.05,0.05,1,1])
+     
     plt.savefig(filename + '.pdf')    
     return 
   

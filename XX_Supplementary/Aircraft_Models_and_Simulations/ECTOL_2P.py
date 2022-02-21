@@ -54,11 +54,12 @@ def main():
     #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                      #plot_geometry,recharge_battery,run_analysis,plot_mission,
                      #control_points,N_gm_x,N_gm_y)
+                     
  
-    run_noise_model   = True 
-    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)
+    #run_noise_model   = True 
+    #run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y)
     
     
 
@@ -66,6 +67,13 @@ def main():
     #run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       #plot_geometry,recharge_battery,run_analysis,plot_mission,
                       #control_points,N_gm_x,N_gm_y)    
+                 
+    run_noise_model   = False 
+    reserve_segment   = True 
+    run_full_mission_with_reserve(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y)
+                                      
     return 
 
 
@@ -113,6 +121,47 @@ def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segme
     print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
 
     return 
+
+def run_full_mission_with_reserve(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y):  
+
+    min_y             = 1E-1
+    max_y             = 0.25*Units.nmi
+    min_x             = 1E-1
+    max_x             = aircraft_range 
+
+    ti                = time.time() 
+    vehicle           = vehicle_setup()
+    #write(vehicle,"ECTOL") 
+    configs           = configs_setup(vehicle) 
+    configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model) 
+    base_mission      = full_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery)
+    missions_analyses = missions_setup(base_mission) 
+    analyses          = SUAVE.Analyses.Analysis.Container()
+    analyses.configs  = configs_analyses
+    analyses.missions = missions_analyses 
+    configs.finalize()
+    analyses.finalize()      
+    mission           = analyses.missions.base
+    mission_results   = mission.evaluate()   
+    filename          = 'ECTOL_Full_Mission_Reserve' 
+    save_results(mission_results,filename)    
+
+    # plot geoemtry 
+    if plot_geometry: 
+        plot_vehicle(configs.base, elevation_angle = 90,azimuthal_angle =  180,axis_limits =8,plot_control_points = False)       
+
+    if plot_mission: 
+        plot_results(mission_results,run_noise_model)   
+
+    tf = time.time() 
+    print ('time taken: '+ str(round(((tf-ti)/60),3)) + ' mins')     
+    elapsed_range = mission_results.segments[-1].conditions.frames.inertial.position_vector[-1,0] 
+    print('Range : ' + str(round(elapsed_range,2)) + ' m  or ' + str(round(elapsed_range/Units.nmi,2)) + ' nmi')
+
+    return 
+
 
 def run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       plot_geometry,recharge_battery,run_analysis,plot_mission,

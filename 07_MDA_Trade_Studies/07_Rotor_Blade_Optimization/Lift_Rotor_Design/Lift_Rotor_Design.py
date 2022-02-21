@@ -31,7 +31,7 @@ def main():
 
     alpha_weights                      = np.linspace(0.0,1.0,21)
     plot_rotor_geomery_and_performance = False  
-    use_pyoptsparse                    = False 
+    use_pyoptsparse                    = False
     SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
     #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,plot_parameters)
@@ -61,16 +61,18 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         # DEFINE ROTOR OPERATING CONDITIONS 
         rotor                            = Lift_Rotor()
         rotor.tag                        = 'lift_rotor'
+        
+    
         rotor.tip_radius                 = 1.15
-        rotor.hub_radius                 = 0.15 * rotor.tip_radius
+        rotor.hub_radius                 = 0.1 * rotor.tip_radius  
         rotor.number_of_blades           = 3
-        rotor.design_tip_mach            = 0.65     
+        rotor.design_tip_mach            = 0.65   
         rotor.inflow_ratio               = 0.06 
         rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
-        rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius  
-        rotor.design_altitude            = 20 * Units.feet   
-        Hover_Load                       = 2700*9.81      # hover load   
-        rotor.design_thrust              = Hover_Load/(12-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+        rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
+        rotor.design_Cl                  = 0.7
+        rotor.design_altitude            = 20 * Units.feet                     
+        rotor.design_thrust              = (2700*9.81)/(12-2)
         rotor.variable_pitch             = True   
         rotor.airfoil_geometry           = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
         rotor.airfoil_polars             = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -86,7 +88,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         opt_params.aeroacoustic_weight   = alpha_weights[i]   # 1 means only perfomrance optimization 0.5 to weight noise equally
         
         # DESING ROTOR 
-        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
+        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=200,use_pyoptsparse=use_pyoptsparse_flag)  
       
         # save rotor geomtry
         opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
@@ -499,9 +501,9 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 # ------------------------------------------------------------------ 
 def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,PP):    
      
-    PP.colors         = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
-    design_thrust     = (2700*9.81/(12-2))     
-    optimizer         = 'SLSQP'
+    PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
+    design_thrust        = (2700*9.81/(12-2))     
+    optimizer            = 'SLSQP'
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator  
@@ -529,20 +531,20 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,PP):
     for idx in range(len(alpha_weights) + 1):   
         rotor_flag = True
         if idx == 0: 
-            rotor_file_name  = 'Rotor_T_' + str(int(design_thrust)) + '_AL' 
+            rotor_file_name  =  rel_path +  'Data' + separator + 'Rotor_T_' + str(int(design_thrust)) + '_AL' 
             rotor_tag        = 'T:' + str(int(design_thrust)) + 'A.& L.'
-            rotor_name       = rel_path + 'SR_Rotor' + separator +  'Adkins & Liebeck'
+            rotor_name       = 'Adkins & Liebeck'
             rotor            = load_blade_geometry(rotor_file_name)            
         else:
             # save rotor geomtry
             alpha_opt_weight = str(alpha_weights[idx-1])
             alpha_opt_weight = alpha_opt_weight.replace('.','_')     
-            rotor_file_name  =  rel_path +  'SR_Rotor' + separator +  'Rotor_T_' + str(int(rotor.design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
+            rotor_file_name  =  rel_path +  'Data' + separator +  'Rotor_T_' + str(int(rotor.design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
+            rotor_tag   = 'T:' + str(int(design_thrust)) + r', $\alpha$' + str(alpha_weights[idx-1])
+            rotor_name  = r'$\alpha$ = ' + str(alpha_weights[idx-1]) 
             try: 
                 rotor       = load_blade_geometry(rotor_file_name)
                 rotor_flag  = True 
-                rotor_tag   = 'T:' + str(int(design_thrust)) + r', $\alpha$' + str(alpha_weights[idx-1])
-                rotor_name  = r'$\alpha$ = ' + str(alpha_weights[idx-1]) 
             except: 
                 rotor_flag  = False  
         
@@ -818,7 +820,7 @@ def propeller_geoemtry_comparison_plots(rotor,outputs,AXES,color,PP,idx,label_na
                 linewidth  = PP.line_width,
                 markersize = PP.marker_size,
                 label      = label_name) 
-    axis_4.scatter(rotor.design_power/1E6, rotor.design_SPL_dBA,
+    axis_4.scatter(rotor.design_power/1E3, rotor.design_SPL_dBA,
                    color  = color,
                    marker = 'o',
                    s      = 150,
@@ -885,7 +887,7 @@ def set_up_axes(PP,design_thrust):
     fig_4 = plt.figure(fig_4_name)     
     fig_4.set_size_inches(PP.figure_width,PP.figure_height) 
     axis_4 = fig_4.add_subplot(1,1,1)  
-    axis_4.set_xlabel('Power (MW)') 
+    axis_4.set_xlabel('Power (kW)') 
     axis_4.set_ylabel('SPL (dBA)')    
     axis_4.minorticks_on()  
     

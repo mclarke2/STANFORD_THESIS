@@ -25,9 +25,9 @@ def main():
                   'axes.titlesize': 32}
     plt.rcParams.update(parameters)
     plot_parameters                  = Data()
-    plot_parameters.line_width       = 2 
+    plot_parameters.line_width       = 3 
     plot_parameters.line_style       = ['-','--']
-    plot_parameters.figure_width     = 10 
+    plot_parameters.figure_width     = 12 
     plot_parameters.figure_height    = 7 
     plot_parameters.marker_size      = 10 
     plot_parameters.legend_font_size = 20 
@@ -40,31 +40,38 @@ def main():
     plot_parameters.legend_font      = 20                             # legend_font_size       
     plot_parameters.marker_size      = 14   
      
-     
-     
-    N_gm_x              = 8 # 12
-    N_gm_y              = 3 # 4
-    ## ../Supplementary/ 
+    header =  '../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
     
-    # ECTOL
-    ectol_full_mission_filename   = 'ECTOL_Full_Mission'
-    ectol_full_mission_results_raw= load_results(ectol_full_mission_filename)
-    ectol_full_res                = process_results(ectol_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'ECTOL', noise_analysis = False)
- 
-    # STOPPED ROTOR
-    sr_full_mission_filename   = 'Stopped_Rotor_Full_Mission'
-    sr_full_mission_results_raw= load_results(sr_full_mission_filename)
-    sr_full_res                = process_results(sr_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'SR', noise_analysis = False)
+
+    plot_ECTOL_results = False
+    plot_SR_results    = False
+    plot_TW_results    = False
+    plot_MR_results    = False
+    
+    
+    if plot_ECTOL_results:
+        # ECTOL
+        ectol_full_mission_filename   =  header +'ECTOL_Full_Mission'
+        ectol_full_mission_results_raw= load_results(ectol_full_mission_filename)
+        ectol_full_res                = process_results(ectol_full_mission_results_raw,vehicle_name = 'ECTOL' )
+    
+    if plot_SR_results :
+        # STOPPED ROTOR
+        sr_full_mission_filename   =  header +'Stopped_Rotor_Full_Mission'
+        sr_full_mission_results_raw= load_results(sr_full_mission_filename)
+        sr_full_res                = process_results(sr_full_mission_results_raw,vehicle_name = 'SR' )
+    
+    if plot_TW_results:
+        # TILTWING
+        tw_full_mission_filename   =  header +'Tiltwing_Full_Mission'
+        tw_full_mission_results_raw= load_results(tw_full_mission_filename)
+        tw_full_res                = process_results(tw_full_mission_results_raw,vehicle_name = 'TW' )
      
-    # TILTWING
-    tw_full_mission_filename   = 'Tiltwing_Full_Mission'
-    tw_full_mission_results_raw= load_results(tw_full_mission_filename)
-    tw_full_res                = process_results(tw_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'TW', noise_analysis = False)
-     
-    # MULTIROTOR
-    mr_full_mission_filename   = 'Multirotor_Full_Mission'
-    mr_full_mission_results_raw= load_results(mr_full_mission_filename)
-    mr_full_res                = process_results(mr_full_mission_results_raw,N_gm_x ,N_gm_y,vehicle_name = 'MR', noise_analysis = False)
+    if plot_MR_results :
+        # MULTIROTOR
+        mr_full_mission_filename   =  header +'Multirotor_Full_Mission'
+        mr_full_mission_results_raw= load_results(mr_full_mission_filename)
+        mr_full_res                = process_results(mr_full_mission_results_raw,vehicle_name = 'MR' )
      
      
      
@@ -103,7 +110,7 @@ def main():
     axes_12.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})    
     axes_13.legend(loc='upper center', ncol= 5, prop={'size': plot_parameters.legend_font})
     axes_21.legend(loc='upper center', ncol= 5, prop={'size': plot_parameters.legend_font})
-    axes_14.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})
+    axes_14.legend(loc='upper right', ncol= 4, prop={'size': plot_parameters.legend_font})
     axes_15.legend(loc='upper center', ncol=  5 , prop={'size': plot_parameters.legend_font})    
     axes_16.legend(loc='upper center', ncol=  5 , prop={'size': plot_parameters.legend_font})  
     axes_17.legend(loc='upper center', ncol=  5 , prop={'size': plot_parameters.legend_font}) 
@@ -111,15 +118,45 @@ def main():
     axes_19.legend(loc='upper center', ncol=  5, prop={'size':  plot_parameters.legend_font})   
     axes_20.legend(loc='upper center', ncol=  5 , prop={'size': plot_parameters.legend_font}) 
 
+    fig_1.tight_layout()
+    fig_2.tight_layout()
+    fig_4.tight_layout()
+    fig_5.tight_layout()
+    fig_6.tight_layout()
+    fig_7.tight_layout()
+    fig_8.tight_layout()
+    fig_9.tight_layout()
+    fig_21.tight_layout()
+    fig_10.tight_layout()
+    fig_11.tight_layout()
+    fig_12.tight_layout()
+    fig_13.tight_layout()
+    fig_14.tight_layout()
+    fig_15.tight_layout() 
+    fig_16.tight_layout()
+    fig_17.tight_layout()
+    fig_18.tight_layout()
+    fig_19.tight_layout()
+    fig_20.tight_layout()
+    
+    
     save_figures(fig_1,fig_2,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
                      fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
-                     fig_17,fig_18,fig_19,fig_20)    
+                     fig_17,fig_18,fig_19,fig_20)  
+    
+    
+    
+    ectol_reserve_full_mission_filename    =  header +'ECTOL_Full_Mission_Reserve'
+    ectol_reserve_full_mission_results_raw = load_results(ectol_reserve_full_mission_filename)
+    ectol_reserve_full_res                 = process_results(ectol_reserve_full_mission_results_raw,vehicle_name = 'ECTOL' ) 
+    plot_reserve_mission_results(ectol_reserve_full_res)
+    
     return
  
 # ------------------------------------------------------------------
 # Process Results 
 # ------------------------------------------------------------------
-def process_results(res,N_gm_x ,N_gm_y,vehicle_name,noise_analysis):
+def process_results(res,vehicle_name ):
     '''This function cleans up the data and connects segments for plots ''' 
 
     num_ctrl_pts   = len(res.segments[0].conditions.frames.inertial.time[:,0] )
@@ -161,18 +198,13 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name,noise_analysis):
     PD.effp            = np.zeros(data_dimension)
     PD.effm            = np.zeros(data_dimension)
     PD.tm              = np.zeros(data_dimension)  
-    PD.time_normalized = np.zeros(data_dimension)   
+    PD.time_normalized = np.zeros(data_dimension)    
+    PD.power           = np.zeros(data_dimension) 
     PD.DL_prop         = np.zeros(data_dimension)
     PD.DL_rot          = np.zeros(data_dimension) 
     PD.PL_prop         = np.zeros(data_dimension) 
-    PD.PL_rot          = np.zeros(data_dimension) 
+    PD.PL_rot          = np.zeros(data_dimension)  
     
-    if noise_analysis:
-        PD.num_gm       = res.segments[0].conditions.noise.number_ground_microphones 
-        PD.gm_mic_loc   = res.segments[0].analyses.noise.settings.ground_microphone_locations 
-        PD.SPL_contour  = np.zeros((data_dimension,N_gm_x*N_gm_y))
-        PD.N_gm_x       = N_gm_x  
-        PD.N_gm_y       = N_gm_y  
     PD.aircraft_pos =  np.zeros((data_dimension,3)) 
     dim_segs        = len(res.segments)    
     PD.num_segments = dim_segs
@@ -191,13 +223,12 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name,noise_analysis):
         eta             = res.segments[i].conditions.propulsion.throttle[:,0]  
         energy          = res.segments[i].conditions.propulsion.battery_energy[:,0]*0.000277778 
         volts           = res.segments[i].conditions.propulsion.battery_voltage_under_load[:,0] 
-        volts_oc        = res.segments[i].conditions.propulsion.battery_voltage_open_circuit[:,0]   
+        volts_oc        = res.segments[i].conditions.propulsion.battery_voltage_open_circuit[:,0]
+        power           = res.segments[i].conditions.propulsion.battery_power_draw [:,0]
         pack_temp       = res.segments[i].conditions.propulsion.battery_pack_temperature[:,0] 
         current         = res.segments[i].conditions.propulsion.battery_current[:,0]      
         battery_amp_hr  = (energy)/volts 
-        C_rating        = current /battery_amp_hr   
-        if noise_analysis:
-            SPL_contour     = res.segments[i].conditions.noise.total_SPL_dBA   
+        C_rating        = current /battery_amp_hr    
         pos             = res.segments[i].conditions.frames.inertial.position_vector   
         
         
@@ -212,13 +243,12 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name,noise_analysis):
         PD.eta[i*num_ctrl_pts:(i+1)*num_ctrl_pts]             = eta            
         PD.energy[i*num_ctrl_pts:(i+1)*num_ctrl_pts]          = energy   
         PD.pack_temp[i*num_ctrl_pts:(i+1)*num_ctrl_pts]       = pack_temp
+        PD.power[i*num_ctrl_pts:(i+1)*num_ctrl_pts]           = power
         PD.volts[i*num_ctrl_pts:(i+1)*num_ctrl_pts]           = volts          
         PD.volts_oc[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = volts_oc       
         PD.current[i*num_ctrl_pts:(i+1)*num_ctrl_pts]         = current        
         PD.battery_amp_hr[i*num_ctrl_pts:(i+1)*num_ctrl_pts]  = battery_amp_hr 
-        PD.C_rating[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = C_rating     
-        if noise_analysis:
-            PD.SPL_contour[i*num_ctrl_pts:(i+1)*num_ctrl_pts,:]   = SPL_contour   
+        PD.C_rating[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = C_rating        
         PD.aircraft_pos[i*num_ctrl_pts:(i+1)*num_ctrl_pts,:]  = pos        
         
         if vehicle_name == 'SR':
@@ -278,125 +308,14 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name,noise_analysis):
             PD.PL_prop[i*num_ctrl_pts:(i+1)*num_ctrl_pts]         =  PL_prop 
             
     return PD
-
-# ------------------------------------------------------------------
-# Plot Aircraft Hover Noise Contours at 500 ft
-# ------------------------------------------------------------------
-def plot_aircraft_hover_noise_contours(res,vehicle_name): 
-     
-    # unpack microphone array 
-
-    gm_N_x             = res.N_gm_x
-    gm_N_y             = res.N_gm_y   
-    gm_mic_loc         = res.gm_mic_loc 
-    dim_gm             = res.num_gm
-    Range              = np.zeros(dim_gm) 
-    Span               = np.zeros(dim_gm)     
-    Range              = gm_mic_loc[:,0].reshape(gm_N_x,gm_N_y)
-    Span               = gm_mic_loc[:,1].reshape(gm_N_x,gm_N_y) 
-    levs               = np.linspace(40,80,25)
-   
-    # ---------------------------------------------------------------------------
-    # Stopped-Rotor 
-    # --------------------------------------------------------------------------- 
-    SPL_contour_gm      = res.SPL_contour 
-    max_SPL_contour_gm  = np.max(SPL_contour_gm,axis=0)
-    SPL_gm              = max_SPL_contour_gm.reshape(gm_N_x,gm_N_y) 
-    fig_name               = 'Noise_Contour_500ft_' + vehicle_name
-    fig                 = plt.figure(fig_name )  
-    fig.set_size_inches(6, 6) 
-    axes                = fig.add_subplot(1,1,1)   
-    Range                  = Range/Units.nmi
-    Span                   = Span/Units.nmi
-    CS                     = axes.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both')     
-    cbar                   = fig.colorbar(CS)
-    cbar.ax.set_ylabel('SPL (dBA)', rotation =  90)     
-    axes.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
-    axes.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
-    axes.grid(False)  
-    axes.minorticks_on()   
-    plt.savefig(fig_name + 'pdf')
-    return  
-
-# ------------------------------------------------------------------
-# Plot Flight Profile Noise Contours 
-# ------------------------------------------------------------------
-def plot_flight_profile_noise_contours(res_Q1,res_Q2,res_Q3,res_Q4,line_width,ms,ls, col ,col2,vehicle_name,m,ls1, ls2):    
-    
-    line_width                     = 4
-    plt.rcParams['axes.linewidth'] = 4.
-    plt.rcParams["font.family"]    = "Times New Roman"
-    plt.rcParams.update({'font.size': 36}) 
-    ls            = 24 
-    ms            = 14   
-    figure_width  = 15
-    figure_height = 10     
-    
-    # figure parameters
-    filename = 'Noise_Contour' + vehicle_name
-    fig          = plt.figure(filename) 
-    fig.set_size_inches(figure_width ,figure_height)   
-     
-    gs = gridspec.GridSpec(8, 8)
-    axes_21 = fig.add_subplot(gs[2:,:]) # contour 
-    axes_22 = fig.add_subplot(gs[:2,:]) # altitude 
-      
-    #   Altitude  
-    axes_22.set_ylabel('Alt (ft)')  
-    axes_22.axes.xaxis.set_visible(False)
-    axes_22.plot(res_Q1.aircraft_pos[:,0]/Units.nmi,  -res_Q1.aircraft_pos[:,2]/Units.feet , color = col , linestyle = ls1, marker = m, markersize = ms , linewidth= line_width) 
-    
-    max_mi = np.max(res_Q1.aircraft_pos[:,0]/Units.nmi)
-    end_distance = max_mi/((res_Q1.N_gm_x-2)*2)
-    axes_22.set_xlim(-end_distance, max_mi+end_distance)   
-    axes_22.set_ylim(0, 3000)     
-    axes_22.minorticks_on()  
  
- 
-    res = [res_Q1,res_Q2,res_Q3,res_Q4]
-    
-    for Q_idx in range(len(res)): 
-        #   Noise     
-        N_gm_x              = res[Q_idx].N_gm_x
-        N_gm_y              = res[Q_idx].N_gm_y   
-        gm_mic_loc          = res[Q_idx].gm_mic_loc
-        Range               = gm_mic_loc[:,0].reshape(N_gm_x ,N_gm_y )
-        Span                = gm_mic_loc[:,1].reshape(N_gm_x ,N_gm_y ) 
-        SPL_contour         = res[Q_idx].SPL_contour
-        SPL_contour[SPL_contour>120] = 0
-        max_SPL_contour_gm  = np.max(SPL_contour,axis=0)
-        SPL_gm              = max_SPL_contour_gm.reshape(N_gm_x ,N_gm_y ) 
-        levs                = np.linspace(30,120,25)   # 9 is every 10 dB
-        Range               = Range/Units.nmi
-        Span                = Span/Units.nmi
-        CS                  = axes_21.contourf(Range , Span,SPL_gm, levels  = levs, cmap=plt.cm.jet, extend='both') 
-        CS                  = axes_21.contourf(Range ,-Span, SPL_gm, levels = levs, cmap=plt.cm.jet, extend='both')
-        
-    #xi, yi = np.meshgrid(np.linspace(np.min(Range),np.max(Range), 10),np.linspace(-np.max(Span),np.max(Span), 5) )
-    #axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
-    #axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
-        
-    fig.subplots_adjust(right=0.8)
-    axes_23 = fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
-    cbar    = fig.colorbar(CS, ax=axes_23)
-    cbar.ax.set_ylabel('SPL$_{Amax}$ (dBA)', rotation =  90)     
-    axes_21.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
-    axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
-    plt.axis('off')	
-    plt.grid(None)      
-    
-    plt.savefig(filename+'.pdf')
-    
-    return 
-  
-
 # ------------------------------------------------------------------ 
 # Plot Figures
 # ------------------------------------------------------------------ 
 def plot_results(res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
                  axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,PP,idx,vehicle_name):
    
-    line_width = PP.linewidth
+    line_width = PP.line_width
     ms         = PP.marker_size 
     col        = PP.colors[idx]
     col2       = PP.colors2[idx]
@@ -409,12 +328,12 @@ def plot_results(res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,ax
     # ------------------------------------------------------------------  
     axes_1.plot(res.time_normalized, res.altitude, color = col , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=vehicle_name)    
     axins_1.plot(res.time_normalized, res.altitude, color = col , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width )    
+  
     # ------------------------------------------------------------------
     #   Flight Conditions - Altitude 
     # ------------------------------------------------------------------ 
     axes_2.plot(res.time_normalized, res.range_nm, color = col , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=vehicle_name) 
    
-    
     
     # ------------------------------------------------------------------
     #   Flight Conditions - AoA 
@@ -615,7 +534,7 @@ def set_up_axes(figure_width,figure_height):
     axes_2 = fig_2.add_subplot(1,1,1)
     axes_2.set_ylabel('Range (nmi)')  
     axes_2.set_xlabel(r'$\hat{t}$')            
-    axes_2.set_ylim(0,80)   
+    axes_2.set_ylim(0,85)   
     axes_2.minorticks_on()     
      
     
@@ -626,7 +545,7 @@ def set_up_axes(figure_width,figure_height):
     fig_4.set_size_inches(figure_width,figure_height) 
     axes_4 = fig_4.add_subplot(1,1,1)
     axes_4.set_ylabel('AoA (deg.)' )     
-    axes_4.set_ylim(-15,20)   
+    axes_4.set_ylim(-15,25)   
     axes_4.minorticks_on()  
     axes_4.set_xlabel(r'$\hat{t}$') 
     
@@ -638,7 +557,7 @@ def set_up_axes(figure_width,figure_height):
     axes_5 = fig_5.add_subplot(1,1,1)    
     axes_5.set_ylabel(r'$C_L$')  
     axes_5.minorticks_on()  
-    axes_5.set_ylim(-0.2, 1.5)    
+    axes_5.set_ylim(-0.2, 1.75)    
     axes_5.set_xlabel(r'$\hat{t}$') 
      
     # ------------------------------------------------------------------
@@ -650,7 +569,7 @@ def set_up_axes(figure_width,figure_height):
     axes_6.set_xlabel(r'$\hat{t}$')
     axes_6.set_ylabel(r'$C_D$') 
     axes_6.minorticks_on()   
-    axes_6.set_ylim(0, 0.18) 
+    axes_6.set_ylim(0, 0.25) 
     axes_6.set_xlabel(r'$\hat{t}$') 
     
     # ------------------------------------------------------------------
@@ -662,7 +581,7 @@ def set_up_axes(figure_width,figure_height):
     axes_7.set_xlabel(r'$\hat{t}$')
     axes_7.set_ylabel('L/D')  
     axes_7.minorticks_on()  
-    axes_7.set_ylim(-6, 20)     
+    axes_7.set_ylim(-6, 22)     
     axes_7.set_xlabel(r'$\hat{t}$') 
  
     # ------------------------------------------------------------------
@@ -673,6 +592,7 @@ def set_up_axes(figure_width,figure_height):
     axes_8 = fig_8.add_subplot(1,1,1)   
     axes_8.set_ylabel('$E_{bat}$ (kW-hr)')
     axes_8.minorticks_on()  
+    axes_8.set_ylim(0, 750)       
     axes_8.set_xlabel(r'$\hat{t}$') 
            
     # ------------------------------------------------------------------
@@ -684,7 +604,7 @@ def set_up_axes(figure_width,figure_height):
     axes_9.set_ylabel('$V_{OC}$ (V)')   
     axes_9.minorticks_on()  
     axes_9.set_xlabel(r'$\hat{t}$')     
-    axes_9.set_ylim(400, 850)         
+    axes_9.set_ylim(400, 900)         
 
     # ------------------------------------------------------------------
     #   Electronic Conditions - Voltage 
@@ -695,7 +615,7 @@ def set_up_axes(figure_width,figure_height):
     axes_21.set_ylabel('$V_{UL}$ (V)')   
     axes_21.minorticks_on()  
     axes_21.set_xlabel(r'$\hat{t}$')     
-    axes_21.set_ylim(400, 800)         
+    axes_21.set_ylim(400, 900)         
     
     # ------------------------------------------------------------------
     #  Performance - Disc Loading
@@ -706,7 +626,7 @@ def set_up_axes(figure_width,figure_height):
     axes_10.set_ylabel('$DL$ $(N/m^2)$') 
     axes_10.minorticks_on()  
     axes_10.set_xlabel(r'$\hat{t}$')     
-    axes_10.set_ylim(0, 800)        
+    axes_10.set_ylim(0, 900)        
         
     # ------------------------------------------------------------------
     #   Electronic Conditions - Power Loading
@@ -717,7 +637,7 @@ def set_up_axes(figure_width,figure_height):
     axes_11.set_ylabel('$PL$ (N/W)')   
     axes_11.minorticks_on()  
     axes_11.set_xlabel(r'$\hat{t}$')     
-    axes_11.set_ylim(0, 0.11)         
+    axes_11.set_ylim(0, 0.15)         
     
     # ------------------------------------------------------------------
     #   Electronic Conditions - C-Rate 
@@ -727,7 +647,7 @@ def set_up_axes(figure_width,figure_height):
     axes_12 = fig_12.add_subplot(1,1,1) 
     axes_12.set_ylabel('C ($hr^{-1}$)')  
     axes_12.set_xlabel(r'$\hat{t}$')     
-    axes_12.set_ylim(0, 6)      
+    axes_12.set_ylim(0, 8)      
     axes_12.minorticks_on()      
     fig_12.tight_layout()        
     axins_12 = axes_12.inset_axes([0.1, 0.37, 0.6, 0.5])
@@ -828,13 +748,92 @@ def set_up_axes(figure_width,figure_height):
     axes_20 = fig_20.add_subplot(1,1,1)        
     axes_20.set_xlabel(r'$\hat{t}$')
     axes_20.set_ylabel('$M_{tip}$')  
-    axes_20.set_ylim(0, 0.85)  
+    axes_20.set_ylim(0, 1.0)  
     axes_20.minorticks_on()      
     
     return axes_1,axins_1,axes_2, axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
            axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
            fig_1,fig_2, fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
            fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20 
+
+
+
+# ------------------------------------------------------------------ 
+# Reserve Mission 
+# ------------------------------------------------------------------ 
+def plot_reserve_mission_results(res,PP):
+     
+    idx = 0
+    line_width = PP.line_width
+    ms         = PP.marker_size 
+    col        = PP.colors[idx]
+    col2       = PP.colors2[idx]
+    m          = PP.markers[idx]
+    ls1        = PP.line_style[0]
+    ls2        = PP.line_style[1] 
+    time = res.time_normalized
+    
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - C-Rate 
+    # ------------------------------------------------------------------ 
+    fig_22 = plt.figure("Reserve_Mission_Battery_Pack_Performance_C_rate")
+    fig_22.set_size_inches(PP.figure_width,4) 
+    axes_22 = fig_22.add_subplot(1,1,1) 
+    axes_22.plot(time, res.C_rating,color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width  )     
+    axes_22.set_ylabel('C ($hr^{-1}$)')  
+    axes_22.set_xlabel(r'$\hat{t}$')     
+    #axes_22.set_ylim(0, 8)      
+    axes_22.minorticks_on()      
+    fig_22.tight_layout()         
+    
+    # ------------------------------------------------------------------
+    #   Electronic Conditions
+    # ------------------------------------------------------------------
+    fig_23 = plt.figure("Reserve_Mission_Battery_Pack_Temp")
+    fig_23.set_size_inches(PP.figure_width,4) 
+    axes_23 = fig_23.add_subplot(1,1,1)   
+    axes_22.plot(time, res.pack_temp,color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width  )     
+    axes_23.set_ylabel('Temperature ($\degree$)') 
+    axes_23.minorticks_on()  
+    axes_23.set_xlabel(r'$\hat{t}$')  
+    #axes_23.set_ylim(400, 900)          
+    fig_23.tight_layout()         
+ 
+          
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Voltage 
+    # ------------------------------------------------------------------
+    fig_29 = plt.figure("Reserve_Mission_Battery_Pack_Voltage")
+    fig_29.set_size_inches(PP.figure_width4)  
+    axes_29 = fig_29.add_subplot(1,1,1) 
+    axes_29.plot(res.time_normalized, res.volts_oc     , color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width  ,label= '$V_{OC}$') 
+    axes_29.plot(res.time_normalized, res.volts  , color = col2  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label='$V_{UL}$') 
+    axes_29.minorticks_on() 
+    axes_29.legend(loc='upper center' , prop={'size': PP.legend_font})   
+    axes_29.set_ylabel('Voltage (V)') 
+    axes_29.set_xlabel(r'$\hat{t}$')     
+    #axes_29.set_ylim(400, 900)     
+    fig_29.tight_layout()         
+
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Voltage 
+    # ------------------------------------------------------------------
+    fig_26 = plt.figure("Reserve_Mission_Battery_Pack_Power")
+    fig_26.set_size_inches(PP.figure_width,4)  
+    axes_26 = fig_26.add_subplot(1,1,1)
+    axes_26.minorticks_on()  
+    axes_26.plot(time, res.power,color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width  )     
+    axes_26.set_ylabel('P (W)')  
+    axes_26.set_xlabel(r'$\hat{t}$')     
+    #axes_26.set_ylim(400, 900)        
+    fig_26.tight_layout()           
+     
+
+    fig_22.savefig("Reserve_Mission_Battery_Pack_Performance_C_ratepdf") 
+    fig_23.savefig("Reserve_Mission_Battery_Pack_Temp.pdf")  
+    fig_29.savefig("Reserve_Mission_Battery_Pack_Voltage.pdf") 
+    fig_26.savefig("Reserve_Mission_Battery_Pack_Power.pdf")     
+    return 
 
 
 # ------------------------------------------------------------------ 

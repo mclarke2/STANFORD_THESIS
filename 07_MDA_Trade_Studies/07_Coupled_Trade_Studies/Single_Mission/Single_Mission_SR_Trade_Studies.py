@@ -14,7 +14,7 @@ from SUAVE.Plots.Geometry                                        import *
 from copy import deepcopy
 
 import sys 
-sys.path.append('../../../../XX_Supplementary/Aircraft_Models_and_Simulations')  
+sys.path.append('../../../XX_Supplementary/Aircraft_Models_and_Simulations')  
 from Stopped_Rotor  import  missions_setup , base_analysis , vehicle_setup , analyses_setup , \
      configs_setup , missions_setup ,full_mission_setup,approach_departure_mission_setup,\
      hover_mission_setup,save_results
@@ -29,30 +29,26 @@ def main():
     aircraft_range   = 70 *Units.nmi
     reserve_segment  = False  
     recharge_battery = False 
-    control_points   = 15
-    N_gm_x           = 15
-    N_gm_y           = 5  
+    control_points   = 10
+    N_gm_x           = 10
+    N_gm_y           = 5
 
-    alpha_weights    = np.array([1.0,0.5,0.0])
+    alpha_weights    = np.array([0.5]) # np.array([1.0,0.5,0.0])
     
     for a_i in range(len(alpha_weights)):
         alpha             = alpha_weights[a_i]  
-        alpha_opt_weight      = str(alpha)
-        alpha_opt_weight      = alpha_opt_weight.replace('.','_')         
+        alpha_opt_weight  = str(alpha)
+        alpha_opt_weight  = alpha_opt_weight.replace('.','_')         
         # modify vehicle 
         vehicle           = vehicle_setup()
         vehicle           = modify_vehicle(vehicle,alpha)
-        configs           = configs_setup(vehicle)  
-        configs           = modify_configs(configs,alpha)
+        configs           = configs_setup(vehicle)   
         
         # ------------------------------------------------------------------------------------------------
         # Full Mission 
         # ------------------------------------------------------------------------------------------------  
         run_noise_model   = False
-        hover_noise_test  = False   
-        Y_LIM             = np.linspace(1E-3,5*Units.nmi,3)    
-        end_distance      = aircraft_range/((N_gm_x-2)*2)
-        X_LIM             = np.linspace(-end_distance+1E-3,aircraft_range + end_distance+1E-3,3)     
+        hover_noise_test  = False     
          
         min_x = 0
         max_x = 1
@@ -77,8 +73,9 @@ def main():
         # ------------------------------------------------------------------------------------------------    
         run_noise_model   = True
         hover_noise_test  = False                
-        Y_LIM             = np.linspace(1E-6,0.5*Units.nmi,3) 
-        X_LIM             = np.linspace(1E-6, 4.38*Units.nmi,3)    
+        Y_LIM = np.linspace(1E-6,0.5*Units.nmi,3)     
+        X_LIM = np.linspace(0, 5.79*Units.nmi,3)            
+    
         
         Q_idx             = 1 
         for i in range(len(X_LIM)-1):
@@ -102,30 +99,7 @@ def main():
                 filename          = 'Stopped_Rotor_Approach_Departure_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
                 save_results(noise_results,filename)  
                 Q_idx += 1  
-
-        # ------------------------------------------------------------------------------------------------
-        # Hover Noise Mission 
-        # ------------------------------------------------------------------------------------------------     
-    
-        hover_noise_test  = True 
-        run_noise_model   = True                
-        min_y             = -0.25*Units.nmi
-        max_y             = 0.25*Units.nmi
-        min_x             = -0.25*Units.nmi
-        max_x             = 0.25*Units.nmi
-         
-        configs_analyses  = analyses_setup(configs,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,run_noise_model,hover_noise_test) 
-        base_mission      = hover_mission_setup(configs_analyses,vehicle,simulated_days,flights_per_day,aircraft_range,reserve_segment,control_points,recharge_battery,hover_noise_test )
-        missions_analyses = missions_setup(base_mission) 
-        analyses          = SUAVE.Analyses.Analysis.Container()
-        analyses.configs  = configs_analyses
-        analyses.missions = missions_analyses 
-        configs.finalize()
-        analyses.finalize()     
-        mission           = analyses.missions.base
-        hover_results     = mission.evaluate()   
-        filename          = 'Stopped_Rotor_Hover_Mission' + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight  
-        save_results(hover_results,filename)   
+     
     return 
 
 # ------------------------------------------------------------------
@@ -149,7 +123,7 @@ def modify_vehicle(vehicle,alpha):
     design_thrust         = (2700*9.81/(12-2))      
     alpha_opt_weight      = str(alpha)
     alpha_opt_weight      = alpha_opt_weight.replace('.','_')     
-    file_name             = rel_path +  '../07_Rotor_Blade_Optimization/Lift_Rotor_Design/Data' + separator +  'Rotor_T_' + str(int(design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
+    file_name             = rel_path +  '../../07_Rotor_Blade_Optimization/Lift_Rotor_Design/Data' + separator +  'Rotor_T_' + str(int(design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
     rotor                  = load_blade_geometry(file_name)
 
 
@@ -163,36 +137,11 @@ def modify_vehicle(vehicle,alpha):
     # append prop rotors 
     for ii in range(8):
         lift_rotor          = deepcopy(rotor)
-        lift_rotor.tag      = 'prop_' + str(ii+1)
+        lift_rotor.tag      = 'rot_' + str(ii+1)
         lift_rotor.origin   = [origins[ii]]
         net.lift_rotors.append(rotor)     
          
     return vehicle
-
-
-# ------------------------------------------------------------------
-#   Modify Configs
-# ------------------------------------------------------------------   
-def modify_configs(configs): 
-    
-    # hover 
-    for prop in configs.vertical_climb.networks.battery_propeller.propellers: 
-        prop.inputs.pitch_command = prop.inputs.pitch_command_hover  
-        
-    # climb
-    for prop in configs.climb.networks.battery_propeller.propellers: 
-        prop.inputs.pitch_command = prop.inputs.pitch_command_cruise 
-    
-    # cruise
-    for prop in configs.cruise.networks.battery_propeller.propellers: 
-        prop.inputs.pitch_command = prop.inputs.pitch_command_cruise 
-            
-    # descent
-    for prop in configs.vertical_descent.networks.battery_propeller.propellers: 
-        prop.inputs.pitch_command = prop.inputs.pitch_command_hover          
-    
-    return configs  
-
 # ------------------------------------------------------------------
 #   Load Blade Geometry
 # ------------------------------------------------------------------   
