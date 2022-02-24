@@ -45,8 +45,8 @@ def main():
     N_gm_x = 10 
     N_gm_y = 5  
     header =  '../../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
-    alpha_weights = np.array([1.0,0.5,0.0])
-    vehicle_name = 'SR'
+    alpha_weights = np.array([0.0]) # np.array([1.0,0.5,0.0])
+    vehicle_name  = 'SR'
     alpha_opt_weight = 'None'
     spider_plot_max_SPL             = []
     spider_plot_maxiumum_power      = []
@@ -78,8 +78,7 @@ def main():
     max_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
                 
     start = (segment_no)*cpts
-    end   = (segment_no+1)*cpts
-    max_SPL = np.nan_to_num(max_SPL)
+    end   = (segment_no+1)*cpts 
     spider_plot_max_SPL.append(np.max(max_SPL))
     spider_plot_maxiumum_power.append(np.max(-sr_noise_res_Q1.power[start:end]))
     spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end])
@@ -126,17 +125,17 @@ def main():
     
     
     
-    # ------------------------------------------------------------------------------------------------------    
-    # PLOT RESULTS  
-    # ------------------------------------------------------------------------------------------------------     
-    spider_res = Data(
-        maximum_SPL        = 100*(spider_plot_max_SPL/spider_plot_max_SPL[0]),
-        maxiumum_power     = 100*(spider_plot_maxiumum_power/spider_plot_maxiumum_power[0]),
-        energy_consumption = 100*(spider_plot_energy_consumption/spider_plot_energy_consumption[0]),
-        maximum_tip_mach   = 100*(spider_plot_tip_mach/spider_plot_tip_mach[0]),
-        bat_temperature    = 100*(spider_plot_bat_temperature/spider_plot_bat_temperature[0]))
+    ## ------------------------------------------------------------------------------------------------------    
+    ## PLOT RESULTS  
+    ## ------------------------------------------------------------------------------------------------------     
+    #spider_res = Data(
+        #maximum_SPL        = 100*(spider_plot_max_SPL/spider_plot_max_SPL[0]),
+        #maxiumum_power     = 100*(spider_plot_maxiumum_power/spider_plot_maxiumum_power[0]),
+        #energy_consumption = 100*(spider_plot_energy_consumption/spider_plot_energy_consumption[0]),
+        #maximum_tip_mach   = 100*(spider_plot_tip_mach/spider_plot_tip_mach[0]),
+        #bat_temperature    = 100*(spider_plot_bat_temperature/spider_plot_bat_temperature[0]))
     
-    plot_spider_diagram(spider_res,plot_parameters)   
+    #plot_spider_diagram(spider_res,plot_parameters)   
        
        
     return
@@ -318,8 +317,6 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     fig           = plt.figure(filename) 
     fig.set_size_inches(PP.figure_width ,PP.figure_height)   
 
-    #fig.tight_layout(rect= (0.05,0.05,1,1))
-          
     gs            = gridspec.GridSpec(8, 8)
     axes_21       = fig.add_subplot(gs[2:,:]) # contour 
     axes_22       = fig.add_subplot(gs[:2,:]) # altitude 
@@ -384,7 +381,10 @@ def compute_max_SPL_and_michrophone_locations(res_Q1,res_Q2,res_Q3,res_Q4):
     aircraft_SPL[:,0:N_gm_x,N_gm_y:]  = res_Q2.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
     aircraft_SPL[:,N_gm_x:,0:N_gm_y]  = res_Q3.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
     aircraft_SPL[:,N_gm_x:,N_gm_y:]   = res_Q4.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)    
-    max_SPL    = np.max(aircraft_SPL,axis=0)    
+    
+
+    aircraft_SPL = np.nan_to_num(aircraft_SPL)    
+    max_SPL      = np.max(aircraft_SPL,axis=0)    
     
     return max_SPL,gm_mic_loc
   

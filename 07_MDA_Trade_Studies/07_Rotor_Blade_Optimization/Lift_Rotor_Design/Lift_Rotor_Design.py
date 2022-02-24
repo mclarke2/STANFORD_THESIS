@@ -28,12 +28,12 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.array([1.0]) # np.linspace(0.0,1.0,21)
+    alpha_weights                      = np.array([0.0]) # np.linspace(0.0,1.0,21)
     plot_rotor_geomery_and_performance = False  
     use_pyoptsparse                    = False
     SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
-    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,plot_parameters)
+    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,plot_parameters)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
@@ -496,11 +496,14 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 # ------------------------------------------------------------------ 
 # Plot Results and Pareto Fronteir
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,PP):    
+def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP):    
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
     design_thrust        = (2700*9.81/(12-2))     
-    optimizer            = 'SNOPT'
+    if use_pyoptsparse_flag:
+        optimizer = 'SNOPT'
+    else: 
+        optimizer = 'SLSQP'
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator  

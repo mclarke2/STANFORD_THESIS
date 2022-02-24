@@ -23,7 +23,7 @@ from Stopped_Rotor  import  missions_setup , base_analysis , vehicle_setup , ana
 #   Main
 # ----------------------------------------------------------------------
 def main():
-        
+
     simulated_days   = 1
     flights_per_day  = 1 
     aircraft_range   = 70 *Units.nmi
@@ -31,9 +31,9 @@ def main():
     recharge_battery = False 
     control_points   = 10
     N_gm_x           = 10
-    N_gm_y           = 5
+    N_gm_y           = 5 
 
-    alpha_weights    = np.array([0.5]) # np.array([1.0,0.5,0.0])
+    alpha_weights    = np.array([0.0]) # np.array([1.0,0.5,0.0])
     
     for a_i in range(len(alpha_weights)):
         alpha             = alpha_weights[a_i]  
@@ -74,8 +74,7 @@ def main():
         run_noise_model   = True
         hover_noise_test  = False                
         Y_LIM = np.linspace(1E-6,0.5*Units.nmi,3)     
-        X_LIM = np.linspace(0, 5.79*Units.nmi,3)            
-    
+        X_LIM = np.linspace(0, 5.79*Units.nmi,3)    
         
         Q_idx             = 1 
         for i in range(len(X_LIM)-1):
