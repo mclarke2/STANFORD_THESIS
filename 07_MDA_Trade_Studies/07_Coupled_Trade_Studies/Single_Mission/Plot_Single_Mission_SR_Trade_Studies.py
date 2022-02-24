@@ -44,10 +44,10 @@ def main():
 
     N_gm_x = 10 
     N_gm_y = 5  
-    header =  'Single_Mission/' 
+    header =  '../../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
     alpha_weights = np.array([1.0,0.5,0.0])
-    
-
+    vehicle_name = 'SR'
+    alpha_opt_weight = 'None'
     spider_plot_max_SPL             = []
     spider_plot_maxiumum_power      = []
     spider_plot_energy_consumption  = []
@@ -66,63 +66,62 @@ def main():
     sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
     sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
     sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4) 
-    sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-    sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-    sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-    sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-    plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name = 'SR') 
+    sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name)
+    sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name)
+    sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name)
+    sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name)
+    plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name,alpha_opt_weight) 
   
     # append spider plot data 
-    segment_no          = 0
+    segment_no          = 4
     cpts                = sr_noise_res_Q4.num_ctrl_pts 
     max_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
                 
     start = (segment_no)*cpts
     end   = (segment_no+1)*cpts
+    max_SPL = np.nan_to_num(max_SPL)
     spider_plot_max_SPL.append(np.max(max_SPL))
-    spider_plot_maxiumum_power.append(np.max(sr_noise_res_Q1.power[start:end]))
-    spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start:end][-1])
-    spider_plot_tip_mach.append(np.max(sr_noise_res_Q1[start:end]))
+    spider_plot_maxiumum_power.append(np.max(-sr_noise_res_Q1.power[start:end]))
+    spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end])
+    spider_plot_tip_mach.append(np.max(sr_noise_res_Q1.rtm[start:end]))
     spider_plot_bat_temperature.append(np.max(sr_noise_res_Q1.pack_temp[start:end]))          
        
 
     # ------------------------------------------------------------------------------------------------------    
     # STORE RESULTS FOR CLARKE 
-    # ------------------------------------------------------------------------------------------------------
-    alpha             = alpha_weights[a_i]     
-    alpha_opt_weight  = str(alpha)   
-    alpha_opt_weight  = alpha_opt_weight.replace('.','_')       
+    # ------------------------------------------------------------------------------------------------------ 
     for a_i in range(len(alpha_weights)): 
 
         alpha             = alpha_weights[a_i]  
         alpha_opt_weight  = str(alpha)
         alpha_opt_weight  = alpha_opt_weight.replace('.','_')       
-        sr_noise_filename_Q1       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
-        sr_noise_filename_Q2       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
-        sr_noise_filename_Q3       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
-        sr_noise_filename_Q4       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight    
+        sr_noise_filename_Q1       = 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
+        sr_noise_filename_Q2       = 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
+        sr_noise_filename_Q3       = 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
+        sr_noise_filename_Q4       = 'Stopped_Rotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight    
         sr_noise_results_raw_Q1    = load_results(sr_noise_filename_Q1)
         sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
         sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
         sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4) 
-        sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name = 'SR')
-        plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name = 'SR') 
+        sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name)
+        sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name)
+        sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name)
+        sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name)
+        plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name,alpha_opt_weight) 
   
   
         # append spider plot data 
-        segment_no          = 0
+        segment_no          = 4
         cpts                = sr_noise_res_Q4.num_ctrl_pts 
         max_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
                     
-        start = (segment_no)*cpts
-        end   = (segment_no+1)*cpts
+        start   = (segment_no)*cpts
+        end     = (segment_no+1)*cpts
+        max_SPL = np.nan_to_num(max_SPL)
         spider_plot_max_SPL.append(np.max(max_SPL))
-        spider_plot_maxiumum_power.append(np.max(sr_noise_res_Q1.power[start:end]))
-        spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start:end][-1])
-        spider_plot_tip_mach.append(np.max(sr_noise_res_Q1[start:end]))
+        spider_plot_maxiumum_power.append(np.max(-sr_noise_res_Q1.power[start:end]))
+        spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end])
+        spider_plot_tip_mach.append(np.max(sr_noise_res_Q1.rtm[start:end]))
         spider_plot_bat_temperature.append(np.max(sr_noise_res_Q1.pack_temp[start:end]))          
     
     
@@ -131,11 +130,11 @@ def main():
     # PLOT RESULTS  
     # ------------------------------------------------------------------------------------------------------     
     spider_res = Data(
-        maximum_SPL        = spider_plot_max_SPL/spider_plot_max_SPL[0],
-        maxiumum_power     = spider_plot_maxiumum_power/spider_plot_maxiumum_power[0],
-        energy_consumption = spider_plot_energy_consumption/spider_plot_energy_consumption[0],
-        maximum_tip_mach   = spider_plot_tip_mach/spider_plot_tip_mach[0],
-        bat_temperature    = spider_plot_bat_temperature/spider_plot_bat_temperature[0])
+        maximum_SPL        = 100*(spider_plot_max_SPL/spider_plot_max_SPL[0]),
+        maxiumum_power     = 100*(spider_plot_maxiumum_power/spider_plot_maxiumum_power[0]),
+        energy_consumption = 100*(spider_plot_energy_consumption/spider_plot_energy_consumption[0]),
+        maximum_tip_mach   = 100*(spider_plot_tip_mach/spider_plot_tip_mach[0]),
+        bat_temperature    = 100*(spider_plot_bat_temperature/spider_plot_bat_temperature[0]))
     
     plot_spider_diagram(spider_res,plot_parameters)   
        
@@ -312,14 +311,14 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name ):
 # ------------------------------------------------------------------
 # Plot Flight Profile Noise Contours 
 # ------------------------------------------------------------------
-def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicle_name):     
+def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicle_name,alpha_weight):     
           
     # figure parameters
-    filename      = 'Noise_Contour' + vehicle_name
+    filename      = 'Noise_Contour' + vehicle_name + '_Alpha_' + alpha_weight
     fig           = plt.figure(filename) 
     fig.set_size_inches(PP.figure_width ,PP.figure_height)   
 
-    fig.tight_layout(rect= (0.05,0.05,1,1))
+    #fig.tight_layout(rect= (0.05,0.05,1,1))
           
     gs            = gridspec.GridSpec(8, 8)
     axes_21       = fig.add_subplot(gs[2:,:]) # contour 
@@ -416,7 +415,7 @@ def plot_spider_diagram(spider_res,PP):
     angles += angles[:1]
     
     fig = plt.figure()
-    fig.set_size_inches(16, 12)
+    fig.set_size_inches(8, 10)
     plt.rcParams["font.family"] = "serif"
     plt.rcParams["font.serif"] = "Times New Roman"
     
@@ -434,8 +433,8 @@ def plot_spider_diagram(spider_res,PP):
     
     # Draw ylabels
     ax.set_rlabel_position(0)
-    plt.yticks([50,75,100,125,150], ["50","75","100","125","150"], color="black", size=16)
-    plt.ylim(0,150) 
+    plt.yticks([90,95,100,105,110], ["90","95","100","105","110"], color="black", size=16)
+    plt.ylim(90,105) 
     
     # ------- PART 2: Add plots 
     # Ind1
@@ -456,17 +455,19 @@ def plot_spider_diagram(spider_res,PP):
     values=df.loc[2].drop('group').values.flatten().tolist()
     values += values[:1]
     ax.plot(angles, values, color='green', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.5')  
-    ax.fill(angles, values, color='greeny', alpha=0.2) 
+    ax.fill(angles, values, color='green', alpha=0.2) 
     
     # Ind2
     values=df.loc[3].drop('group').values.flatten().tolist()
     values += values[:1]
-    ax.plot(angles, values, color='black', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
-    ax.fill(angles, values, color='black', alpha=0.2)
+    ax.plot(angles, values, color='orange', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
+    ax.fill(angles, values, color='orange', alpha=0.2)
 
     
     # Add legend
-    plt.legend(loc='center left', prop={'size': PP.legend_font}, bbox_to_anchor=(1.2, 0.5)) 
+    plt.tight_layout()
+    plt.legend(loc='upper right', prop={'size': PP.legend_font}, bbox_to_anchor=(1.2, 1.3)) 
+    #plt.legend(loc='center left', prop={'size': PP.legend_font}) 
    
        
     return  

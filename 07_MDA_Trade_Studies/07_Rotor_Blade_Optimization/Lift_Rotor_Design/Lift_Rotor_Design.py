@@ -26,10 +26,9 @@ def main():
     
     plot_parameters = define_plot_parameters() 
     
-    #SR_lift_rotor_Adkins_Leibeck()  
-    
+    #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.linspace(0.0,1.0,21)
+    alpha_weights                      = np.array([1.0]) # np.linspace(0.0,1.0,21)
     plot_rotor_geomery_and_performance = False  
     use_pyoptsparse                    = False
     SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
@@ -61,8 +60,6 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         # DEFINE ROTOR OPERATING CONDITIONS 
         rotor                            = Lift_Rotor()
         rotor.tag                        = 'lift_rotor'
-        
-    
         rotor.tip_radius                 = 1.15
         rotor.hub_radius                 = 0.1 * rotor.tip_radius  
         rotor.number_of_blades           = 3
@@ -88,7 +85,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         opt_params.aeroacoustic_weight   = alpha_weights[i]   # 1 means only perfomrance optimization 0.5 to weight noise equally
         
         # DESING ROTOR 
-        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=200,use_pyoptsparse=use_pyoptsparse_flag)  
+        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
       
         # save rotor geomtry
         opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
@@ -210,18 +207,18 @@ def SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse_flag, plot_rotor_
 # ------------------------------------------------------------------ 
 def SR_lift_rotor_Adkins_Leibeck():
     
-    rotor                                 = SUAVE.Components.Energy.Converters.Rotor() 
-    rotor.tag                             = 'lift_rotor'
-    rotor.tip_radius                      = 1.15
-    rotor.hub_radius                      = 0.15 * rotor.tip_radius
-    rotor.number_of_blades                = 3
-    rotor.design_tip_mach                 = 0.65     
-    rotor.inflow_ratio                    = 0.06 
-    rotor.angular_velocity                = rotor.design_tip_mach* 343 /rotor.tip_radius   
-    rotor.freestream_velocity             = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius  
-    rotor.design_altitude                 = 20 * Units.feet   
-    Hover_Load                            = 2700*9.81      # hover load   
-    rotor.design_thrust                   = Hover_Load/(12-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    rotor                            = SUAVE.Components.Energy.Converters.Rotor() 
+    rotor.tag                        = 'lift_rotor'
+    rotor.tip_radius                 = 1.15
+    rotor.hub_radius                 = 0.1 * rotor.tip_radius  
+    rotor.number_of_blades           = 3
+    rotor.design_tip_mach            = 0.65   
+    rotor.inflow_ratio               = 0.06 
+    rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
+    rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
+    rotor.design_Cl                  = 0.7
+    rotor.design_altitude            = 20 * Units.feet                  
+    rotor.design_thrust              = (2700*9.81)/(12-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     rotor.variable_pitch                  = True       
     rotor.airfoil_geometry                 = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
     rotor.airfoil_polars                   = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -503,7 +500,7 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,PP):
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
     design_thrust        = (2700*9.81/(12-2))     
-    optimizer            = 'SLSQP'
+    optimizer            = 'SNOPT'
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator  

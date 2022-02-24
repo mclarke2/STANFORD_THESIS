@@ -126,7 +126,7 @@ def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse
             prop_rotor.design_tip_mach                 = 0.6   
             prop_rotor.number_of_blades                = 3  
             inflow_ratio_hover                         = 0.06 
-            prop_rotor.angular_velocity_hover         = prop_rotor.design_tip_mach*343 /prop_rotor.tip_radius 
+            prop_rotor.angular_velocity_hover          = prop_rotor.design_tip_mach*343 /prop_rotor.tip_radius 
             prop_rotor.design_altitude_hover           = 0 * Units.feet                  
             prop_rotor.design_thrust_hover             = (2300*9.81/(8-2))  
             prop_rotor.freestream_velocity_hover       = inflow_ratio_hover*prop_rotor.angular_velocity_hover*prop_rotor.tip_radius 
