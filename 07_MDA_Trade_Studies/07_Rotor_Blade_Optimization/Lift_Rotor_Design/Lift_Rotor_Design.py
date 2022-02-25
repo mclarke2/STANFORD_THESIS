@@ -1,6 +1,6 @@
 import SUAVE 
 from SUAVE.Core import Units , Data 
-from SUAVE.Methods.Propulsion                                          import lift_rotor_design , prop_rotor_design , propeller_design 
+from SUAVE.Methods.Propulsion                                          import lift_rotor_design , prop_rotor_design , rotor_design,propeller_design 
 from SUAVE.Analyses.Mission.Segments.Segment                           import Segment 
 from SUAVE.Methods.Noise.Fidelity_One.Propeller.propeller_mid_fidelity import propeller_mid_fidelity
 from SUAVE.Analyses.Mission.Segments.Conditions.Aerodynamics           import Aerodynamics 
@@ -28,12 +28,12 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.array([0.0]) # np.linspace(0.0,1.0,21)
+    alpha_weights                      = np.array([0.5])  #  np.linspace(0.0,1.0,21) # np.array([1.0]) #  np.linspace(0.0,1.0,21)
     plot_rotor_geomery_and_performance = False  
     use_pyoptsparse                    = False
     SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
-    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,plot_parameters)
+    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
@@ -58,8 +58,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
     for i in range(len(alpha_weights)):
  
         # DEFINE ROTOR OPERATING CONDITIONS 
-        rotor                            = Lift_Rotor()
-        rotor.tag                        = 'lift_rotor'
+        rotor                            = Rotor()#Lift_Rotor()
         rotor.tip_radius                 = 1.15
         rotor.hub_radius                 = 0.1 * rotor.tip_radius  
         rotor.number_of_blades           = 3
@@ -85,7 +84,8 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         opt_params.aeroacoustic_weight   = alpha_weights[i]   # 1 means only perfomrance optimization 0.5 to weight noise equally
         
         # DESING ROTOR 
-        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
+        #rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
+        rotor                            = rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
       
         # save rotor geomtry
         opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
@@ -249,8 +249,8 @@ def SR_lift_rotor_Adkins_Leibeck():
 
     # Run Conditions     
      
-    theta  = np.array([90,120,160])*Units.degrees + 1E-2
-    S      = np.maximum(alt , 20*Units.feet)
+    theta  = np.array([45,90,135])*Units.degrees + 1E-2
+    S      = np.maximum(alt , 20*Units.feet) 
 
     # microphone locations
     positions = np.zeros(( len(theta),3))

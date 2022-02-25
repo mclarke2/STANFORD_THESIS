@@ -45,7 +45,7 @@ def main():
     N_gm_x = 10 
     N_gm_y = 5  
     header =  '../../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
-    alpha_weights = np.array([0.0]) # np.array([1.0,0.5,0.0])
+    alpha_weights = np.array([1.0,0.5,0.0])
     vehicle_name  = 'SR'
     alpha_opt_weight = 'None'
     spider_plot_max_SPL             = []
@@ -125,17 +125,17 @@ def main():
     
     
     
-    ## ------------------------------------------------------------------------------------------------------    
-    ## PLOT RESULTS  
-    ## ------------------------------------------------------------------------------------------------------     
-    #spider_res = Data(
-        #maximum_SPL        = 100*(spider_plot_max_SPL/spider_plot_max_SPL[0]),
-        #maxiumum_power     = 100*(spider_plot_maxiumum_power/spider_plot_maxiumum_power[0]),
-        #energy_consumption = 100*(spider_plot_energy_consumption/spider_plot_energy_consumption[0]),
-        #maximum_tip_mach   = 100*(spider_plot_tip_mach/spider_plot_tip_mach[0]),
-        #bat_temperature    = 100*(spider_plot_bat_temperature/spider_plot_bat_temperature[0]))
+    # ------------------------------------------------------------------------------------------------------    
+    # PLOT RESULTS  
+    # ------------------------------------------------------------------------------------------------------     
+    spider_res = Data(
+        maximum_SPL        = 100*(spider_plot_max_SPL/spider_plot_max_SPL[0]),
+        maxiumum_power     = 100*(spider_plot_maxiumum_power/spider_plot_maxiumum_power[0]),
+        energy_consumption = 100*(spider_plot_energy_consumption/spider_plot_energy_consumption[0]),
+        maximum_tip_mach   = 100*(spider_plot_tip_mach/spider_plot_tip_mach[0]),
+        bat_temperature    = 100*(spider_plot_bat_temperature/spider_plot_bat_temperature[0]))
     
-    #plot_spider_diagram(spider_res,plot_parameters)   
+    plot_spider_diagram(spider_res,plot_parameters)   
        
        
     return
@@ -396,7 +396,8 @@ def plot_spider_diagram(spider_res,PP):
      
     # Set data
     df = pd.DataFrame({
-    'group': ['A. & L.','Alpha_1_0','Alpha_0_5','Alpha_0_0'],
+    #'group': ['A. & L.','Alpha_1_0','Alpha_0_5','Alpha_0_0'],
+    'group': ['A. & L.','Alpha_0_0','Alpha_0_5','Alpha_1_0'],
     'SPL$_{Max.}$': spider_res.maximum_SPL,
     'Power$_{Max.}$': spider_res.maxiumum_power,
     'Total Energy \n Consump.': spider_res.energy_consumption,
@@ -416,8 +417,8 @@ def plot_spider_diagram(spider_res,PP):
     
     fig = plt.figure()
     fig.set_size_inches(8, 10)
-    plt.rcParams["font.family"] = "serif"
-    plt.rcParams["font.serif"] = "Times New Roman"
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams['axes.linewidth'] = 2. 
     
     # Initialise the spider plot
     ax = plt.subplot(111, polar=True)
@@ -448,7 +449,7 @@ def plot_spider_diagram(spider_res,PP):
     # Ind2
     values=df.loc[1].drop('group').values.flatten().tolist()
     values += values[:1]
-    ax.plot(angles, values, color='red', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 1.0')  
+    ax.plot(angles, values, color='red', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
     ax.fill(angles, values, color='red', alpha=0.2)
     
     # Ind2
@@ -457,11 +458,11 @@ def plot_spider_diagram(spider_res,PP):
     ax.plot(angles, values, color='green', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.5')  
     ax.fill(angles, values, color='green', alpha=0.2) 
     
-    # Ind2
-    values=df.loc[3].drop('group').values.flatten().tolist()
-    values += values[:1]
-    ax.plot(angles, values, color='orange', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
-    ax.fill(angles, values, color='orange', alpha=0.2)
+    ## Ind2
+    #values=df.loc[3].drop('group').values.flatten().tolist()
+    #values += values[:1]
+    #ax.plot(angles, values, color='orange', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
+    #ax.fill(angles, values, color='orange', alpha=0.2)
 
     
     # Add legend
