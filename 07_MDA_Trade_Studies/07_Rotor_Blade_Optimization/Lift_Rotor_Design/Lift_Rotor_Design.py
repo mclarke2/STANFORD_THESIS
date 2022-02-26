@@ -28,12 +28,12 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.array([0.5])  #  np.linspace(0.0,1.0,21) # np.array([1.0]) #  np.linspace(0.0,1.0,21)
+    alpha_weights                      = np.linspace(0.0,1.0,21) # np.array([1.0]) #  np.linspace(0.0,1.0,21)
     plot_rotor_geomery_and_performance = False  
     use_pyoptsparse                    = False
-    SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
+    #SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
-    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
+    SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
