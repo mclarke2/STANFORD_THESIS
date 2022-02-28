@@ -28,12 +28,12 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.linspace(0.0,1.0,21) # np.array([1.0]) #  np.linspace(0.0,1.0,21)
+    alpha_weights                      = np.linspace(0.0,1.0,11) # np.array([1.0]) 
     plot_rotor_geomery_and_performance = False  
     use_pyoptsparse                    = False
-    #SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
+    SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
-    SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
+    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
@@ -63,7 +63,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         rotor.hub_radius                 = 0.1 * rotor.tip_radius  
         rotor.number_of_blades           = 3
         rotor.design_tip_mach            = 0.65   
-        rotor.inflow_ratio               = 0.06 
+        rotor.inflow_ratio               = 0.1 # 0.06 
         rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
         rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
         rotor.design_Cl                  = 0.7
@@ -213,7 +213,7 @@ def SR_lift_rotor_Adkins_Leibeck():
     rotor.hub_radius                 = 0.1 * rotor.tip_radius  
     rotor.number_of_blades           = 3
     rotor.design_tip_mach            = 0.65   
-    rotor.inflow_ratio               = 0.06 
+    rotor.inflow_ratio               = 0.1 # 0.06 
     rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
     rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
     rotor.design_Cl                  = 0.7
@@ -249,13 +249,27 @@ def SR_lift_rotor_Adkins_Leibeck():
 
     # Run Conditions     
      
-    theta  = np.array([45,90,135])*Units.degrees + 1E-2
-    S      = np.maximum(alt , 20*Units.feet) 
+    #theta  = np.array([45,90,135])*Units.degrees + 1E-2
+    #S      = np.maximum(alt , 20*Units.feet) 
+
+    ## microphone locations
+    #positions = np.zeros(( len(theta),3))
+    #for i in range(len(theta)):
+        #positions[i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])] 
+        
+    
+
+    # Run Conditions     
+    theta  = np.array([90,112.5,135])*Units.degrees + 1E-1
+    S      = 10.  
 
     # microphone locations
     positions = np.zeros(( len(theta),3))
     for i in range(len(theta)):
-        positions[i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])] 
+        if theta[i]*Units.degrees < np.pi/2:
+            positions[i][:] = [-S*np.cos(theta[i]*Units.degrees)  ,S*np.sin(theta[i]*Units.degrees), 0.0]
+        else: 
+            positions[i][:] = [S*np.sin(theta[i]*Units.degrees- np.pi/2)  ,S*np.cos(theta[i]*Units.degrees - np.pi/2), 0.0]  
             
     # Set up for Propeller Model
     rotor.inputs.omega                                     = np.atleast_2d(omega).T
@@ -304,7 +318,7 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator  
-    angles               = np.array([90,120,160])
+    angles               = np.array([90,112.5,135])
     
     
     fig_1 = plt.figure('Blade_Thurst_Distribution')
