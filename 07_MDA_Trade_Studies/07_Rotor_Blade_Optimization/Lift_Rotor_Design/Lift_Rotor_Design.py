@@ -29,7 +29,7 @@ def main():
     #SR_lift_rotor_Adkins_Leibeck()   
 
     alpha_weights                      = np.linspace(0.0,1.0,11) # np.array([1.0]) 
-    plot_rotor_geomery_and_performance = False  
+    plot_rotor_geomery_and_performance = False
     use_pyoptsparse                    = False
     SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
@@ -59,6 +59,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
  
         # DEFINE ROTOR OPERATING CONDITIONS 
         rotor                            = Rotor()#Lift_Rotor()
+        rotor.orientation_euler_angles   = [0.,np.pi/2.,0.]
         rotor.tip_radius                 = 1.15
         rotor.hub_radius                 = 0.1 * rotor.tip_radius  
         rotor.number_of_blades           = 3
@@ -84,8 +85,8 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         opt_params.aeroacoustic_weight   = alpha_weights[i]   # 1 means only perfomrance optimization 0.5 to weight noise equally
         
         # DESING ROTOR 
-        #rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
-        rotor                            = rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
+        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
+        #rotor                            = rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
       
         # save rotor geomtry
         opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
@@ -207,8 +208,8 @@ def SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse_flag, plot_rotor_
 # ------------------------------------------------------------------ 
 def SR_lift_rotor_Adkins_Leibeck():
     
-    rotor                            = SUAVE.Components.Energy.Converters.Rotor() 
-    rotor.tag                        = 'lift_rotor'
+
+    rotor                            = Rotor()#Lift_Rotor()
     rotor.tip_radius                 = 1.15
     rotor.hub_radius                 = 0.1 * rotor.tip_radius  
     rotor.number_of_blades           = 3
@@ -217,8 +218,8 @@ def SR_lift_rotor_Adkins_Leibeck():
     rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
     rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
     rotor.design_Cl                  = 0.7
-    rotor.design_altitude            = 20 * Units.feet                  
-    rotor.design_thrust              = (2700*9.81)/(12-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    rotor.design_altitude            = 20 * Units.feet                     
+    rotor.design_thrust              = (2700*9.81)/(12-2)
     rotor.variable_pitch                  = True       
     rotor.airfoil_geometry                 = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
     rotor.airfoil_polars                   = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -258,9 +259,8 @@ def SR_lift_rotor_Adkins_Leibeck():
         #positions[i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])] 
         
     
-
     # Run Conditions     
-    theta  = np.array([90,112.5,135])*Units.degrees + 1E-1
+    theta  = np.array([45,90,135])*Units.degrees + 1E-1
     S      = 10.  
 
     # microphone locations

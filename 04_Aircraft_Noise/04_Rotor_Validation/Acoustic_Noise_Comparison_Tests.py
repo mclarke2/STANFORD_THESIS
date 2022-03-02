@@ -83,9 +83,9 @@ def main():
     #Harmonic_Directivty_Validation(plot_parameters) 
     #Broadband_Spectrum_Validation(plot_parameters) 
     #Broadband_Spectrum_Shape_Sensitivity(plot_parameters) 
-    #Broadband_Noise_Validation(plot_parameters)
+    Broadband_Noise_Validation(plot_parameters)
     #High_Fidelity_Validation_1(plot_parameters) 
-    High_Fidelity_Validation_2(plot_parameters) 
+    #High_Fidelity_Validation_2(plot_parameters) 
     
 
     tf = time.time() 
@@ -999,7 +999,7 @@ def Broadband_Noise_Validation(PP):
     APC_SF_omega_vector                         = APC_SF_RPM * Units.rpm 
     ctrl_pts                                    = len(APC_SF_omega_vector)   
     velocity                                    = APC_SF_inflow_ratio*APC_SF_omega_vector*APC_SF.tip_radius 
-    theta                                       = np.array([45., 67.5, 90.001, 112.5 , 135.]) # np.array([-45., -22.5, 0.001, 22.5 , 45.])*Units.degrees    
+    theta                                       = np.linspace(0.1,180,100)   # np.array([45., 67.5, 90.001, 112.5 , 135.])  # np.linspace(0.1,180,100)  
     S                                           = 1.905
 
     # Microphone Locations 
@@ -1130,10 +1130,10 @@ def Broadband_Noise_Validation(PP):
     fig2_name = 'Noise_Validation_1_3_Spectrum_4800' 
     fig3_name = 'Noise_Validation_Broadband_1_3_Spectrum_45_deg' 
     fig4_name = 'Noise_Validation_Broadband_1_3_Spectrum_22_deg'   
-    fig1.savefig(fig1_name  + '.pdf')               
-    fig2.savefig(fig2_name  + '.pdf')               
-    fig3.savefig(fig3_name  + '.pdf')               
-    fig4.savefig(fig4_name  + '.pdf')        
+    #fig1.savefig(fig1_name  + '.pdf')               
+    #fig2.savefig(fig2_name  + '.pdf')               
+    #fig3.savefig(fig3_name  + '.pdf')               
+    #fig4.savefig(fig4_name  + '.pdf')        
     return 
 
 
@@ -1813,14 +1813,9 @@ def High_Fidelity_Validation_2(PP):
     axes.set_xlim([40,140])    
     fig.tight_layout() 
     fig_name = 'Noise_Validation_High_Fidelity_SR2'    
-    fig.savefig(fig_name  + '.pdf')  
-        
+    fig.savefig(fig_name  + '.pdf')   
     
-    
-    return 
-
-
-
+    return  
 
 def setup_noise_settings(sts): 
 
@@ -1840,6 +1835,8 @@ def setup_noise_settings(sts):
     sts.floating_point_precision             = np.float32
     sts.urban_canyon_microphone_z_resolution = 16 
     sts.mic_x_position                       = 0     
+    sts.number_of_multiprocessing_workers    = 8
+    sts.parallel_computing                   = True # TO BE REMOVED
     sts.lateral_ground_distance              = 1000 * Units.feet  
     sts.level_ground_microphone_min_x        = -50
     sts.level_ground_microphone_max_x        = 1000

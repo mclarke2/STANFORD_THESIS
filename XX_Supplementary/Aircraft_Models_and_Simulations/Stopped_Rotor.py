@@ -50,11 +50,11 @@ def main():
     N_gm_x           = 10
     N_gm_y           = 5
     
-    run_noise_model   = False
-    hover_noise_test  = False
-    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                     hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     control_points,N_gm_x,N_gm_y)
+    #run_noise_model   = False
+    #hover_noise_test  = False
+    #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     #control_points,N_gm_x,N_gm_y)
     
     
 
