@@ -28,9 +28,9 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.linspace(0.0,1.0,11) # np.array([1.0]) 
-    plot_rotor_geomery_and_performance = False
-    use_pyoptsparse                    = False
+    alpha_weights                      = np.linspace(0.0,1.0,5) # np.array([1.0])  
+    plot_rotor_geomery_and_performance = False 
+    use_pyoptsparse                    = False 
     SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
     #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
@@ -58,18 +58,16 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
     for i in range(len(alpha_weights)):
  
         # DEFINE ROTOR OPERATING CONDITIONS 
-        rotor                            = Rotor()#Lift_Rotor()
-        rotor.orientation_euler_angles   = [0.,np.pi/2.,0.]
+        rotor                            = Lift_Rotor() 
+        rotor.tag                        = 'rotor'
         rotor.tip_radius                 = 1.15
-        rotor.hub_radius                 = 0.1 * rotor.tip_radius  
+        rotor.hub_radius                 = 0.15 * rotor.tip_radius  
         rotor.number_of_blades           = 3
-        rotor.design_tip_mach            = 0.65   
-        rotor.inflow_ratio               = 0.1 # 0.06 
-        rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
-        rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
+        rotor.design_tip_mach_range      = [0.3,0.7]   
+        rotor.inflow_ratio               = 0.06   
         rotor.design_Cl                  = 0.7
         rotor.design_altitude            = 20 * Units.feet                     
-        rotor.design_thrust              = (2700*9.81)/(12-2)
+        rotor.design_thrust              = (2700*9.81)/(12)
         rotor.variable_pitch             = True   
         rotor.airfoil_geometry           = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
         rotor.airfoil_polars             = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -107,7 +105,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
 # ------------------------------------------------------------------ 
 def SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters): 
 
-    design_thrust     = (2700*9.81/(12-2))          
+    design_thrust     = (2700*9.81/(12))          
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
     else: 
@@ -209,17 +207,17 @@ def SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse_flag, plot_rotor_
 def SR_lift_rotor_Adkins_Leibeck():
     
 
-    rotor                            = Rotor()#Lift_Rotor()
+    rotor                            = Lift_Rotor()
     rotor.tip_radius                 = 1.15
-    rotor.hub_radius                 = 0.1 * rotor.tip_radius  
+    rotor.hub_radius                 = 0.15 * rotor.tip_radius  
     rotor.number_of_blades           = 3
     rotor.design_tip_mach            = 0.65   
-    rotor.inflow_ratio               = 0.1 # 0.06 
+    rotor.inflow_ratio               = 0.06 
     rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
     rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
     rotor.design_Cl                  = 0.7
     rotor.design_altitude            = 20 * Units.feet                     
-    rotor.design_thrust              = (2700*9.81)/(12-2)
+    rotor.design_thrust              = (2700*9.81)/(12)
     rotor.variable_pitch                  = True       
     rotor.airfoil_geometry                 = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
     rotor.airfoil_polars                   = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -249,28 +247,14 @@ def SR_lift_rotor_Adkins_Leibeck():
     ctrl_pts       = 1 
 
     # Run Conditions     
-     
-    #theta  = np.array([45,90,135])*Units.degrees + 1E-2
-    #S      = np.maximum(alt , 20*Units.feet) 
-
-    ## microphone locations
-    #positions = np.zeros(( len(theta),3))
-    #for i in range(len(theta)):
-        #positions[i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])] 
-        
+    theta  = np.array([135])*Units.degrees + 1E-1
+    S      = np.maximum(alt , 20*Units.feet) 
     
-    # Run Conditions     
-    theta  = np.array([45,90,135])*Units.degrees + 1E-1
-    S      = 10.  
-
     # microphone locations
-    positions = np.zeros(( len(theta),3))
+    positions  = np.zeros(( len(theta),3))
     for i in range(len(theta)):
-        if theta[i]*Units.degrees < np.pi/2:
-            positions[i][:] = [-S*np.cos(theta[i]*Units.degrees)  ,S*np.sin(theta[i]*Units.degrees), 0.0]
-        else: 
-            positions[i][:] = [S*np.sin(theta[i]*Units.degrees- np.pi/2)  ,S*np.cos(theta[i]*Units.degrees - np.pi/2), 0.0]  
-            
+        positions [i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])]   
+        
     # Set up for Propeller Model
     rotor.inputs.omega                                     = np.atleast_2d(omega).T
     conditions                                             = Aerodynamics()   
@@ -282,7 +266,7 @@ def SR_lift_rotor_Adkins_Leibeck():
     conditions.propulsion.throttle                         = np.ones((ctrl_pts,1))*1.0
     conditions.frames.body.transform_to_inertial           = np.array([[[1., 0., 0.],[0., 1., 0.],[0., 0., -1.]]])   
     # Run Propeller model 
-    thrust , torque, power, Cp  , rotor_aero_data , etap        = rotor.spin(conditions)
+    thrust , torque, power, Cp  , rotor_aero_data , etap   = rotor.spin(conditions)
 
     # Prepare Inputs for Noise Model  
     conditions.noise.total_microphone_locations            = np.repeat(positions[ np.newaxis,:,: ],1,axis=0)
@@ -513,7 +497,7 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP):    
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
-    design_thrust        = (2700*9.81/(12-2))     
+    design_thrust        = (2700*9.81/(12))     
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
     else: 
@@ -707,8 +691,8 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP):
     axis_5 = fig_5.add_subplot(1,1,1)  
     theta   = [90,120,160]
     axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,0] ,color = PP.colors[0][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[0])+ r'$\degree$') 
-    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,1] ,color = PP.colors[1][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[1])+ r'$\degree$') 
-    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,2] ,color = PP.colors[2][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[2])+ r'$\degree$') 
+    #axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,1] ,color = PP.colors[1][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[1])+ r'$\degree$') 
+    #axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,2] ,color = PP.colors[2][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[2])+ r'$\degree$') 
     axis_5.set_ylabel(r'SPL$_{1/3}$ (dBA)')
     axis_5.set_xlabel('Frequency (Hz)') 
     axis_5.set_ylim([0,120])  

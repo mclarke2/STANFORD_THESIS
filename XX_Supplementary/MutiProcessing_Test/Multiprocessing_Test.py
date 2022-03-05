@@ -10,37 +10,78 @@ from functools import partial
 
 # function
 def main(): 
-    num_cpu = multiprocessing.cpu_count()
-    print("Number of CPUs: " + str(num_cpu) )
+    #num_cpu = multiprocessing.cpu_count()
+    #print("Number of CPUs: " + str(num_cpu) )
         
-    wait_time              = 1 
-    number_of_computations = 48
+    #wait_time              = 1 
+    #number_of_computations = 8
     
     
-    start = time.perf_counter()  
+    #start = time.perf_counter()  
     
     
-    num_mic   = 8
-    data_list = list(np.arange(8))
-    pool   = multiprocessing.Pool(processes=number_of_computations) 
-    C_togo = np.ones(len(data_list))
-    prod_x = partial(prod_xy,y= 10,C= C_togo)
-    res    = pool.map(prod_x, data_list)
+    #num_mic   = 8
+    #data_list = list(np.arange(8))
+    #pool   = multiprocessing.Pool(processes=number_of_computations) 
+    #C_togo = np.ones(len(data_list))
+    #prod_x = partial(prod_xy,y= 10,C= C_togo)
+    #res    = pool.map(prod_x, data_list)
      
-    A_res = np.zeros(num_mic)
-    B_res = np.zeros(num_mic)
+    #A_res = np.zeros(num_mic)
+    #B_res = np.zeros(num_mic)
     
-    for i in range(num_mic):
-        A_res[i] = res[i].A 
-        B_res[i] = res[i].B  
+    #for i in range(num_mic):
+        #A_res[i] = res[i].A 
+        #B_res[i] = res[i].B  
         
-    finish = time.perf_counter()
-    print(f'Multi Process Method Finished in {round(finish-start,2)} second(s)')  
+    #finish = time.perf_counter()
+    #print(f'Multi Process Method Finished in {round(finish-start,2)} second(s)')  
     
-    print(A_res)
-    print(B_res)
+    #print(A_res)
+    #print(B_res)
 
- 
+                   
+    a  = np.random.rand(30,20,10,200,10,20,2)
+    b  = np.random.rand(30,20,10,200,10,20,2)
+    
+
+    ti2_2 = time.time()    
+    c1 = np.multiply(a, b)
+    c2 = np.multiply(a, b)
+    c3 = np.multiply(c1, c2) 
+    tf2_2          = time.time()
+    elapsed_time = round((tf2_2-ti2_2),2)
+    print('  Elapsed Time: ' + str(elapsed_time) + ' secs')
+    
+    
+    ti2_2 = time.time()    
+    c = np.multiply(np.multiply(a, b), np.multiply(a, b))
+    tf2_2          = time.time()
+    elapsed_time = round((tf2_2-ti2_2),2)
+    print('  Elapsed Time: ' + str(elapsed_time) + ' secs')
+    
+
+    ti2_2 = time.time()     
+    c = (a*b)*(a*b)
+    tf2_2          = time.time()
+    elapsed_time = round((tf2_2-ti2_2),2)
+    print('  Elapsed Time: ' + str(elapsed_time) + ' secs')
+    
+    
+
+    ti2_2 = time.time()    
+    d = np.divide(np.divide(a, b), np.divide(a, b))
+    tf2_2          = time.time()
+    elapsed_time = round((tf2_2-ti2_2),2)
+    print('  Elapsed Time: ' + str(elapsed_time) + ' secs')
+    
+
+    ti2_2 = time.time()     
+    d = (a/b)/(a/b)
+    tf2_2          = time.time()
+    elapsed_time = round((tf2_2-ti2_2),2)
+    print('  Elapsed Time: ' + str(elapsed_time) + ' secs')
+    
     
     ## start timer 
     #start = time.perf_counter()     
@@ -83,7 +124,7 @@ def prod_xy(x,y,C):
     D = Data()
     D.A = A
     D.B = B
-    return D
+    return A
 
 #def parallel_runs(data_list):
     #pool = multiprocessing.Pool(processes=4)

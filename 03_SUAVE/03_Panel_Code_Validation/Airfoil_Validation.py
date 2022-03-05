@@ -24,7 +24,7 @@ def main():
 
     # Define Panelization 
 
-    npanel               = 250  
+    npanel               = 300  
     Re_batch             = np.atleast_2d(np.array([1E4, 1E5, 1E6])).T
     AoA_batch            = np.atleast_2d(np.array([0.,4.,8.])*Units.degrees).T       
     airfoil_geometry     = compute_naca_4series(0.04,0.4,0.12,npoints=npanel)
@@ -59,7 +59,7 @@ def main():
     plot_parameters.markers          = ['o','v','s','P','p','^','D','X','*']
 
     # Plot trailing edge properties  
-    #plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags,plot_parameters)   
+    plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags,plot_parameters)   
     
 
     plot_pressure_distribution(SUAVE_data,Xfoil_data,Re_tags,AoA_tags,plot_parameters)      
@@ -69,7 +69,14 @@ def main():
 def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,AoA_tags,PP):   
 
     # determine dimension of angle of attack and reynolds number  
-    Te_idx = 4  
+
+    mid = int(len(SUAVE_data.x[0,0,:])/2) 
+    mid2 = int(len(Xfoil_data.x[0,0,:])/2)   
+    
+    Te_idx_SUAVE = 10  
+    Te_idx_SUAVE_cf = 30
+    Te_idx_Xfoil = 5
+    Te_idx = 1 
 
     fig01  = plt.figure() 
     fig02  = plt.figure() 
@@ -133,100 +140,101 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     x     = np.arange(len( AoA_tags))  # the label locations
     width = 0.2  # the width of the bars 
     
-    rects011 = axis01.bar(x - 1.5*width,   SUAVE_data.Ue_Vinf[:,0,Te_idx]    , width , color= PP.colors[0] , label='SUAVE Lower Surf.')
-    rects012 = axis01.bar(x -   width/2,   -Xfoil_data.Ue_Vinf[:,0,Te_idx]   , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
-    rects013 = axis01.bar(x +   width/2,    SUAVE_data.Ue_Vinf[:,0,-Te_idx]  , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
-    rects014 = axis01.bar(x + 1.5*width,    Xfoil_data.Ue_Vinf[:,0,-Te_idx]  , width, color= PP.colors2[1] , label='XFoil Upper Surf.') 
+    rects011 = axis01.bar(x - 1.5*width,   SUAVE_data.Ue_Vinf[:,0,Te_idx_SUAVE]    , width , color= PP.colors[0] , label='SUAVE Lower Surf.')
+    rects012 = axis01.bar(x -   width/2,   -Xfoil_data.Ue_Vinf[:,0,Te_idx_Xfoil]   , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
+    rects013 = axis01.bar(x +   width/2,    SUAVE_data.Ue_Vinf[:,0,-Te_idx_SUAVE]  , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
+    rects014 = axis01.bar(x + 1.5*width,    Xfoil_data.Ue_Vinf[:,0,-Te_idx_Xfoil]  , width, color= PP.colors2[1] , label='XFoil Upper Surf.') 
     plt.tight_layout()
-    rects021 = axis02.bar(x - 1.5*width,   SUAVE_data.Ue_Vinf[:,1,Te_idx]    , width, color= PP.colors[0]  )
-    rects022 = axis02.bar(x -   width/2,   -Xfoil_data.Ue_Vinf[:,1,Te_idx]   , width, color= PP.colors2[0] )
-    rects023 = axis02.bar(x +   width/2,    SUAVE_data.Ue_Vinf[:,1,-Te_idx]  , width, color= PP.colors[1]  )
-    rects024 = axis02.bar(x + 1.5*width,    Xfoil_data.Ue_Vinf[:,1,-Te_idx]  , width, color= PP.colors2[1] ) 
+    rects021 = axis02.bar(x - 1.5*width,   SUAVE_data.Ue_Vinf[:,1,Te_idx_SUAVE]    , width, color= PP.colors[0]  , label='SUAVE Lower Surf.')
+    rects022 = axis02.bar(x -   width/2,   -Xfoil_data.Ue_Vinf[:,1,Te_idx_Xfoil]   , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
+    rects023 = axis02.bar(x +   width/2,    SUAVE_data.Ue_Vinf[:,1,-Te_idx_SUAVE]  , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
+    rects024 = axis02.bar(x + 1.5*width,    Xfoil_data.Ue_Vinf[:,1,-Te_idx_Xfoil]  , width, color= PP.colors2[1] , label='XFoil Upper Surf.') 
     plt.tight_layout()
-    rects031 = axis03.bar(x - 1.5*width,   SUAVE_data.Ue_Vinf[:,2,Te_idx]    , width, color= PP.colors[0]  )
-    rects032 = axis03.bar(x -   width/2,   -Xfoil_data.Ue_Vinf[:,2,Te_idx]   , width, color= PP.colors2[0] )
-    rects033 = axis03.bar(x +   width/2,    SUAVE_data.Ue_Vinf[:,2,-Te_idx]  , width, color= PP.colors[1]  )
-    rects034 = axis03.bar(x + 1.5*width,    Xfoil_data.Ue_Vinf[:,2,-Te_idx]  , width, color= PP.colors2[1] )
-    plt.tight_layout()
-    
-    rects041 = axis04.bar(x - 1.5*width,SUAVE_data.theta[:,0,Te_idx]     , width  , color= PP.colors[0] , label='SUAVE Lower Surf.')
-    rects042 = axis04.bar(x -   width/2,Xfoil_data.theta[:,0,Te_idx]      , width , color= PP.colors2[0], label='XFoil Lower Surf.')
-    rects043 = axis04.bar(x +   width/2, SUAVE_data.theta[:,0,-Te_idx]  , width , color= PP.colors[1]   , label='SUAVE Upper Surf.')
-    rects044 = axis04.bar(x + 1.5*width, Xfoil_data.theta[:,0,-Te_idx]  , width , color= PP.colors2[1]  , label='XFoil Upper Surf.') 
-    plt.tight_layout()
-    rects051 = axis05.bar(x - 1.5*width,SUAVE_data.theta[:,1,Te_idx]       , width , color= PP.colors[0]  )
-    rects052 = axis05.bar(x -   width/2,Xfoil_data.theta[:,1,Te_idx]       , width , color= PP.colors2[0] )
-    rects053 = axis05.bar(x +   width/2, SUAVE_data.theta[:,1,-Te_idx]  , width , color= PP.colors[1]  )
-    rects054 = axis05.bar(x + 1.5*width, Xfoil_data.theta[:,1,-Te_idx]  , width , color= PP.colors2[1] ) 
-    plt.tight_layout()
-    rects061 = axis06.bar(x - 1.5*width,SUAVE_data.theta[:,2,Te_idx]      , width , color= PP.colors[0]  )
-    rects062 = axis06.bar(x -   width/2,Xfoil_data.theta[:,2,Te_idx]       , width, color= PP.colors2[0] )
-    rects063 = axis06.bar(x +   width/2, SUAVE_data.theta[:,2,-Te_idx]   , width, color= PP.colors[1]  )
-    rects064 = axis06.bar(x + 1.5*width, Xfoil_data.theta[:,2,-Te_idx]   , width, color= PP.colors2[1] )
+    rects031 = axis03.bar(x - 1.5*width,   SUAVE_data.Ue_Vinf[:,2,Te_idx_SUAVE]    , width, color= PP.colors[0]  , label='SUAVE Lower Surf.')
+    rects032 = axis03.bar(x -   width/2,   -Xfoil_data.Ue_Vinf[:,2,Te_idx_Xfoil]   , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
+    rects033 = axis03.bar(x +   width/2,    SUAVE_data.Ue_Vinf[:,2,-Te_idx_SUAVE]  , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
+    rects034 = axis03.bar(x + 1.5*width,    Xfoil_data.Ue_Vinf[:,2,-Te_idx_Xfoil]  , width, color= PP.colors2[1] , label='XFoil Upper Surf.')
     plt.tight_layout()
     
-    rects071 = axis07.bar(x - 1.5*width, SUAVE_data.delta_star[:,0,Te_idx]   , width, color= PP.colors[0]  , label='SUAVE Lower Surf.')
-    rects072 = axis07.bar(x -   width/2, Xfoil_data.delta_star[:,0,Te_idx]   , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
-    rects073 = axis07.bar(x +   width/2, SUAVE_data.delta_star[:,0,-Te_idx]  , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
-    rects074 = axis07.bar(x + 1.5*width, Xfoil_data.delta_star[:,0,-Te_idx]  , width, color= PP.colors2[1] , label='XFoil Upper Surf.') 
+    rects041 = axis04.bar(x - 1.5*width, SUAVE_data.theta[:,0,Te_idx_SUAVE]     , width  , color= PP.colors[0] )
+    rects042 = axis04.bar(x -   width/2, Xfoil_data.theta[:,0,Te_idx_Xfoil]      , width , color= PP.colors2[0])
+    rects043 = axis04.bar(x +   width/2, SUAVE_data.theta[:,0,-Te_idx_SUAVE]  , width , color= PP.colors[1]   )
+    rects044 = axis04.bar(x + 1.5*width, Xfoil_data.theta[:,0,-Te_idx_Xfoil]  , width , color= PP.colors2[1]  ) 
     plt.tight_layout()
-    rects081 = axis08.bar(x - 1.5*width, SUAVE_data.delta_star[:,1,Te_idx]   , width, color= PP.colors[0]  )
-    rects082 = axis08.bar(x -   width/2, Xfoil_data.delta_star[:,1,Te_idx]   , width, color= PP.colors2[0] )
-    rects083 = axis08.bar(x +   width/2, SUAVE_data.delta_star[:,1,-Te_idx]  , width, color= PP.colors[1]  )
-    rects084 = axis08.bar(x + 1.5*width, Xfoil_data.delta_star[:,1,-Te_idx]  , width, color= PP.colors2[1] ) 
+    rects051 = axis05.bar(x - 1.5*width, SUAVE_data.theta[:,1,Te_idx_SUAVE]       , width , color= PP.colors[0]  )
+    rects052 = axis05.bar(x -   width/2, Xfoil_data.theta[:,1,Te_idx_Xfoil]       , width , color= PP.colors2[0] )
+    rects053 = axis05.bar(x +   width/2, SUAVE_data.theta[:,1,-Te_idx_SUAVE]  , width , color= PP.colors[1]     )
+    rects054 = axis05.bar(x + 1.5*width, Xfoil_data.theta[:,1,-Te_idx_Xfoil]  , width , color= PP.colors2[1]    ) 
     plt.tight_layout()
-    rects091 = axis09.bar(x - 1.5*width, SUAVE_data.delta_star[:,2,Te_idx]   , width, color= PP.colors[0]  )
-    rects092 = axis09.bar(x -   width/2, Xfoil_data.delta_star[:,2,Te_idx]   , width, color= PP.colors2[0] )
-    rects093 = axis09.bar(x +   width/2, SUAVE_data.delta_star[:,2,-Te_idx]  , width, color= PP.colors[1]  )
-    rects094 = axis09.bar(x + 1.5*width, Xfoil_data.delta_star[:,2,-Te_idx]  , width, color= PP.colors2[1] )
+    rects061 = axis06.bar(x - 1.5*width,SUAVE_data.theta[:,2,Te_idx_SUAVE]      , width , color= PP.colors[0]  )
+    rects062 = axis06.bar(x -   width/2,Xfoil_data.theta[:,2,Te_idx_Xfoil]       , width, color= PP.colors2[0] )
+    rects063 = axis06.bar(x +   width/2, SUAVE_data.theta[:,2,-Te_idx_SUAVE]   , width, color= PP.colors[1]  )
+    rects064 = axis06.bar(x + 1.5*width, Xfoil_data.theta[:,2,-Te_idx_Xfoil]   , width, color= PP.colors2[1] )
     plt.tight_layout()
     
-    rects101 = axis10.bar(x - 1.5*width, SUAVE_data.Cf[:,2,Te_idx]   , width, color= PP.colors[0]  , label='SUAVE Lower Surf.')
-    rects102 = axis10.bar(x -   width/2, Xfoil_data.Cf[:,2,Te_idx]   , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
-    rects103 = axis10.bar(x +   width/2,  SUAVE_data.Cf[:,2,-Te_idx] , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
-    rects104 = axis10.bar(x + 1.5*width,  Xfoil_data.Cf[:,2,-Te_idx] , width, color= PP.colors2[1] , label='XFoil Upper Surf.') 
+    rects071 = axis07.bar(x - 1.5*width, SUAVE_data.delta_star[:,0,Te_idx_SUAVE]   , width, color= PP.colors[0]  )
+    rects072 = axis07.bar(x -   width/2, Xfoil_data.delta_star[:,0,Te_idx_Xfoil]   , width, color= PP.colors2[0] )
+    rects073 = axis07.bar(x +   width/2, SUAVE_data.delta_star[:,0,-Te_idx_SUAVE]  , width, color= PP.colors[1]  )
+    rects074 = axis07.bar(x + 1.5*width, Xfoil_data.delta_star[:,0,-Te_idx_Xfoil]  , width, color= PP.colors2[1] ) 
     plt.tight_layout()
-    rects111 = axis11.bar(x - 1.5*width, SUAVE_data.Cf[:,2,Te_idx]   , width, color= PP.colors[0]  ) 
-    rects112 = axis11.bar(x -   width/2, Xfoil_data.Cf[:,2,Te_idx]   , width, color= PP.colors2[0] ) 
-    rects113 = axis11.bar(x +   width/2,  SUAVE_data.Cf[:,2,-Te_idx] , width, color= PP.colors[1]  ) 
-    rects114 = axis11.bar(x + 1.5*width,  Xfoil_data.Cf[:,2,-Te_idx] , width, color= PP.colors2[1] ) 
+    rects081 = axis08.bar(x - 1.5*width, SUAVE_data.delta_star[:,1,Te_idx_SUAVE]   , width, color= PP.colors[0]  )
+    rects082 = axis08.bar(x -   width/2, Xfoil_data.delta_star[:,1,Te_idx_Xfoil]   , width, color= PP.colors2[0] )
+    rects083 = axis08.bar(x +   width/2, SUAVE_data.delta_star[:,1,-Te_idx_SUAVE]  , width, color= PP.colors[1]  )
+    rects084 = axis08.bar(x + 1.5*width, Xfoil_data.delta_star[:,1,-Te_idx_Xfoil]  , width, color= PP.colors2[1] ) 
     plt.tight_layout()
-    rects121 = axis12.bar(x - 1.5*width, SUAVE_data.Cf[:,2,Te_idx]   , width, color= PP.colors[0]  ) 
-    rects122 = axis12.bar(x -   width/2, Xfoil_data.Cf[:,2,Te_idx]   , width, color= PP.colors2[0] ) 
-    rects123 = axis12.bar(x +   width/2,  SUAVE_data.Cf[:,2,-Te_idx] , width, color= PP.colors[1]   ) 
-    rects124 = axis12.bar(x + 1.5*width,  Xfoil_data.Cf[:,2,-Te_idx] , width, color= PP.colors2[1]  ) 
+    rects091 = axis09.bar(x - 1.5*width, SUAVE_data.delta_star[:,2,Te_idx_SUAVE]   , width, color= PP.colors[0]  )
+    rects092 = axis09.bar(x -   width/2, Xfoil_data.delta_star[:,2,Te_idx_Xfoil]   , width, color= PP.colors2[0] )
+    rects093 = axis09.bar(x +   width/2, SUAVE_data.delta_star[:,2,-Te_idx_SUAVE]  , width, color= PP.colors[1]  )
+    rects094 = axis09.bar(x + 1.5*width, Xfoil_data.delta_star[:,2,-Te_idx_Xfoil]  , width, color= PP.colors2[1] )
+    plt.tight_layout()
+    
+    rects101 = axis10.bar(x - 1.5*width,  SUAVE_data.Cf[:,0,Te_idx_SUAVE_cf]   , width, color= PP.colors[0]  )
+    rects102 = axis10.bar(x -   width/2,  Xfoil_data.Cf[:,0,Te_idx_Xfoil]   , width, color= PP.colors2[0] )
+    rects103 = axis10.bar(x +   width/2,  SUAVE_data.Cf[:,0,-Te_idx_SUAVE_cf] , width, color= PP.colors[1]  )
+    rects104 = axis10.bar(x + 1.5*width,  Xfoil_data.Cf[:,0,-Te_idx_Xfoil] , width, color= PP.colors2[1] ) 
+    plt.tight_layout()
+    rects111 = axis11.bar(x - 1.5*width,  SUAVE_data.Cf[:,1,Te_idx_SUAVE_cf]   , width, color= PP.colors[0]  ) 
+    rects112 = axis11.bar(x -   width/2,  Xfoil_data.Cf[:,1,Te_idx_Xfoil]   , width, color= PP.colors2[0] ) 
+    rects113 = axis11.bar(x +   width/2,  SUAVE_data.Cf[:,1,-Te_idx_SUAVE_cf] , width, color= PP.colors[1]  ) 
+    rects114 = axis11.bar(x + 1.5*width,  Xfoil_data.Cf[:,1,-Te_idx_Xfoil] , width, color= PP.colors2[1] ) 
+    plt.tight_layout()
+    rects121 = axis12.bar(x - 1.5*width,  SUAVE_data.Cf[:,2,Te_idx_SUAVE_cf]   , width, color= PP.colors[0]  ) 
+    rects122 = axis12.bar(x -   width/2,  Xfoil_data.Cf[:,2,Te_idx_Xfoil]   , width, color= PP.colors2[0] ) 
+    rects123 = axis12.bar(x +   width/2,  SUAVE_data.Cf[:,2,-Te_idx_SUAVE_cf] , width, color= PP.colors[1]   ) 
+    rects124 = axis12.bar(x + 1.5*width,  Xfoil_data.Cf[:,2,-Te_idx_Xfoil] , width, color= PP.colors2[1]  ) 
     plt.tight_layout()
  
-    rects131 = axis13.bar(x - 1.5*width,  SUAVE_data.H[:,2,Te_idx]    , width,color = PP.colors[0] , label='SUAVE Lower Surf.')
-    rects132 = axis13.bar(x -   width/2,  Xfoil_data.H[:,2,Te_idx]   , width,color = PP.colors2[0] , label='XFoil Lower Surf.')
-    rects133 = axis13.bar(x +   width/2,   SUAVE_data.H[:,2,-Te_idx] , width,color = PP.colors[1]  , label='SUAVE Upper Surf.')
-    rects134 = axis13.bar(x + 1.5*width,   Xfoil_data.H[:,2,-Te_idx] , width,color = PP.colors2[1] , label='XFoil Upper Surf.') 
+    rects131 = axis13.bar(x - 1.5*width,   SUAVE_data.H[:,0,Te_idx_SUAVE]    , width,color = PP.colors[0] )
+    rects132 = axis13.bar(x -   width/2,   Xfoil_data.H[:,0,Te_idx_Xfoil]   , width,color = PP.colors2[0] )
+    rects133 = axis13.bar(x +   width/2,   SUAVE_data.H[:,0,-Te_idx_SUAVE] , width,color = PP.colors[1]  )
+    rects134 = axis13.bar(x + 1.5*width,   Xfoil_data.H[:,0,-Te_idx_Xfoil] , width,color = PP.colors2[1] ) 
     plt.tight_layout()
-    rects141 = axis14.bar(x - 1.5*width,  SUAVE_data.H[:,2,Te_idx]   , width,color = PP.colors[0]   )
-    rects142 = axis14.bar(x -   width/2,  Xfoil_data.H[:,2,Te_idx]   , width,color = PP.colors2[0]  )
-    rects143 = axis14.bar(x +   width/2,   SUAVE_data.H[:,2,-Te_idx] , width ,color = PP.colors[1]  )
-    rects144 = axis14.bar(x + 1.5*width,   Xfoil_data.H[:,2,-Te_idx] , width ,color = PP.colors2[1] )
+    rects141 = axis14.bar(x - 1.5*width,   SUAVE_data.H[:,1,Te_idx_SUAVE]   , width,color = PP.colors[0]   )
+    rects142 = axis14.bar(x -   width/2,   Xfoil_data.H[:,1,Te_idx_Xfoil]   , width,color = PP.colors2[0]  )
+    rects143 = axis14.bar(x +   width/2,   SUAVE_data.H[:,1,-Te_idx_SUAVE] , width ,color = PP.colors[1]  )
+    rects144 = axis14.bar(x + 1.5*width,   Xfoil_data.H[:,1,-Te_idx_Xfoil] , width ,color = PP.colors2[1] )
     plt.tight_layout()
-    rects151 = axis15.bar(x - 1.5*width,  SUAVE_data.H[:,2,Te_idx]   , width ,color = PP.colors[0]  )
-    rects152 = axis15.bar(x -   width/2,  Xfoil_data.H[:,2,Te_idx]   , width ,color = PP.colors2[0] )
-    rects153 = axis15.bar(x +   width/2,   SUAVE_data.H[:,2,-Te_idx] , width ,color = PP.colors[1]  )
-    rects154 = axis15.bar(x + 1.5*width,   Xfoil_data.H[:,2,-Te_idx] , width ,color = PP.colors2[1] )
+    rects151 = axis15.bar(x - 1.5*width,  SUAVE_data.H[:,2,Te_idx_SUAVE]   , width ,color = PP.colors[0]  )
+    rects152 = axis15.bar(x -   width/2,  Xfoil_data.H[:,2,Te_idx_Xfoil]   , width ,color = PP.colors2[0] )
+    rects153 = axis15.bar(x +   width/2,   SUAVE_data.H[:,2,-Te_idx_SUAVE] , width ,color = PP.colors[1]  )
+    rects154 = axis15.bar(x + 1.5*width,   Xfoil_data.H[:,2,-Te_idx_Xfoil] , width ,color = PP.colors2[1] )
     plt.tight_layout()
     
-    rects161 = axis16.bar(x - 1.5*width,SUAVE_data.Cp[:,2,Te_idx]    , width, color= PP.colors[0]  , label='SUAVE Lower Surf.')
-    rects162 = axis16.bar(x -   width/2,Xfoil_data.Cp[:,2,Te_idx]    , width, color= PP.colors2[0] , label='XFoil Lower Surf.')
-    rects163 = axis16.bar(x +   width/2, SUAVE_data.Cp[:,2,-Te_idx]  , width, color= PP.colors[1]  , label='SUAVE Upper Surf.')
-    rects164 = axis16.bar(x + 1.5*width, Xfoil_data.Cp[:,2,-Te_idx]  , width, color= PP.colors2[1] , label='XFoil Upper Surf.') 
+          
+    rects161 = axis16.bar(x - 1.5*width, SUAVE_data.Cp[:,0,:mid][:,Te_idx]    , width, color= PP.colors[0] )
+    rects162 = axis16.bar(x -   width/2, Xfoil_data.Cp[:,0,:mid2][:,Te_idx]    , width, color= PP.colors2[0])
+    rects163 = axis16.bar(x +   width/2, SUAVE_data.Cp[:,0,mid:][:,-Te_idx ]  , width, color= PP.colors[1] )
+    rects164 = axis16.bar(x + 1.5*width, Xfoil_data.Cp[:,0,mid2:][:,-Te_idx ]  , width, color= PP.colors2[1]) 
     plt.tight_layout() 
-    rects171 = axis17.bar(x - 1.5*width,SUAVE_data.Cp[:,2,Te_idx]    , width, color= PP.colors[0]  )
-    rects172 = axis17.bar(x -   width/2,Xfoil_data.Cp[:,2,Te_idx]    , width, color= PP.colors2[0] )
-    rects173 = axis17.bar(x +   width/2, SUAVE_data.Cp[:,2,-Te_idx]  , width, color= PP.colors[1]  )
-    rects174 = axis17.bar(x + 1.5*width, Xfoil_data.Cp[:,2,-Te_idx]  , width, color= PP.colors2[1] )
+    rects171 = axis17.bar(x - 1.5*width, SUAVE_data.Cp[:,1,:mid ][:,Te_idx ]    , width, color= PP.colors[0]  )
+    rects172 = axis17.bar(x -   width/2, Xfoil_data.Cp[:,1,:mid2][:,Te_idx ]    , width, color= PP.colors2[0] )
+    rects173 = axis17.bar(x +   width/2, SUAVE_data.Cp[:,1,mid: ][:,-Te_idx ]  , width, color= PP.colors[1]  )
+    rects174 = axis17.bar(x + 1.5*width, Xfoil_data.Cp[:,1,mid2:][:,-Te_idx ]  , width, color= PP.colors2[1] )
     plt.tight_layout()
-    rects181 = axis18.bar(x - 1.5*width,SUAVE_data.Cp[:,2,Te_idx]    , width, color= PP.colors[0]  )
-    rects182 = axis18.bar(x -   width/2,Xfoil_data.Cp[:,2,Te_idx]    , width, color= PP.colors2[0] )
-    rects183 = axis18.bar(x +   width/2, SUAVE_data.Cp[:,2,-Te_idx]  , width, color= PP.colors[1]  )
-    rects184 = axis18.bar(x + 1.5*width, Xfoil_data.Cp[:,2,-Te_idx]  , width, color= PP.colors2[1] ) 
+    rects181 = axis18.bar(x - 1.5*width, SUAVE_data.Cp[:,2,:mid][:,Te_idx ]    , width, color= PP.colors[0]  )
+    rects182 = axis18.bar(x -   width/2, Xfoil_data.Cp[:,2,:mid2][:,Te_idx ]    , width, color= PP.colors2[0] )
+    rects183 = axis18.bar(x +   width/2, SUAVE_data.Cp[:,2,mid: ][:,-Te_idx ]  , width, color= PP.colors[1]  )
+    rects184 = axis18.bar(x + 1.5*width, Xfoil_data.Cp[:,2,mid2:][:,-Te_idx ]  , width, color= PP.colors2[1] ) 
     plt.tight_layout()
  
     axis01.set_xticks(x,AoA_tags) 
@@ -300,24 +308,26 @@ def plot_trailing_edge_boundary_layer_properties(SUAVE_data,Xfoil_data,Re_tags,A
     axis07.set_ylim([0,0.2])  
     axis08.set_ylim([0,0.04])  
     axis09.set_ylim([0,0.02])   
-    axis10.set_ylim([0,0.003])
-    axis11.set_ylim([0,0.003])
-    axis12.set_ylim([0,0.003])
+    axis10.set_ylim([0,0.005])
+    axis11.set_ylim([0,0.005])
+    axis12.set_ylim([0,0.005])
     axis13.set_ylim([0,4.5])
     axis14.set_ylim([0,4])
     axis15.set_ylim([0,4])
-    axis16.set_ylim([0,1])
-    axis17.set_ylim([0,1])
-    axis18.set_ylim([0,1])
+    axis16.set_ylim([-1,1])
+    axis17.set_ylim([-1,1])
+    axis18.set_ylim([-1,1])
     
     
     # add legends for plotting 
-    axis01.legend(loc='upper left')   
-    axis04.legend(loc='upper left')    
-    axis07.legend(loc='upper left')   
-    axis10.legend(loc='upper right')    
-    axis13.legend(loc='upper left')   
-    axis16.legend(loc='upper left')   
+    axis01.legend(loc='upper left')  
+    axis02.legend(loc='upper left')   
+    axis03.legend(loc='upper left')    
+    #axis04.legend(loc='upper left')    
+    #axis07.legend(loc='upper left')   
+    #axis10.legend(loc='upper right')    
+    #axis13.legend(loc='upper left')   
+    #axis16.legend(loc='upper left')   
 
 
     fig01.tight_layout()
@@ -425,11 +435,7 @@ def plot_pressure_distribution(SUAVE_data,Xfoil_data,Re_tags,AoA_tags,PP):
     axis03.plot(SUAVE_data.x[1,2,mid: ],   SUAVE_data.Cp[1,2,mid: ], linewidth = PP.line_width ,color = PP.colors[1], linestyle = '--' ,marker =  PP.markers[1] ) 
     axis03.plot(Xfoil_data.x[1,2,:mid2],   Xfoil_data.Cp[1,2,:mid2], linewidth = PP.line_width ,color = PP.colors2[1], linestyle = '-' ,marker  =  PP.markers[1]    , label = 'Xfoil, AoA = ' + AoA_tags[1])   
     axis03.plot(Xfoil_data.x[1,2,mid2:],   Xfoil_data.Cp[1,2,mid2:], linewidth = PP.line_width ,color = PP.colors2[1], linestyle = '--' ,marker =  PP.markers[1]   )              
-     
-     
-     
-     
-          
+      
 
      
     axis01.set_xlabel('x') 
@@ -535,4 +541,5 @@ def import_NACA_4412_xfoil_results(Re_tags,AoA_tags,Npanels):
     return Xfoil_data  
 if __name__ == '__main__': 
     main() 
-    plt.show() 
+    plt.show()
+
