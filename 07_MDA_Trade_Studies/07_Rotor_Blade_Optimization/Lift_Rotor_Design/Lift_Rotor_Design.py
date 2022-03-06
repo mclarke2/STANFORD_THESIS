@@ -29,11 +29,11 @@ def main():
     #SR_lift_rotor_Adkins_Leibeck()   
 
     alpha_weights                      = np.linspace(0.0,1.0,5) # np.array([1.0])  
-    plot_rotor_geomery_and_performance = False 
+    plot_rotor_geomery_and_performance = True
     use_pyoptsparse                    = False 
-    SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
+    #SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
     
-    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
+    SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
@@ -63,11 +63,13 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         rotor.tip_radius                 = 1.15
         rotor.hub_radius                 = 0.15 * rotor.tip_radius  
         rotor.number_of_blades           = 3
-        rotor.design_tip_mach_range      = [0.3,0.7]   
+        rotor.design_tip_mach_range      = [0.3,0.7]  
+        #rotor.design_tip_mach            = .6
         rotor.inflow_ratio               = 0.06   
         rotor.design_Cl                  = 0.7
         rotor.design_altitude            = 20 * Units.feet                     
         rotor.design_thrust              = (2700*9.81)/(12)
+        rotor.freestream_velocity        = np.sqrt(rotor.design_thrust/(2*1.2*np.pi*(rotor.tip_radius**2)))
         rotor.variable_pitch             = True   
         rotor.airfoil_geometry           = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
         rotor.airfoil_polars             = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
