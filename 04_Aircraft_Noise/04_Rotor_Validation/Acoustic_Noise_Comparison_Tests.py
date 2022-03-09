@@ -87,8 +87,8 @@ def main():
     #High_Fidelity_Validation_1(plot_parameters) 
     #High_Fidelity_Validation_2(plot_parameters)  
     #Skew_function(plot_parameters)  
-    Total_Rotor_Spenctrum_Sensitivity_Validation(plot_parameters) 
-    #ANOPP2_Validation(plot_parameters) 
+    #Total_Rotor_Spenctrum_Sensitivity_Validation(plot_parameters) 
+    ANOPP2_Validation(plot_parameters) 
 
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)),3)) + ' sec')        
@@ -2162,15 +2162,12 @@ def ANOPP2_Validation(PP):
     # ----------------------------------------------------------------------------------------------------------------------------------------
     #  Experimental Data
     # ----------------------------------------------------------------------------------------------------------------------------------------       
-    
     fig_size_width  = 8 
     fig_size_height = 6
     
     # ----------------------------------------------------------------------------------------------------------------------------------------
     #  Plots  
     # ----------------------------------------------------------------------------------------------------------------------------------------   
-    
-
     plt.rcParams['axes.linewidth'] = 2.
     plt.rcParams["font.family"] = "Times New Roman"
     parameters = {'axes.labelsize': 12,

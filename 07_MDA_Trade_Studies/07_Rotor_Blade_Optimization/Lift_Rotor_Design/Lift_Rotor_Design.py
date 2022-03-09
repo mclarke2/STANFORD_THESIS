@@ -28,12 +28,13 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.linspace(0.0,1.0,5) # np.array([1.0])  
-    plot_rotor_geomery_and_performance = True
-    use_pyoptsparse                    = False 
-    #SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters)
+    alpha_weights                      = np.linspace(0.0,1.0,21) # np.array([0.8,0.85])  # np.linspace(0.0,1.0,5) # np.array([1.0])  
+    plot_rotor_geomery_and_performance = False
+    use_pyoptsparse                    = False
+    save_figures                       = False 
+    SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters,save_figures)
     
-    SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters)
+    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters,save_figures)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
@@ -48,7 +49,7 @@ def main():
 # ------------------------------------------------------------------ 
 # Stopped-Rotor Lift Rotor Singe Point Design Point Analysis
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters): 
+def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters,save_figures): 
      
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
@@ -95,7 +96,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         save_blade_geometry(rotor,name)
         
         if  plot_rotor_geomery_and_performance: 
-            plot_geoemtry_and_performance(rotor,name,plot_parameters) 
+            plot_geoemtry_and_performance(rotor,name,plot_parameters,save_figures) 
     return
 
 
@@ -299,7 +300,7 @@ def SR_lift_rotor_Adkins_Leibeck():
 # ------------------------------------------------------------------ 
 # Tiltwing Prop-Rotor Design Comparisons
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_flag,PP):   
+def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_flag,PP,save_figures):   
     
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
@@ -437,7 +438,8 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
         plot_propeller_geometry(axis_0,rotor,network,rotor.tag)   
     
         fig_0_name = "3D_" + rotor_name
-        fig_0.savefig(fig_0_name  + '.pdf')  
+        if save_figures:
+            fig_0.savefig(fig_0_name  + '.pdf')  
         
     
     axis_1.set_ylim([-40,250]) 
@@ -479,24 +481,25 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
     fig_7.tight_layout(rect= (0.05,0,1,1))
     fig_8.tight_layout(rect= (0.05,0,1,1))
     fig_9.tight_layout(rect= (0.05,0,1,1))   
-     
-    fig_1.savefig(fig_1_name  + '.pdf')               
-    fig_2.savefig(fig_2_name  + '.pdf')               
-    fig_3.savefig(fig_3_name  + '.pdf')               
-    fig_4.savefig(fig_4_name  + '.pdf')              
-    fig_5.savefig(fig_5_name  + '.pdf')       
-    fig_6.savefig(fig_6_name  + '.pdf')        
-    fig_7.savefig(fig_7_name  + '.pdf')               
-    fig_8.savefig(fig_8_name  + '.pdf')               
-    fig_9.savefig(fig_9_name  + '.pdf')   
     
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')               
+        fig_2.savefig(fig_2_name  + '.pdf')               
+        fig_3.savefig(fig_3_name  + '.pdf')               
+        fig_4.savefig(fig_4_name  + '.pdf')              
+        fig_5.savefig(fig_5_name  + '.pdf')       
+        fig_6.savefig(fig_6_name  + '.pdf')        
+        fig_7.savefig(fig_7_name  + '.pdf')               
+        fig_8.savefig(fig_8_name  + '.pdf')               
+        fig_9.savefig(fig_9_name  + '.pdf')   
+        
     return   
 
 
 # ------------------------------------------------------------------ 
 # Plot Results and Pareto Fronteir
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP):    
+def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP,save_figures):    
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
     design_thrust        = (2700*9.81/(12))     
@@ -620,22 +623,23 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     fig_8.tight_layout()
     fig_9.tight_layout()   
     
-    fig_1.savefig(fig_1_name  + '.pdf')               
-    fig_2.savefig(fig_2_name  + '.pdf')               
-    fig_3.savefig(fig_3_name  + '.pdf')               
-    fig_4.savefig(fig_4_name  + '.pdf')              
-    fig_5.savefig(fig_5_name  + '.pdf')       
-    fig_6.savefig(fig_6_name  + '.pdf')        
-    fig_7.savefig(fig_7_name  + '.pdf')               
-    fig_8.savefig(fig_8_name  + '.pdf')               
-    fig_9.savefig(fig_9_name  + '.pdf')     
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')               
+        fig_2.savefig(fig_2_name  + '.pdf')               
+        fig_3.savefig(fig_3_name  + '.pdf')               
+        fig_4.savefig(fig_4_name  + '.pdf')              
+        fig_5.savefig(fig_5_name  + '.pdf')       
+        fig_6.savefig(fig_6_name  + '.pdf')        
+        fig_7.savefig(fig_7_name  + '.pdf')               
+        fig_8.savefig(fig_8_name  + '.pdf')               
+        fig_9.savefig(fig_9_name  + '.pdf')     
     
     
     return   
 # ------------------------------------------------------------------ 
 # Plot Single Propeller Geometry and Perfomrance Results
 # ------------------------------------------------------------------ 
-def plot_geoemtry_and_performance(rotor,rotor_name,PP):
+def plot_geoemtry_and_performance(rotor,rotor_name,PP,save_figures):
     
     prop_rotor_flag  = False
     c    = rotor.chord_distribution
@@ -749,15 +753,16 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP):
     fig_8.tight_layout(rect= (0.05,0,1,1))
     fig_9.tight_layout(rect= (0.05,0,1,1))   
      
-    fig_1.savefig(fig_1_name  + '.pdf')               
-    fig_2.savefig(fig_2_name  + '.pdf')               
-    fig_3.savefig(fig_3_name  + '.pdf')               
-    fig_4.savefig(fig_4_name  + '.pdf')              
-    fig_5.savefig(fig_5_name  + '.pdf')       
-    fig_6.savefig(fig_6_name  + '.pdf')        
-    fig_7.savefig(fig_7_name  + '.pdf')               
-    fig_8.savefig(fig_8_name  + '.pdf')               
-    fig_9.savefig(fig_9_name  + '.pdf')    
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')               
+        fig_2.savefig(fig_2_name  + '.pdf')               
+        fig_3.savefig(fig_3_name  + '.pdf')               
+        fig_4.savefig(fig_4_name  + '.pdf')              
+        fig_5.savefig(fig_5_name  + '.pdf')       
+        fig_6.savefig(fig_6_name  + '.pdf')        
+        fig_7.savefig(fig_7_name  + '.pdf')               
+        fig_8.savefig(fig_8_name  + '.pdf')               
+        fig_9.savefig(fig_9_name  + '.pdf')    
     
 
     # ----------------------------------------------------------------------------
@@ -785,7 +790,8 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP):
     
 
     fig_0_name = "3D_" + rotor_name
-    fig_0.savefig(fig_0_name  + '.pdf') 
+    if save_figures:
+        fig_0.savefig(fig_0_name  + '.pdf') 
     
     return   
  
