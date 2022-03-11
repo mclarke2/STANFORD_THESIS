@@ -574,7 +574,7 @@ def vehicle_setup():
     prop.angular_velocity         = prop.design_tip_mach*speed_of_sound/prop.tip_radius      
     prop.design_Cl                = 0.7
     prop.design_altitude          = 500 * Units.feet                   
-    prop.design_thrust            = Lift/(net.number_of_propeller_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    prop.design_thrust            = Lift/(net.number_of_propeller_engines) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     ospath    = os.path.abspath(__file__)
     separator = os.path.sep
     rel_path  = os.path.dirname(ospath) + separator 

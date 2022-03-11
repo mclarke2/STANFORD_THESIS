@@ -28,13 +28,13 @@ def main():
     
     #SR_lift_rotor_Adkins_Leibeck()   
 
-    alpha_weights                      = np.linspace(0.0,1.0,21) # np.array([0.8,0.85])  # np.linspace(0.0,1.0,5) # np.array([1.0])  
+    alpha_weights                      = np.linspace(0.0,1.0,101) # np.array([0.8,0.85])  # np.linspace(0.0,1.0,5) # np.array([1.0])  
     plot_rotor_geomery_and_performance = False
     use_pyoptsparse                    = False
     save_figures                       = False 
-    SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters,save_figures)
+    #SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters,save_figures)
     
-    #SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters,save_figures)
+    SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters,save_figures)
 
     # COMPARE TWO ROTORS 
     #alpha_weights     = np.array([1.0,0.5])    
@@ -502,6 +502,7 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP,save_figures):    
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
+    folder               = 'Attempt_2'
     design_thrust        = (2700*9.81/(12))     
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
@@ -534,7 +535,7 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     for idx in range(len(alpha_weights) + 1):   
         rotor_flag = True
         if idx == 0: 
-            rotor_file_name  =  rel_path +  'Data' + separator + 'Rotor_T_' + str(int(design_thrust)) + '_AL' 
+            rotor_file_name  =  rel_path +  folder + separator + 'Rotor_T_' + str(int(design_thrust)) + '_AL' 
             rotor_tag        = 'T:' + str(int(design_thrust)) + 'A.& L.'
             rotor_name       = 'Adkins & Liebeck'
             rotor            = load_blade_geometry(rotor_file_name)            
@@ -542,7 +543,7 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
             # save rotor geomtry
             alpha_opt_weight = str(alpha_weights[idx-1])
             alpha_opt_weight = alpha_opt_weight.replace('.','_')     
-            rotor_file_name  =  rel_path +  'Data' + separator +  'Rotor_T_' + str(int(rotor.design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
+            rotor_file_name  =  rel_path +  folder + separator +  'Rotor_T_' + str(int(rotor.design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
             rotor_tag   = 'T:' + str(int(design_thrust)) + r', $\alpha$' + str(alpha_weights[idx-1])
             rotor_name  = r'$\alpha$ = ' + str(alpha_weights[idx-1]) 
             try: 
@@ -696,9 +697,7 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP,save_figures):
     fig_5.set_size_inches(PP.figure_width, PP.figure_height)  
     axis_5 = fig_5.add_subplot(1,1,1)  
     theta   = [90,120,160]
-    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,0] ,color = PP.colors[0][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[0])+ r'$\degree$') 
-    #axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,1] ,color = PP.colors[1][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[1])+ r'$\degree$') 
-    #axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,2] ,color = PP.colors[2][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[2])+ r'$\degree$') 
+    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,0] ,color = PP.colors[0][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = r'$\theta$ = ' + str(theta[0])+ r'$\degree$')   
     axis_5.set_ylabel(r'SPL$_{1/3}$ (dBA)')
     axis_5.set_xlabel('Frequency (Hz)') 
     axis_5.set_ylim([0,120])  

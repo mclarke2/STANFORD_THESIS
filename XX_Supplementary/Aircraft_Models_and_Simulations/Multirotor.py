@@ -460,7 +460,7 @@ def vehicle_setup():
     rotor.angular_velocity       = (design_tip_mach*speed_of_sound)/rotor.tip_radius   
     rotor.design_Cl              = 0.7
     rotor.design_altitude        = 1000 * Units.feet                   
-    rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines-1) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    rotor.design_thrust          = Hover_Load/(net.number_of_lift_rotor_engines) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     ospath    = os.path.abspath(__file__)
     separator = os.path.sep
     rel_path  = os.path.dirname(ospath) + separator 

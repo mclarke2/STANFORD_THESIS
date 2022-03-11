@@ -846,7 +846,7 @@ def vehicle_setup():
     rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
     rotor.design_Cl                  = 0.7
     rotor.design_altitude            = 20 * Units.feet                     
-    rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines-2) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    rotor.design_thrust              = Hover_Load/(net.number_of_lift_rotor_engines) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     rotor.variable_pitch             = True 
     rotor.airfoil_geometry           =  [rel_path + '../Airfoils/NACA_4412.txt']
     rotor.airfoil_polars             = [[rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,

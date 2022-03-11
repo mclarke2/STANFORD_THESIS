@@ -21,42 +21,16 @@ import pickle
 #   Main
 # ---------------------------------------------------------------------- 
 def main():
-    
-
-    # Add to rotor definition  
-
-    plt.rcParams['axes.linewidth'] = 2.
-    plt.rcParams["font.family"] = "Times New Roman"
-    parameters = {'axes.labelsize': 32,
-                  'legend.fontsize': 22,
-                  'xtick.labelsize': 28,
-                  'ytick.labelsize': 28,
-                  'axes.titlesize': 32}
-    plt.rcParams.update(parameters)
-    plot_parameters                  = Data()
-    plot_parameters.line_width       = 2
-    plot_parameters.line_styles      = ['--',':','-',':','--']
-    plot_parameters.figure_width     = 10
-    plot_parameters.figure_height    = 7
-    plot_parameters.marker_size      = 10
-    plot_parameters.legend_font_size = 20
-    plot_parameters.plot_grid        = True   
-
-    plot_parameters.colors           = [['black','firebrick','darkblue'],
-                                        ['dimgray','red','blue'], 
-                                        ['darkgray','salmon','deepskyblue']]  
-     
-    plot_parameters.markers          = ['o','v','s','P','p','^','D','X','*']   
-    
-        
-    #test_rotor_planform_function(plot_parameters)  
+    plot_parameters = define_plot_parameters() 
+ 
     
     #TW_prop_rotor_Adkins_Leibeck() 
-    alpha_weights                      = np.array([1.0]) # np.linspace(0.0,1.0,11) 
-    beta_weights                       = np.array([1.0]) # np.linspace(0.0,1.0,11) 
+    alpha_weights                      = np.array([1.0]) # 1,0.75,0.5,0.25,0.0 np.linspace(0.0,1.0,11) 
+    beta_weights                       = np.linspace(0.0,1.0,11) 
     use_pyoptsparse                    = False 
-    plot_rotor_geomery_and_performance = True
-    TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse, plot_rotor_geomery_and_performance,plot_parameters)  
+    plot_rotor_geomery_and_performance = False
+    save_figures                       = False 
+    TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse, plot_rotor_geomery_and_performance,plot_parameters,save_figures)  
     
     # 2D PARETO
     #TW_prop_rotor_designs_and_pareto_fronteir(alpha_weights,np.ones_like(alpha_weights)*0.5,'Alpha_Sweep',plot_parameters)
@@ -69,46 +43,12 @@ def main():
     
     #examine_broadband_validation(plot_parameters)
     return 
-
-# ------------------------------------------------------------------ 
-# Test Rotor Planform Function
-# ------------------------------------------------------------------ 
-def test_rotor_planform_function(PP): 
-    c_r     = 0.3
-    c_t     = 0.1   
-    b       = 1 # span 
-    r       = 11
-    N       = r-1                      # number of spanwise divisions
-    n       = np.linspace(N,0,r)       # vectorize
-    theta_n = n*(np.pi/2)/r            # angular stations
-    y_n     = b*np.cos(theta_n)        # y locations based on the angular spacing
-    eta_n   = np.abs(y_n/b)            # normalized coordinates 
-    p       = [0.25,0.5,1,2] 
-    markers = ['s','o','P','D','v'] 
-    q       = [0.25,0.5,1,1.5]         # q must be positive 
-    colors  = ['red','blue','black','green','orange']
-    
-    fig = plt.figure()
-    fig.set_size_inches(PP.figure_width,PP.figure_height)    
-    axis = fig.add_subplot(1,1,1) 
-    axis.set_ylabel(r'$c_n$')
-    axis.set_xlabel(r'$\eta_n$')
-    for i in range(len(p)):
-        for j in range(len(q)):
-            c_n = c_r*(1 - eta_n**p[i])**q[j] + c_t*eta_n
-            line_label = 'p = ' + str(p[i]) +  ', q = ' + str(q[j]) 
-            axis.plot(y_n,c_n,linestyle = '-', linewidth = PP.line_width, marker = markers[i],color = colors[j], label  = line_label) 
-            
-    
-    fig.tight_layout()    
-    fig_name = 'Rotor_Planform_Shape_Function'          
-    fig.savefig(fig_name  + '.pdf')              
-    return 
+ 
 
 # ------------------------------------------------------------------ 
 # Tiltwing Prop-Rotor Design Point Analysis
 # ------------------------------------------------------------------ 
-def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters): 
+def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters,save_figures): 
      
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
@@ -125,19 +65,18 @@ def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse
             prop_rotor.hub_radius                      = 0.15 * prop_rotor.tip_radius
             prop_rotor.design_tip_mach                 = 0.6   
             prop_rotor.number_of_blades                = 3  
-            inflow_ratio_hover                         = 0.1 # 0.06 
+            prop_rotor.design_tip_mach_range           = [0.4,0.65] 
+            inflow_ratio_hover                         = 0.06 
             prop_rotor.angular_velocity_hover          = prop_rotor.design_tip_mach*343 /prop_rotor.tip_radius 
             prop_rotor.design_altitude_hover           = 0 * Units.feet                  
-            prop_rotor.design_thrust_hover             = (2300*9.81/(8-2))  
-            prop_rotor.freestream_velocity_hover       = inflow_ratio_hover*prop_rotor.angular_velocity_hover*prop_rotor.tip_radius 
-            #prop_rotor.inputs.pitch_command_hover      =  -10.  * Units.degrees           
+            prop_rotor.design_thrust_hover             = (2300*9.81/(8))  
+            prop_rotor.freestream_velocity_hover       = inflow_ratio_hover*prop_rotor.angular_velocity_hover*prop_rotor.tip_radius  
          
 
             prop_rotor.angular_velocity_cruise         = prop_rotor.design_tip_mach*343 /prop_rotor.tip_radius                     
             prop_rotor.design_altitude_cruise          = 2500 * Units.feet                      
             prop_rotor.design_thrust_cruise            = 1408.25/8     
-            prop_rotor.freestream_velocity_cruise      = 175*Units.mph  
-            #prop_rotor.inputs.pitch_command_cruise     = 0.* Units.degrees 
+            prop_rotor.freestream_velocity_cruise      = 175*Units.mph   
             
             prop_rotor.airfoil_geometry                = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
             prop_rotor.airfoil_polars                  = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -166,18 +105,17 @@ def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse
             save_blade_geometry(prop_rotor,name)
             
             if plot_rotor_geomery_and_performance: 
-                plot_geoemtry_and_performance(prop_rotor,name,plot_parameters)
+                plot_geoemtry_and_performance(prop_rotor,name,plot_parameters,save_figures)
     
     return  
 
 # ------------------------------------------------------------------ 
 # Tiltwing Prop-Rotor Design Comparisons
 # ------------------------------------------------------------------ 
-def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_flag,PP): 
+def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_flag,PP,save_figures): 
 
-    design_thrust_hover  = (2300*9.81/(8-2))    
+    design_thrust_hover  = (2300*9.81/(8))    
     design_thrust_cruise = 1410/8 
-    
     
    
     fig_1 = plt.figure('Blade_Thurst_Distribution')
@@ -351,8 +289,6 @@ def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
         fig_0_name = "3D_" + rotor_name
         fig_0.savefig(fig_0_name  + '.pdf') 
         
-        
-        
     
     axis_1.set_ylim([-40,250]) 
     axis_2.set_ylim([-20,40]) 
@@ -393,16 +329,17 @@ def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
     fig_7.tight_layout(rect= (0.05,0,1,1))
     fig_8.tight_layout(rect= (0.05,0,1,1))
     fig_9.tight_layout(rect= (0.05,0,1,1))   
-     
-    fig_1.savefig(fig_1_name  + '.pdf')               
-    fig_2.savefig(fig_2_name  + '.pdf')               
-    fig_3.savefig(fig_3_name  + '.pdf')               
-    fig_4.savefig(fig_4_name  + '.pdf')              
-    fig_5.savefig(fig_5_name  + '.pdf')       
-    fig_6.savefig(fig_6_name  + '.pdf')        
-    fig_7.savefig(fig_7_name  + '.pdf')               
-    fig_8.savefig(fig_8_name  + '.pdf')               
-    fig_9.savefig(fig_9_name  + '.pdf')   
+      
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')               
+        fig_2.savefig(fig_2_name  + '.pdf')               
+        fig_3.savefig(fig_3_name  + '.pdf')               
+        fig_4.savefig(fig_4_name  + '.pdf')              
+        fig_5.savefig(fig_5_name  + '.pdf')       
+        fig_6.savefig(fig_6_name  + '.pdf')        
+        fig_7.savefig(fig_7_name  + '.pdf')               
+        fig_8.savefig(fig_8_name  + '.pdf')               
+        fig_9.savefig(fig_9_name  + '.pdf')   
     
     return  
 
@@ -423,12 +360,12 @@ def TW_prop_rotor_Adkins_Leibeck():
     prop_rotor.angular_velocity_hover          = prop_rotor.design_tip_mach*343/prop_rotor.tip_radius      
     prop_rotor.design_Cl                       = 0.7
     prop_rotor.design_altitude                 = 500 * Units.feet                   
-    prop_rotor.design_thrust                   = (2300*9.81/(8-2)) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    prop_rotor.design_thrust                   = (2300*9.81/(8)) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
      
     inflow_ratio_hover                         = 0.1  # 0.06 
     prop_rotor.angular_velocity_hover          = prop_rotor.design_tip_mach*343 /prop_rotor.tip_radius 
     prop_rotor.design_altitude_hover           = 0 * Units.feet                  
-    prop_rotor.design_thrust_hover             = (2300*9.81/(8-2)) # 23000/8
+    prop_rotor.design_thrust_hover             = (2300*9.81/(8)) 
     
     prop_rotor.freestream_velocity_hover       = inflow_ratio_hover*prop_rotor.angular_velocity_hover*prop_rotor.tip_radius 
     
@@ -468,14 +405,14 @@ def TW_prop_rotor_Adkins_Leibeck():
     mu             = atmo_data.dynamic_viscosity[0]  
     ctrl_pts       = 1 
     
-    # Run Conditions      
-    theta  = np.array([90,112.5,135,157.5])*Units.degrees + 1E-2
-    S      = np.maximum(alt , 20*Units.feet)
+    # Run Conditions       
+    theta  = np.array([135])*Units.degrees + 1E-4
+    S      = np.maximum(alt , 20*Units.feet) 
     
     # microphone locations
-    positions = np.zeros(( len(theta),3))
+    positions  = np.zeros(( len(theta),3))
     for i in range(len(theta)):
-        positions[i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])]   
+        positions [i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])]   
             
     # Set up for Propeller Model
     prop_rotor.inputs.omega                          = np.atleast_2d(omega).T
@@ -533,7 +470,7 @@ def TW_prop_rotor_Adkins_Leibeck():
     ctrl_pts       = 1 
     
     # Run Conditions     
-    theta     = np.array([45,90,135])*Units.degrees + 1E-2
+    theta     = np.array([135])*Units.degrees + 1E-4
     S         = np.maximum(alt , 20*Units.feet)
     ctrl_pts  = 1 
     positions = np.zeros(( len(theta),3))
@@ -602,12 +539,16 @@ def TW_prop_rotor_Adkins_Leibeck():
 # ------------------------------------------------------------------ 
 # Plot Results and Pareto Fronteir
 # ------------------------------------------------------------------ 
-def TW_prop_rotor_designs_and_pareto_fronteir(weight_1,weight_2,sweep_name,PP):    
+def TW_prop_rotor_designs_and_pareto_fronteir(weight_1,weight_2,sweep_name,use_pyoptsparse_flag,PP,save_figures):    
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(weight_1)))    
-    design_thrust_hover  = (2300*9.81/(8-2))    
+    design_thrust_hover  = (2300*9.81/(8))    
     design_thrust_cruise = 1410/8 
-    optimizer            = 'SLSQP' 
+    folder               = 'Data'
+    if use_pyoptsparse_flag:
+        optimizer = 'SNOPT'
+    else: 
+        optimizer = 'SLSQP'
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator   
@@ -635,7 +576,7 @@ def TW_prop_rotor_designs_and_pareto_fronteir(weight_1,weight_2,sweep_name,PP):
     for idx in range(len(weight_1) + 1):           
         rotor_flag = True
         if idx == 0: 
-            rotor_file_name  = rel_path + 'TW_Rotor' + separator + 'Rotor_T_' + str(int(design_thrust_hover)) + '_AL'   
+            rotor_file_name  = rel_path +  folder + separator + 'Rotor_T_' + str(int(design_thrust_hover)) + '_AL'   
             rotor_tag        = 'T:' + str(int(design_thrust_hover)) + 'A.& L.'
             rotor_name       =  'Adkins & Liebeck'            
             rotor            = load_blade_geometry(rotor_file_name)      
@@ -646,7 +587,7 @@ def TW_prop_rotor_designs_and_pareto_fronteir(weight_1,weight_2,sweep_name,PP):
             alpha_opt_weight = alpha_opt_weight.replace('.','_')    
             beta_opt_weight  = str(weight_2[idx-1])
             beta_opt_weight  = beta_opt_weight.replace('.','_')    
-            rotor_file_name = rel_path + 'TW_Rotor' + separator + 'Rotor_TH_' + str(int(design_thrust_hover)) + '_TC_' + str(int(design_thrust_cruise)) +\
+            rotor_file_name = rel_path +  folder + separator + 'Rotor_TH_' + str(int(design_thrust_hover)) + '_TC_' + str(int(design_thrust_cruise)) +\
                          '_Alpha_' + alpha_opt_weight + '_Beta_' + beta_opt_weight + '_Opt_' + optimizer  
             try: 
                 rotor       = load_blade_geometry(rotor_file_name)
@@ -726,15 +667,16 @@ def TW_prop_rotor_designs_and_pareto_fronteir(weight_1,weight_2,sweep_name,PP):
     fig_8.tight_layout()
     fig_9.tight_layout()   
     
-    fig_1.savefig(fig_1_name  + '.pdf')               
-    fig_2.savefig(fig_2_name  + '.pdf')               
-    fig_3.savefig(fig_3_name  + '.pdf')               
-    fig_4.savefig(fig_4_name  + '.pdf')              
-    fig_5.savefig(fig_5_name  + '.pdf')       
-    fig_6.savefig(fig_6_name  + '.pdf')        
-    fig_7.savefig(fig_7_name  + '.pdf')               
-    fig_8.savefig(fig_8_name  + '.pdf')               
-    fig_9.savefig(fig_9_name  + '.pdf')     
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')               
+        fig_2.savefig(fig_2_name  + '.pdf')               
+        fig_3.savefig(fig_3_name  + '.pdf')               
+        fig_4.savefig(fig_4_name  + '.pdf')              
+        fig_5.savefig(fig_5_name  + '.pdf')       
+        fig_6.savefig(fig_6_name  + '.pdf')        
+        fig_7.savefig(fig_7_name  + '.pdf')               
+        fig_8.savefig(fig_8_name  + '.pdf')               
+        fig_9.savefig(fig_9_name  + '.pdf')     
     
     
     return  
@@ -742,7 +684,7 @@ def TW_prop_rotor_designs_and_pareto_fronteir(weight_1,weight_2,sweep_name,PP):
 # ------------------------------------------------------------------ 
 # Plot Single Propeller Geometry and Perfomrance Results
 # ------------------------------------------------------------------ 
-def plot_geoemtry_and_performance(rotor,rotor_name,PP):
+def plot_geoemtry_and_performance(rotor,rotor_name,PP,save_figures):
     
     prop_rotor_flag  = False
     c    = rotor.chord_distribution
@@ -835,14 +777,10 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP):
     fig_5 = plt.figure('Blade_SPL_dBA')    
     fig_5.set_size_inches(PP.figure_width, PP.figure_height)  
     axis_5 = fig_5.add_subplot(1,1,1)  
-    theta   = [90,120,160]
-    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,0] ,color = PP.colors[0][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = hover_label + r',$\theta$ = ' + str(theta[0])+ r'$\degree$') 
-    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,1] ,color = PP.colors[1][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = hover_label + r',$\theta$ = ' + str(theta[1])+ r'$\degree$') 
-    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,2] ,color = PP.colors[2][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = hover_label + r',$\theta$ = ' + str(theta[2])+ r'$\degree$') 
+    theta   = [135]
+    axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,0] ,color = PP.colors[0][0]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = hover_label + r',$\theta$ = ' + str(theta[0])+ r'$\degree$')  
     if prop_rotor_flag: 
-        axis_5.semilogx(frequency , SPL_dBA_1_3_cruise[0,0],color = PP.colors[0][1] , markersize = PP.marker_size  ,marker = PP.markers[0], linestyle = PP.line_styles[0],linewidth = PP.line_width, label = cruise_label  + r',$\theta$ = ' + str(theta[0])+ r'$\degree$')      
-        axis_5.semilogx(frequency , SPL_dBA_1_3_cruise[0,1],color = PP.colors[1][1] , markersize = PP.marker_size  ,marker = PP.markers[0], linestyle = PP.line_styles[0],linewidth = PP.line_width, label = cruise_label  + r',$\theta$ = ' + str(theta[1])+ r'$\degree$')  
-        axis_5.semilogx(frequency , SPL_dBA_1_3_cruise[0,2],color = PP.colors[2][1] , markersize = PP.marker_size  ,marker = PP.markers[0], linestyle = PP.line_styles[0],linewidth = PP.line_width, label = cruise_label  + r',$\theta$ = ' + str(theta[2])+ r'$\degree$')      
+        axis_5.semilogx(frequency , SPL_dBA_1_3_cruise[0,0],color = PP.colors[0][1] , markersize = PP.marker_size  ,marker = PP.markers[0], linestyle = PP.line_styles[0],linewidth = PP.line_width, label = cruise_label  + r',$\theta$ = ' + str(theta[0])+ r'$\degree$')        
     axis_5.set_ylabel(r'SPL$_{1/3}$ (dBA)')
     axis_5.set_xlabel('Frequency (Hz)') 
     axis_5.set_ylim([0,120])  
@@ -897,15 +835,16 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP):
     fig_8.tight_layout(rect= (0.05,0,1,1))
     fig_9.tight_layout(rect= (0.05,0,1,1))   
      
-    fig_1.savefig(fig_1_name  + '.pdf')               
-    fig_2.savefig(fig_2_name  + '.pdf')               
-    fig_3.savefig(fig_3_name  + '.pdf')               
-    fig_4.savefig(fig_4_name  + '.pdf')              
-    fig_5.savefig(fig_5_name  + '.pdf')       
-    fig_6.savefig(fig_6_name  + '.pdf')        
-    fig_7.savefig(fig_7_name  + '.pdf')               
-    fig_8.savefig(fig_8_name  + '.pdf')               
-    fig_9.savefig(fig_9_name  + '.pdf')    
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')               
+        fig_2.savefig(fig_2_name  + '.pdf')               
+        fig_3.savefig(fig_3_name  + '.pdf')               
+        fig_4.savefig(fig_4_name  + '.pdf')              
+        fig_5.savefig(fig_5_name  + '.pdf')       
+        fig_6.savefig(fig_6_name  + '.pdf')        
+        fig_7.savefig(fig_7_name  + '.pdf')               
+        fig_8.savefig(fig_8_name  + '.pdf')               
+        fig_9.savefig(fig_9_name  + '.pdf')    
     
 
     # ----------------------------------------------------------------------------
@@ -938,7 +877,6 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP):
     return 
 
 
- 
 # ------------------------------------------------------------------ 
 # Plot Propeller Comparison Results
 # ------------------------------------------------------------------ 
@@ -970,7 +908,7 @@ def propeller_geoemtry_comparison_plots(rotor,outputs,AXES,color,PP,idx,label_na
                 linewidth  = PP.line_width,
                 markersize = PP.marker_size,
                 label      = label_name) 
-    axis_4.scatter(rotor.design_power/1E6, rotor.design_SPL_dBA,
+    axis_4.scatter(rotor.design_power/1E3, rotor.design_SPL_dBA,
                    color  = color,
                    marker = 'o',
                    s      = 150,
@@ -1037,7 +975,7 @@ def set_up_axes(PP,design_thrust):
     fig_4 = plt.figure(fig_4_name)     
     fig_4.set_size_inches(PP.figure_width,PP.figure_height) 
     axis_4 = fig_4.add_subplot(1,1,1)  
-    axis_4.set_xlabel('Power (MW)') 
+    axis_4.set_xlabel('Power (kW)') 
     axis_4.set_ylabel('SPL (dBA)')    
     axis_4.minorticks_on()  
     
@@ -1105,6 +1043,34 @@ def set_up_axes(PP,design_thrust):
     FIGURES = [fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9]
     return AXES , FIGURES
 
+  
+
+def define_plot_parameters(): 
+
+    plt.rcParams['axes.linewidth'] = 2.
+    plt.rcParams["font.family"] = "Times New Roman"
+    parameters = {'axes.labelsize': 32,
+                  'legend.fontsize': 22,
+                  'xtick.labelsize': 28,
+                  'ytick.labelsize': 28,
+                  'axes.titlesize': 32}
+    plt.rcParams.update(parameters)
+    plot_parameters                  = Data()
+    plot_parameters.line_width       = 2
+    plot_parameters.line_styles      = ['--',':','-',':','--']
+    plot_parameters.figure_width     = 10
+    plot_parameters.figure_height    = 7
+    plot_parameters.marker_size      = 10
+    plot_parameters.legend_font_size = 20
+    plot_parameters.plot_grid        = True   
+
+    plot_parameters.colors           = [['black','firebrick','darkblue'],
+                                        ['dimgray','red','blue'], 
+                                        ['darkgray','salmon','deepskyblue']]  
+     
+    plot_parameters.markers          = ['o','v','s','P','p','^','D','X','*']   
+    
+    return plot_parameters
 
 # ------------------------------------------------------------------
 #   Save Blade Geometry
