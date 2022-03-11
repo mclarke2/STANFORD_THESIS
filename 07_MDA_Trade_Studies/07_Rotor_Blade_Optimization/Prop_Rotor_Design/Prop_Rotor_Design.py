@@ -26,7 +26,7 @@ def main():
     
     #TW_prop_rotor_Adkins_Leibeck() 
     alpha_weights                      = np.array([1.0]) # 1,0.75,0.5,0.25,0.0 np.linspace(0.0,1.0,11) 
-    beta_weights                       = np.linspace(0.0,1.0,11) 
+    beta_weights                       = np.linspace(0.1,1.0,10) 
     use_pyoptsparse                    = False 
     plot_rotor_geomery_and_performance = False 
     save_figures                       = False 
@@ -65,8 +65,8 @@ def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse
             prop_rotor.hub_radius                      = 0.15 * prop_rotor.tip_radius
             prop_rotor.design_tip_mach                 = 0.6   
             prop_rotor.number_of_blades                = 3  
-            prop_rotor.design_tip_mach_range_hover     = [0.4,0.65]  
-            prop_rotor.design_tip_mach_range_cruise    = [0.4,0.65]  
+            prop_rotor.design_tip_mach_range_hover     = [0.3,0.65]  
+            prop_rotor.design_tip_mach_range_cruise    = [0.3,0.65]  
             inflow_ratio_hover                         = 0.06 
             prop_rotor.angular_velocity_hover          = prop_rotor.design_tip_mach*343 /prop_rotor.tip_radius 
             prop_rotor.design_altitude_hover           = 0 * Units.feet                  
