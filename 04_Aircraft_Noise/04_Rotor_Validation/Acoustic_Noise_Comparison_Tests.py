@@ -78,17 +78,19 @@ def main():
 
     ti                = time.time()      
     
-    #Harmonic_Spectrum_Shape_Sensitivity(plot_parameters)
-    #Harmonic_Stength_Validation(plot_parameters)
-    #Harmonic_Directivty_Validation(plot_parameters) 
-    #Broadband_Spectrum_Validation(plot_parameters) 
-    #Broadband_Spectrum_Shape_Sensitivity(plot_parameters) 
-    #Broadband_Noise_Validation(plot_parameters)
-    #High_Fidelity_Validation_1(plot_parameters) 
-    #High_Fidelity_Validation_2(plot_parameters)  
-    #Skew_function(plot_parameters)  
-    #Total_Rotor_Spenctrum_Sensitivity_Validation(plot_parameters) 
-    ANOPP2_Validation(plot_parameters) 
+    save_figures = False 
+    #Harmonic_Spectrum_Shape_Sensitivity(plot_parameters,save_figures)
+    #Harmonic_Stength_Validation(plot_parameters,save_figures)
+    #Harmonic_Directivty_Validation(plot_parameters,save_figures) 
+    
+    #Broadband_Noise_Validation(plot_parameters,save_figures)
+    #Broadband_Spectrum_Validation(plot_parameters,save_figures) 
+    #Broadband_Spectrum_Shape_Sensitivity(plot_parameters,save_figures) 
+    #High_Fidelity_Validation_1(plot_parameters,save_figures) 
+    #High_Fidelity_Validation_2(plot_parameters,save_figures)  
+    #Skew_function(plot_parameters,save_figures)  
+    #Total_Rotor_Spenctrum_Sensitivity_Validation(plot_parameters,save_figures) 
+    #ANOPP2_Validation(plot_parameters,save_figures) 
 
     tf = time.time() 
     print ('time taken: '+ str(round(((tf-ti)),3)) + ' sec')        
@@ -100,7 +102,7 @@ def main():
 # ------------------------------------------------------------------ 
 # Harmonic Specturm Shape Sensitivity
 # ------------------------------------------------------------------     
-def Harmonic_Spectrum_Shape_Sensitivity(PP):
+def Harmonic_Spectrum_Shape_Sensitivity(PP,save_figures):
     '''This regression script is for validation and verification of the mid-fidelity acoustics
     analysis routine. "Experimental Data is obtained from Comparisons of predicted propeller
     noise with windtunnel ..." by Weir, D and Powers, J.
@@ -299,7 +301,8 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
             axis_1.set_ylim([0,135])
         fig_1.tight_layout()  
         fig_1_name = "Harmonic_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
-        fig_1.savefig(fig_1_name  + '.pdf')     
+        if save_figures:
+            fig_1.savefig(fig_1_name  + '.pdf')     
      
     return    
 
@@ -308,7 +311,7 @@ def Harmonic_Spectrum_Shape_Sensitivity(PP):
 # ------------------------------------------------------------------ 
 # Harmonic Directivty Validation
 # ------------------------------------------------------------------     
-def Harmonic_Directivty_Validation(PP):
+def Harmonic_Directivty_Validation(PP,save_figures):
 
     # Define Network
     net                              = Battery_Propeller()
@@ -471,7 +474,7 @@ def Harmonic_Directivty_Validation(PP):
 # ------------------------------------------------------------------ 
 # Harmonic Noise Validation 1 
 # ------------------------------------------------------------------     
-def Harmonic_Stength_Validation(PP):
+def Harmonic_Stength_Validation(PP,save_figures):
     '''This regression script is for validation and verification of the mid-fidelity acoustics
     analysis routine. "Experimental Data is obtained from Comparisons of predicted propeller
     noise with windtunnel ..." by Weir, D and Powers, J.
@@ -678,8 +681,7 @@ def Harmonic_Stength_Validation(PP):
     axes.plot(harmonics, SUAVE_SPL_Case_3_90deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')     
     axes.set_ylabel('SPL (dB)')
     axes.set_xlabel('Harmonic no.') 
-    axes.legend(loc='lower left', prop={'size': PP.legend_font})   
-
+    axes.legend(loc='lower left', prop={'size': PP.legend_font})    
 
     # ----------------------------------------------------------------------------------------------------------------------------------------
     #  Regression 
@@ -703,13 +705,14 @@ def Harmonic_Stength_Validation(PP):
     fig33_name = 'Harmonic_Noise_Validation_Case_2_60' 
     fig34_name = 'Harmonic_Noise_Validation_Case_2_90'  
     fig35_name = 'Harmonic_Noise_Validation_Case_3_60' 
-    fig36_name = 'Harmonic_Noise_Validation_Case_3_90'          
-    fig31.savefig(fig31_name  + '.pdf')               
-    fig32.savefig(fig32_name  + '.pdf')               
-    fig33.savefig(fig33_name  + '.pdf')               
-    fig34.savefig(fig34_name  + '.pdf')     
-    fig35.savefig(fig35_name  + '.pdf')  
-    fig36.savefig(fig36_name  + '.pdf')  
+    fig36_name = 'Harmonic_Noise_Validation_Case_3_90'    
+    if save_figures:
+        fig31.savefig(fig31_name  + '.pdf')               
+        fig32.savefig(fig32_name  + '.pdf')               
+        fig33.savefig(fig33_name  + '.pdf')               
+        fig34.savefig(fig34_name  + '.pdf')     
+        fig35.savefig(fig35_name  + '.pdf')  
+        fig36.savefig(fig36_name  + '.pdf')  
     return    
 
 
@@ -717,7 +720,7 @@ def Harmonic_Stength_Validation(PP):
 # ------------------------------------------------------------------ 
 # Examine Broadband Spectrum Shape Sensitivities 
 # ------------------------------------------------------------------ 
-def Broadband_Spectrum_Shape_Sensitivity(PP):
+def Broadband_Spectrum_Shape_Sensitivity(PP,save_figures):
 
     '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
 
@@ -821,14 +824,15 @@ def Broadband_Spectrum_Shape_Sensitivity(PP):
 
         fig_1.tight_layout()  
         fig_1_name = "Broadband_Spectrum_" + sensitivity_name[var_idx]  + '_Sensitivity'
-        fig_1.savefig(fig_1_name  + '.pdf')                
+        if save_figures:
+            fig_1.savefig(fig_1_name  + '.pdf')                
 
     return   
 
 # ------------------------------------------------------------------ 
 # Broadband Spectrum Validation
 # ------------------------------------------------------------------     
-def Broadband_Spectrum_Validation(PP):
+def Broadband_Spectrum_Validation(PP,save_figures):
 
     '''Empirical wall-pressure spectral modeling for zero and adverse pressure gradient flows''' 
 
@@ -930,7 +934,8 @@ def Broadband_Spectrum_Validation(PP):
 
     fig_1.tight_layout()  
     fig_1_name = "Broadband_Spectrum_Comparison"  
-    fig_1.savefig(fig_1_name  + '.pdf')
+    if save_figures:
+        fig_1.savefig(fig_1_name  + '.pdf')
 
     return 
 
@@ -977,7 +982,7 @@ def reference_wall_pressure_spectrum_model():
 # ------------------------------------------------------------------ 
 # Broadband Noise Validation
 # ------------------------------------------------------------------     
-def Broadband_Noise_Validation(PP):  
+def Broadband_Noise_Validation(PP,save_figures):  
     APC_SF = design_APC_11x_4_7_prop()   
     APC_SF_inflow_ratio = 0.08 
     
@@ -1131,11 +1136,12 @@ def Broadband_Noise_Validation(PP):
     fig1_name = 'Noise_Validation_Total_1_3_Spectrum_3600' 
     fig2_name = 'Noise_Validation_1_3_Spectrum_4800' 
     fig3_name = 'Noise_Validation_Broadband_1_3_Spectrum_45_deg' 
-    fig4_name = 'Noise_Validation_Broadband_1_3_Spectrum_22_deg'   
-    #fig1.savefig(fig1_name  + '.pdf')               
-    #fig2.savefig(fig2_name  + '.pdf')               
-    #fig3.savefig(fig3_name  + '.pdf')               
-    #fig4.savefig(fig4_name  + '.pdf')        
+    fig4_name = 'Noise_Validation_Broadband_1_3_Spectrum_22_deg' 
+    if save_figures:
+        fig1.savefig(fig1_name  + '.pdf')               
+        fig2.savefig(fig2_name  + '.pdf')               
+        fig3.savefig(fig3_name  + '.pdf')               
+        fig4.savefig(fig4_name  + '.pdf')        
     return 
 
 
@@ -1143,10 +1149,10 @@ def Broadband_Noise_Validation(PP):
 # ------------------------------------------------------------------ 
 # High Fidelity Comparison
 # ------------------------------------------------------------------     
-def High_Fidelity_Validation_1(PP): 
+def High_Fidelity_Validation_1(PP,save_figures): 
 
     DJI_CF = design_DJI_9_4x5_prop()
-    DJI_CF_inflow_ratio = 0.001 
+    DJI_CF_inflow_ratio = 0.05 
     
     # Atmosheric conditions 
     a                     = 343   
@@ -1687,8 +1693,9 @@ def High_Fidelity_Validation_1(PP):
     axes1.grid(which='major', linestyle='--', linewidth='1.', color='grey')
     axes1.grid(which='minor', linestyle=':', linewidth='0.5', color='grey')   
     fig1.tight_layout() 
-    fig1_name = 'Noise_Validation_High_Fidelity_DJI'    
-    fig1.savefig(fig1_name  + '.pdf')   
+    fig1_name = 'Noise_Validation_High_Fidelity_DJI'
+    if save_figures:
+        fig1.savefig(fig1_name  + '.pdf')   
     
     
     
@@ -1698,7 +1705,7 @@ def High_Fidelity_Validation_1(PP):
 # ------------------------------------------------------------------ 
 # High Fidelity Validation 2 
 # ------------------------------------------------------------------     
-def High_Fidelity_Validation_2(PP): 
+def High_Fidelity_Validation_2(PP,save_figures): 
     # Define Network
     net                              = Battery_Propeller()
     net.number_of_propeller_engines  = 1                                      
@@ -1814,8 +1821,9 @@ def High_Fidelity_Validation_2(PP):
     axes.set_ylim([90,160])   
     axes.set_xlim([40,140])    
     fig.tight_layout() 
-    fig_name = 'Noise_Validation_High_Fidelity_SR2'    
-    fig.savefig(fig_name  + '.pdf')   
+    fig_name = 'Noise_Validation_High_Fidelity_SR2'  
+    if save_figures:
+        fig.savefig(fig_name  + '.pdf')   
     
     return  
 
@@ -1824,7 +1832,7 @@ def High_Fidelity_Validation_2(PP):
 # ------------------------------------------------------------------ 
 # Load sensitivity
 # ------------------------------------------------------------------     
-def Skew_function(PP):
+def Skew_function(PP,save_figures):
  
     Radius = 2    
     x = np.linspace(0,np.pi,20)
@@ -1884,7 +1892,7 @@ def Skew_function(PP):
     return 
     
 
-def Total_Rotor_Spenctrum_Sensitivity_Validation(PP):    
+def Total_Rotor_Spenctrum_Sensitivity_Validation(PP,save_figures):    
 
     # Define Network 
     net                                = Battery_Propeller()     
@@ -2084,7 +2092,7 @@ def Total_Rotor_Spenctrum_Sensitivity_Validation(PP):
 
 
 
-def ANOPP2_Validation(PP):  
+def ANOPP2_Validation(PP,save_figures):  
     APC_SF = design_APC_11x_4_7_prop()   
     APC_SF_inflow_ratio  = 0.08
     
@@ -2191,9 +2199,7 @@ def ANOPP2_Validation(PP):
     axes2.set_xlabel('Frequency (Hz)') 
     axes2.set_xlim([900,10E4])  
     axes2.set_ylim([0,60])  
-
-     
-      
+ 
 
     fig2 = plt.figure('Plot_2')    
     fig2.set_size_inches(fig_size_width,fig_size_height)  
