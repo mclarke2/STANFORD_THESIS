@@ -50,17 +50,16 @@ def main():
     N_gm_x           = 20
     N_gm_y           = 5
 
-    #run_noise_model   = False 
-    #run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                     #plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     #control_points,N_gm_x,N_gm_y)
+    run_noise_model   = False 
+    run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                     plot_geometry,recharge_battery,run_analysis,plot_mission,
+                     control_points,N_gm_x,N_gm_y)
                      
  
     run_noise_model   = True 
     run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)
-    
+                      control_points,N_gm_x,N_gm_y) 
     
 
     #run_noise_model   = True 
@@ -756,22 +755,23 @@ def vehicle_setup():
     
     net.propellers.append(prop)
     net.propellers.append(prop_left) 
-  
-    bat                         = SUAVE.Components.Energy.Storages.Batteries.Constant_Mass.Lithium_Ion_LiNiMnCoO2_18650() 
-    bat.pack_config.series      =  120  
-    bat.pack_config.parallel    =  60
+   
+    total_cells                          = 120*60
+    max_module_voltage                   = 50
+    safety_factor                        = 1.5
+               
+    bat                                  = SUAVE.Components.Energy.Storages.Batteries.Constant_Mass.Lithium_Ion_LiNiMnCoO2_18650() 
+    bat.pack_config.series               = 120  # CHANGE IN OPTIMIZER 
+    bat.pack_config.parallel             = int(total_cells/bat.pack_config.series)
     initialize_from_circuit_configuration(bat)    
-    net.voltage                 = bat.max_voltage 
-    
-    # Assume a battery pack module shape. This step is optional but required for thermal analysis of the pack. We will assume that all cells electrically connected 
-    # in series wihtin the module are arranged in one row normal direction to the airflow. Likewise ,
-    # all cells electrically in paralllel are arranged in the direction to the cooling fluid  
-    number_of_modules                = 10
-    bat.module_config.total          = int(np.ceil(bat.pack_config.total/number_of_modules))
-    bat.module_config.normal_count   = int(np.ceil(bat.module_config.total/bat.pack_config.series))
-    bat.module_config.parallel_count = int(np.ceil(bat.module_config.total/bat.pack_config.parallel))
-    
-    net.battery              = bat   
+    net.voltage                          = bat.max_voltage  
+    bat.module_config.number_of_modules  = 16 # CHANGE IN OPTIMIZER 
+    bat.module_config.total              = int(np.ceil(bat.pack_config.total/bat.module_config.number_of_modules))
+    bat.module_config.voltage            = net.voltage/bat.module_config.number_of_modules # must be less than max_module_voltage/safety_factor 
+    bat.module_config.layout_ratio       = 0.5 # CHANGE IN OPTIMIZER 
+    bat.module_config.normal_count       = int(bat.module_config.total**(bat.module_config.layout_ratio))
+    bat.module_config.parallel_count     = int(bat.module_config.total**(1-bat.module_config.layout_ratio)) 
+    net.battery                          = bat   
     
     # Component 4 Miscellaneous Systems
     sys = SUAVE.Components.Systems.System()

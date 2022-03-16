@@ -502,7 +502,7 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP,save_figures):    
      
     PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
-    folder               = 'Attempt_2'
+    folder               = 'Rotor_Designs'
     design_thrust        = (2700*9.81/(12))     
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
@@ -553,13 +553,19 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
                 rotor_flag  = False  
         
         if rotor_flag:
-            rotor_aero_data         = rotor.design_performance
-            rotor_noise_data    = rotor.design_acoustics 
+            rotor_aero_data    = rotor.design_performance
+            rotor_noise_data   = rotor.design_acoustics 
             Total_SPL_1_3      = rotor_noise_data.SPL_1_3_spectrum_dBA
             Harmonic_1_3       = rotor_noise_data.SPL_harmonic_1_3_spectrum_dBA
             Broadband_1_3      = rotor_noise_data.SPL_broadband_1_3_spectrum_dBA 
             One_Third_Spectrum = rotor_noise_data.one_third_frequency_spectrum 
             
+            Pow = rotor.design_power/1E3 
+            if Pow>62: 
+                if rotor.design_SPL_dBA>61:
+                    a = 1
+                    pass
+                
             if idx == 0:
                 rotor.design_SPL_dBA = np.mean(rotor_noise_data.SPL_dBA)  
                 axis_7.plot(One_Third_Spectrum , Total_SPL_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
@@ -903,7 +909,7 @@ def set_up_axes(PP,design_thrust):
     fig_5 = plt.figure(fig_5_name)     
     fig_5.set_size_inches(PP.figure_width,PP.figure_height) 
     axis_5 = fig_5.add_subplot(1,1,1)  
-    axis_5.set_ylabel(r'Sectional Re.') 
+    axis_5.set_ylabel(r'Re.') 
     axis_5.set_xlabel('r')    
     axis_5.minorticks_on()   
      
@@ -915,7 +921,7 @@ def set_up_axes(PP,design_thrust):
     fig_6 = plt.figure(fig_6_name)     
     fig_6.set_size_inches(PP.figure_width,PP.figure_height) 
     axis_6 = fig_6.add_subplot(1,1,1)  
-    axis_6.set_ylabel(r'Sectional AoA ($\degree$)') 
+    axis_6.set_ylabel(r'AoA$_{eff}$ ($\degree$)') 
     axis_6.set_xlabel('r')      
     axis_6.minorticks_on()     
       

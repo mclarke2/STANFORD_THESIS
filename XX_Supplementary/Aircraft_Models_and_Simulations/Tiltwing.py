@@ -54,27 +54,25 @@ def main():
     hover_noise_test  = False
     run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                     control_points,N_gm_x,N_gm_y)
-     
+                     control_points,N_gm_x,N_gm_y) 
 
     run_noise_model   = True
     hover_noise_test  = False   
     run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)
-    
+                      control_points,N_gm_x,N_gm_y) 
 
     #run_noise_model   = True
-    #hover_noise_test  = False       
+    #hover_noise_test  = False        
     #run_full_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
                       #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                       #control_points,N_gm_x,N_gm_y)
 
-    hover_noise_test  = True 
-    run_noise_model   = True    
-    run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y) 
+    #hover_noise_test  = True 
+    #run_noise_model   = True    
+    #run_hover_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y) 
     
     return 
 
@@ -535,26 +533,23 @@ def vehicle_setup():
     sys                            = SUAVE.Components.Systems.System()
     sys.mass_properties.mass       = 5 # kg      
     
-    # Component 5 the Battery      
-    bat                         = SUAVE.Components.Energy.Storages.Batteries.Constant_Mass.Lithium_Ion_LiNiMnCoO2_18650()   
-    bat.cell.surface_area       = (np.pi*bat.cell.height*bat.cell.diameter)  
-
-    bat.pack_config.series         =  140 
-    bat.pack_config.parallel       =  80   
-    initialize_from_circuit_configuration(bat)    
-    net.voltage                 = bat.max_voltage
-    
-    # Here we, are going to assume a battery pack module shape. This step is optional but
-    # required for thermal analysis of the pack. We will assume that all cells electrically connected 
-    # in series wihtin the module are arranged in one row normal direction to the airflow. Likewise ,
-    # all cells electrically in paralllel are arranged in the direction to the cooling fluid  
-    
-    number_of_modules                = 10
-    bat.module_config.total          = int(np.ceil(bat.pack_config.total/number_of_modules))
-    bat.module_config.normal_count   = int(np.ceil(bat.module_config.total/bat.pack_config.series))
-    bat.module_config.parallel_count = int(np.ceil(bat.module_config.total/bat.pack_config.parallel))
-    net.battery                      = bat  
+    # Component 5 the Battery       
+    total_cells                          = 140*80
+    max_module_voltage                   = 50
+    safety_factor                        = 1.5
      
+    bat                                  = SUAVE.Components.Energy.Storages.Batteries.Constant_Mass.Lithium_Ion_LiNiMnCoO2_18650() 
+    bat.pack_config.series               = 140  # CHANGE IN OPTIMIZER 
+    bat.pack_config.parallel             = int(total_cells/bat.pack_config.series)
+    initialize_from_circuit_configuration(bat)    
+    net.voltage                          = bat.max_voltage  
+    bat.module_config.number_of_modules  = 16 # CHANGE IN OPTIMIZER 
+    bat.module_config.total              = int(np.ceil(bat.pack_config.total/bat.module_config.number_of_modules))
+    bat.module_config.voltage            = net.voltage/bat.module_config.number_of_modules # must be less than max_module_voltage/safety_factor 
+    bat.module_config.layout_ratio       = 0.5 # CHANGE IN OPTIMIZER 
+    bat.module_config.normal_count       = int(bat.module_config.total**(bat.module_config.layout_ratio))
+    bat.module_config.parallel_count     = int(bat.module_config.total**(1-bat.module_config.layout_ratio)) 
+    net.battery                          = bat        
     
     # Component 6 the Rotor 
     # Design Rotors
@@ -675,7 +670,7 @@ def vehicle_setup():
     #------------------------------------------------------------------
     motor                           = SUAVE.Components.Energy.Converters.Motor() 
     motor.origin                    = prop.origin  
-    motor.efficiency                = 0.95  
+    motor.efficiency                = 0.9  
     motor.nominal_voltage           = bat.max_voltage *0.8  
     motor.propeller_radius          = prop.tip_radius 
     motor.no_load_current           = 0.01  
@@ -1076,7 +1071,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.analyses.extend(analyses.cruise) 
                 segment.altitude                 = 2500.0 * Units.ft               
                 segment.air_speed                = 175.   * Units['mph'] 
-                cruise_distance                  = aircraft_range  - 26.51 * Units.nmi
+                cruise_distance                  = aircraft_range  - 26.49 * Units.nmi
                 segment.distance                 = cruise_distance
                 segment.state.unknowns.throttle  = 0.8 * ones_row(1)   
                 segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment, initial_power_coefficient = 0.01)     

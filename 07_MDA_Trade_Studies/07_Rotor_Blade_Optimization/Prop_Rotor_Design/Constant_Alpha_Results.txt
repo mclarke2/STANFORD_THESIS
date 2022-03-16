@@ -1,0 +1,8 @@
+Alpha = 1.0, Beta = 0.1
+Hover : RPM = 1703, Pitch Command = -5 degrees 
+Cruise: RPM = 786, Pitch Command = 29 degrees 
+SPL   : 76.24640638069243
+Alpha = 1.0, Beta = 0.9
+Hover : RPM = 1703, Pitch Command = 6 degrees 
+Cruise: RPM = 1204, Pitch Command = 28 degrees 
+SPL   : 72.96211164864616
