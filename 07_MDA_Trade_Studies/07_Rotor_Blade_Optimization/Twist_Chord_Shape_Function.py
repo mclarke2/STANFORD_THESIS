@@ -23,7 +23,7 @@ def main():
                   'axes.titlesize': 32}
     plt.rcParams.update(parameters)
     plot_parameters                  = Data()
-    plot_parameters.line_width       = 2
+    plot_parameters.line_width       = 3
     plot_parameters.line_styles      = ['--',':','-',':','--']
     plot_parameters.figure_width     = 10
     plot_parameters.figure_height    = 7
@@ -68,10 +68,16 @@ def test_rotor_planform_function(PP):
         for j in range(len(q)):
             c_n = c_r*(1 - eta_n**p[i])**q[j] + c_t*eta_n
             line_label = 'p = ' + str(p[i]) +  ', q = ' + str(q[j]) 
-            axis.plot(y_n,c_n,linestyle = '-', linewidth = PP.line_width, marker = markers[i],color = colors[j], label  = line_label) 
+            axis.plot(y_n,c_n,linestyle = '-', linewidth = PP.line_width, marker = markers[i],markersize = PP.marker_size , color = colors[j], label  = line_label) 
             
-    
+    #axis.legend(loc='upper center', ncol = 4 )     
+    #axis.set_ylim(0,0.5)  
     fig.tight_layout()    
     fig_name = 'Rotor_Planform_Shape_Function'          
     fig.savefig(fig_name  + '.pdf')              
     return 
+
+
+if __name__ == '__main__': 
+    main() 
+    plt.show()

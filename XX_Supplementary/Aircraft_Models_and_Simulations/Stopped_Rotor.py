@@ -190,6 +190,7 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
     for i in range(len(X_LIM)-1):
         for j in range(len(Y_LIM)-1): 
             print('Running Quardant:' + str(Q_idx))
+            ti_quad  = time.time()
             min_x = X_LIM[i]
             max_x = X_LIM[i+1]
             min_y = Y_LIM[j]
@@ -209,8 +210,12 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
             noise_mission     = analyses.missions.base
             noise_results     = noise_mission.evaluate()   
             filename          = 'Stopped_Rotor_Approach_Departure_Noise_Q' + str(Q_idx)+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+            
             save_results(noise_results,filename)  
             Q_idx += 1 
+             
+            tf_quad = time.time() 
+            print ('time taken: '+ str(round(((tf_quad-ti_quad)/60),3)) + ' mins')              
         
     if plot_mission: 
         plot_results(noise_results,run_noise_model)       

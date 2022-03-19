@@ -52,15 +52,14 @@ def problem_setup():
     nexus = Nexus()
     problem = Data()
     nexus.optimization_problem = problem
- 
-
+    
     # -------------------------------------------------------------------
     # Inputs
     # -------------------------------------------------------------------   
     inputs = []
-    inputs.append([ 'tip_mach'   , tm_0      , tm_ll  , tm_ul    , 1.0     ,  1*Units.less])
-    inputs.append([ 'chord_r'    , 0.1*R     , 0.05*R , 0.2*R    , 1.0     ,  1*Units.less])
-    inputs.append([ 'chord_p'    , 2         , 0.25   , 2.0      , 1.0     ,  1*Units.less]) 
+    inputs.append([ 'cell_in_series'    , 140  , 120  , 160  , 100.0 ,  1*Units.less])
+    inputs.append([ 'number_of_modules' , 16   , 10   , 20   , 10.0  ,  1*Units.less])
+    inputs.append([ 'layout_ratio'      , 0.5  , 0.3  , 0.7  , 1.0   ,  1*Units.less]) 
     problem.inputs = np.array(inputs,dtype=object)   
 
     # -------------------------------------------------------------------
@@ -68,25 +67,27 @@ def problem_setup():
     # ------------------------------------------------------------------- 
     problem.objective = np.array([ 
                                # [ tag         , scaling, units ]
-                                 [  'Aero_Acoustic_Obj'  ,  1.0   ,    1*Units.less] 
+                                 [  'max_module_temperature'  ,  1.0   ,    1*Units.less] 
     ],dtype=object)
     
     # -------------------------------------------------------------------
     # Constraints
     # -------------------------------------------------------------------  
     constraints = [] 
-    constraints.append([ 'thrust_power_residual'    ,  '>'  ,  0.0 ,   1.0   , 1*Units.less])  
-    constraints.append([ 'blade_taper_constraint_1' ,  '>'  ,  0.3 ,   1.0   , 1*Units.less])  
-    constraints.append([ 'blade_taper_constraint_2' ,  '<'  ,  0.7 ,   1.0   , 1*Units.less])  
+    constraints.append([ 'max_module_voltage_residual'  ,  '>'  ,  0.0 ,   1.0   , 1*Units.less])  
+    constraints.append([ 'max_C_rate'                   ,  '<'  ,  6.0 ,   1.0   , 1*Units.less])    
     problem.constraints =  np.array(constraints,dtype=object)                
     
     # -------------------------------------------------------------------
     #  Aliases
     # ------------------------------------------------------------------- 
     aliases = []
-    aliases.append([ 'tip_mach'                  , 'vehicle_configurations.*.networks.battery_propeller.battery.rotor.design_tip_mach' ])
-    aliases.append([ 'chord_r'                   , 'vehicle_configurations.*.networks.battery_propeller.battery.rotor.chord_r' ])
-    aliases.append([ 'chord_p'                   , 'vehicle_configurations.*.networks.battery_propeller.battery.rotor.chord_p' ])  
+    aliases.append([ 'cell_in_series'               , 'vehicle_configurations.*.networks.battery_propeller.battery.pack_config.series' ])
+    aliases.append([ 'number_of_modules'            , 'vehicle_configurations.*.networks.battery_propeller.battery.module_config.number_of_modules' ])
+    aliases.append([ 'layout_ratio'                 , 'vehicle_configurations.*.networks.battery_propeller.battery.module_config.layout_ratio' ])  
+    aliases.append([ 'max_module_temperature'       , 'summary.max_module_temperature' ])  
+    aliases.append([ 'max_module_voltage_residual'  , 'summary.max_module_voltage_residual' ])  
+    aliases.append([ 'max_C_rate'                   , 'summary.max_C_rate' ])  
     problem.aliases = aliases
      
     

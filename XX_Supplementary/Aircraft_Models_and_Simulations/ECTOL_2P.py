@@ -45,7 +45,7 @@ def main():
     plot_geometry    = False
     recharge_battery = False
     run_analysis     = True
-    plot_mission     = False
+    plot_mission     = True
     control_points   = 20
     N_gm_x           = 20
     N_gm_y           = 5
@@ -215,8 +215,8 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
                       plot_geometry,recharge_battery,run_analysis,plot_mission,
                       control_points,N_gm_x,N_gm_y): 
 
-    Y_LIM        = np.linspace(1E-6,0.5*Units.nmi,3) 
-    X_LIM        = np.linspace(1E-3, 3.92 *Units.nmi,3)              
+    Y_LIM             = np.linspace(1E-6,0.5*Units.nmi,3) 
+    X_LIM             = np.linspace(1E-3, 3.92 *Units.nmi,3)              
 
     ti                = time.time() 
     vehicle           = vehicle_setup() 
@@ -226,6 +226,7 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
     for i in range(len(X_LIM)-1):
         for j in range(len(Y_LIM)-1): 
             print('Running Quardant:' + str(Q_idx))
+            ti_quad  = time.time()
             min_x = X_LIM[i]
             max_x = X_LIM[i+1]
             min_y = Y_LIM[j]
@@ -245,8 +246,13 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
             noise_mission     = analyses.missions.base
             noise_results     = noise_mission.evaluate()   
             filename          = 'ECTOL_Approach_Departure_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+            
+            tf_quad = time.time() 
+            print ('time taken: '+ str(round(((tf_quad-ti_quad)/60),3)) + ' mins')  
+            
             save_results(noise_results,filename)  
             Q_idx += 1 
+            
 
     if plot_mission: 
         plot_results(noise_results,run_noise_model)       
@@ -911,22 +917,24 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.state.unknowns.throttle                          =  0.8 * ones_row(1)  
     segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3  )  
     mission.append_segment(segment)   
-
+ 
     # ------------------------------------------------------------------
     #   Landing  
-    # ------------------------------------------------------------------ 
+    # ------------------------------------------------------------------  
     segment = Segments.Ground.Landing(base_segment)
-    segment.tag = "Landing" 
-    segment.analyses.extend( analyses.base)
+    segment.tag = "Landing"  
+    segment.analyses.extend( analyses.base) 
     segment.velocity_start            = Vstall  
     segment.velocity_end              = Vstall*0.1  
     segment.friction_coefficient      = 0.04 
     segment.state.unknowns.time       = 30.            
     segment.altitude                  = 0.0 
+    segment.throttle                  = 0.3 * ones_row(1)  
     segment.state.unknowns.velocity_x = 0.1* Vstall * ones_row(1)   
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.02)          
     # add to misison
     mission.append_segment(segment)   
+    
      
     # ------------------------------------------------------------------
     #   Takeoff Roll
@@ -1227,21 +1235,21 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
         
             # ------------------------------------------------------------------
             #   Landing  
-            # ------------------------------------------------------------------ 
+            # ------------------------------------------------------------------  
             segment = Segments.Ground.Landing(base_segment)
             segment.tag = "Landing"  + "_F_" + str(flight_no) + "_D_" + str (day)  
-            segment.analyses.extend( analyses.base)
+            segment.analyses.extend( analyses.base) 
             segment.velocity_start            = Vstall  
             segment.velocity_end              = Vstall*0.1  
             segment.friction_coefficient      = 0.04 
             segment.state.unknowns.time       = 30.            
             segment.altitude                  = 0.0 
+            segment.throttle                  = 0.3 * ones_row(1)  
             segment.state.unknowns.velocity_x = 0.1* Vstall * ones_row(1)   
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.02)          
             # add to misison
             mission.append_segment(segment)   
-
-                        
+  
             if recharge_battery:
                 # ------------------------------------------------------------------
                 #  Charge Segment: 

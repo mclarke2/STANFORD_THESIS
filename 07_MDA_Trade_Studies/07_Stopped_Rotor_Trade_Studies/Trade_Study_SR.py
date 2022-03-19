@@ -9,9 +9,14 @@ import matplotlib.pyplot        as plt
 import pickle  
 import os
 from SUAVE.Core                                                  import Data 
+from SUAVE.Methods.Weights.Correlations.Propulsion               import nasa_motor
+from SUAVE.Methods.Propulsion.electric_motor_sizing              import size_optimal_motor
 from SUAVE.Plots.Performance.Mission_Plots                       import *  
 from SUAVE.Plots.Geometry                                        import *   
 from copy import deepcopy
+from SUAVE.Methods.Geometry.Two_Dimensional.Cross_Section.Airfoil.compute_airfoil_polars \
+     import compute_airfoil_polars
+import time 
 
 import sys 
 sys.path.append('../../XX_Supplementary/Aircraft_Models_and_Simulations')  
@@ -33,15 +38,15 @@ def main():
     N_gm_x           = 10
     N_gm_y           = 5 
 
-    alpha_weights    = np.array([1.0,0.74,0.5,0.25,0.0])
+    alpha_weights    = np.array([1.0]) # ,0.74,0.5,0.25,0.0])
     
     for a_i in range(len(alpha_weights)):
         alpha             = alpha_weights[a_i]  
         alpha_opt_weight  = str(alpha)
         alpha_opt_weight  = alpha_opt_weight.replace('.','_')         
         # modify vehicle 
-        vehicle           = vehicle_setup()
-        vehicle           = modify_vehicle(vehicle,alpha)
+        base_vehicle      = vehicle_setup()
+        vehicle           = modify_vehicle(base_vehicle,alpha)
         configs           = configs_setup(vehicle)   
         
         # ------------------------------------------------------------------------------------------------
@@ -80,6 +85,7 @@ def main():
         for i in range(len(X_LIM)-1):
             for j in range(len(Y_LIM)-1): 
                 print('Running Quardant:' + str(Q_idx))
+                ti_quad  = time.time()
                 min_x = X_LIM[i]
                 max_x = X_LIM[i+1]
                 min_y = Y_LIM[j]
@@ -97,7 +103,10 @@ def main():
                 noise_results     = noise_mission.evaluate()   
                 filename          = 'Stopped_Rotor_Approach_Departure_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
                 save_results(noise_results,filename)  
-                Q_idx += 1  
+                Q_idx += 1   
+     
+                tf_quad = time.time() 
+                print ('time taken: '+ str(round(((tf_quad-ti_quad)/60),3)) + ' mins')                        
      
     return 
 
@@ -107,6 +116,7 @@ def main():
 def modify_vehicle(vehicle,alpha):
     
     net = vehicle.networks.lift_cruise
+    bat = net.battery
     
     # delete prop-rotors 
     for rotor in net.lift_rotors:
@@ -123,8 +133,21 @@ def modify_vehicle(vehicle,alpha):
     alpha_opt_weight      = str(alpha)
     alpha_opt_weight      = alpha_opt_weight.replace('.','_')     
     file_name             = rel_path +  '../07_Rotor_Blade_Optimization/Lift_Rotor_Design/Rotor_Designs' + separator +  'Rotor_T_' + str(int(design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
-    rotor                 = load_blade_geometry(file_name)
-
+    
+    
+    rotor                 = load_blade_geometry(file_name)  
+    rotor.airfoil_geometry =  [rel_path + '../../XX_Supplementary/Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars   = [[rel_path + '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+                               rel_path + '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
+                               rel_path + '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
+                               rel_path + '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
+                               rel_path + '../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]] 
+    
+    number_of_airfoil_section_points = 100
+    airfoil_data                     = compute_airfoil_polars(rotor.airfoil_geometry, rotor.airfoil_polars,npoints = number_of_airfoil_section_points)   
+    rotor.airfoil_polar_stations     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]    
+    rotor.airfoil_cl_surrogates      = airfoil_data.lift_coefficient_surrogates 
+    rotor.airfoil_cd_surrogates      = airfoil_data.drag_coefficient_surrogates   
     # Rotors Locations  
     origins   = [[ 0.226, 1.413, 1.1] ,[  0.226, -1.413 , 1.1],
                  [ 4.630 , 1.413 , 1.1] ,[ 4.630 , -1.413 , 1.1],
@@ -138,9 +161,32 @@ def modify_vehicle(vehicle,alpha):
         lift_rotor          = deepcopy(rotor)
         lift_rotor.tag      = 'rot_' + str(ii+1)
         lift_rotor.origin   = [origins[ii]]
-        net.lift_rotors.append(rotor)     
+        net.lift_rotors.append(lift_rotor)    
+    
+    
+    # delete prop-rotors 
+    for rotor_motor in net.lift_rotor_motors:
+        del net.lift_rotor_motors[rotor_motor.tag]    
+     
+
+    # Rotor (Lift) Motor     
+    lift_rotor_motor                         = SUAVE.Components.Energy.Converters.Motor()
+    lift_rotor_motor.efficiency              = 0.9
+    lift_rotor_motor.nominal_voltage         = bat.max_voltage *0.75
+    lift_rotor_motor.origin                  = rotor.origin 
+    lift_rotor_motor.propeller_radius        = rotor.tip_radius   
+    lift_rotor_motor.no_load_current         = 0.01 
+    lift_rotor_motor                         = size_optimal_motor(lift_rotor_motor,rotor)
+    lift_rotor_motor.mass_properties.mass    = nasa_motor(lift_rotor_motor.design_torque)    
+
+    # Appending motors with different origins
+    for _ in range(12):
+        motor = deepcopy(lift_rotor_motor)
+        motor.tag = 'motor_' + str(ii+1)
+        net.lift_rotor_motors.append(motor)   
          
     return vehicle
+
 # ------------------------------------------------------------------
 #   Load Blade Geometry
 # ------------------------------------------------------------------   

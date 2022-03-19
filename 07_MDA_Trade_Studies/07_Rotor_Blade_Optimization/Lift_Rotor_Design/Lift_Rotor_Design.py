@@ -501,7 +501,8 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 # ------------------------------------------------------------------ 
 def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP,save_figures):    
      
-    PP.colors            = cm.viridis(np.linspace(0,1,len(alpha_weights)))    
+    PP.colors            = cm.hot(np.linspace(0,1,len(alpha_weights)+25))  
+    ranges               = np.linspace(0.45,0.7,len(alpha_weights))  
     folder               = 'Rotor_Designs'
     design_thrust        = (2700*9.81/(12))     
     if use_pyoptsparse_flag:
@@ -522,6 +523,9 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     axis_7  = AXES[6] 
     axis_8  = AXES[7] 
     axis_9  = AXES[8] 
+    axis_10 = AXES[9] 
+    axis_11 = AXES[10]
+    axis_12 = AXES[11]  
     fig_1   = FIGURES[0] 
     fig_2   = FIGURES[1] 
     fig_3   = FIGURES[2] 
@@ -531,6 +535,10 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     fig_7   = FIGURES[6] 
     fig_8   = FIGURES[7] 
     fig_9   = FIGURES[8]
+    fig_10  = FIGURES[9] 
+    fig_11  = FIGURES[10]
+    fig_12  = FIGURES[11]
+     
      
     for idx in range(len(alpha_weights) + 1):   
         rotor_flag = True
@@ -560,6 +568,8 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
             Broadband_1_3      = rotor_noise_data.SPL_broadband_1_3_spectrum_dBA 
             One_Third_Spectrum = rotor_noise_data.one_third_frequency_spectrum 
             
+            
+            col_idx = np.abs(ranges-rotor.design_tip_mach).argmin()
             Pow = rotor.design_power/1E3 
             if Pow>62: 
                 if rotor.design_SPL_dBA>61:
@@ -571,24 +581,36 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
                 axis_7.plot(One_Third_Spectrum , Total_SPL_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
                 axis_8.plot(One_Third_Spectrum , Harmonic_1_3[0,0]  , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
                 axis_9.plot(One_Third_Spectrum , Broadband_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)  
-                propeller_geoemtry_comparison_plots(rotor,rotor_aero_data,AXES,'black',PP,idx, rotor_name)  
+                propeller_geoemtry_comparison_plots(rotor,rotor_aero_data,AXES,'black','black',PP,idx, rotor_name)  
             
             else: 
                 axis_7.plot(One_Third_Spectrum , Total_SPL_1_3[0,0] , color = PP.colors[idx-1] , linestyle = PP.line_styles[2], marker = PP.markers[(idx-1)%9] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
                 axis_8.plot(One_Third_Spectrum , Harmonic_1_3[0,0]  , color = PP.colors[idx-1] , linestyle = PP.line_styles[2], marker = PP.markers[(idx-1)%9] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
                 axis_9.plot(One_Third_Spectrum , Broadband_1_3[0,0] , color = PP.colors[idx-1] , linestyle = PP.line_styles[2], marker = PP.markers[(idx-1)%9] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)  
                    
-                propeller_geoemtry_comparison_plots(rotor,rotor_aero_data,AXES,PP.colors[idx-1],PP,idx-1, rotor_name)  
+                   
+                
+                propeller_geoemtry_comparison_plots(rotor,rotor_aero_data,AXES,PP.colors[idx-1],PP.colors[col_idx],PP,idx-1, rotor_name)  
                 
     
-    cmap     = plt.get_cmap("viridis")
+    cmap      = plt.get_cmap("hot")
+    new_cmap = truncate_colormap(cmap, 0.0, 0.80)
     norm     = plt.Normalize(0,1) 
-    sm       =  ScalarMappable(norm=norm, cmap=cmap)
+    sm       =  ScalarMappable(norm=norm, cmap=new_cmap)
     ax_ticks = np.linspace(0,1,11)
-    sm.set_array([]) 
+    sm.set_array([])  
+
+    cmap_2      = plt.get_cmap("hot")
+    new_cmap_2 = truncate_colormap(cmap_2, 0.0, 0.80)
+    norm_2      = plt.Normalize(0.45,0.7) 
+    sm_2        = ScalarMappable(norm=norm_2, cmap=new_cmap_2 )
+    ax_ticks_2  = np.linspace(0.45,0.7,6)
+    sm_2.set_array([])     
             
     sfmt = ticker.ScalarFormatter(useMathText=True) 
-    sfmt = ticker.FormatStrFormatter('%.1f')      
+    sfmt = ticker.FormatStrFormatter('%.1f')     
+    sfmt2 = ticker.ScalarFormatter(useMathText=True) 
+    sfmt2 = ticker.FormatStrFormatter('%.2f')     
     cbar_1 = fig_1.colorbar(sm, ax = axis_1, ticks = list(ax_ticks),  format= sfmt)
     cbar_2 = fig_2.colorbar(sm, ax = axis_2, ticks = list(ax_ticks),  format= sfmt)
     cbar_3 = fig_3.colorbar(sm, ax = axis_3, ticks = list(ax_ticks),  format= sfmt)
@@ -598,6 +620,9 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     cbar_7 = fig_7.colorbar(sm, ax = axis_7, ticks = list(ax_ticks),  format= sfmt)
     cbar_8 = fig_8.colorbar(sm, ax = axis_8, ticks = list(ax_ticks),  format= sfmt)
     cbar_9 = fig_9.colorbar(sm, ax = axis_9, ticks = list(ax_ticks),  format= sfmt)
+    cbar_10 = fig_10.colorbar(sm, ax = axis_10, ticks = list(ax_ticks),  format= sfmt)
+    cbar_11 = fig_11.colorbar(sm, ax = axis_11, ticks = list(ax_ticks),  format= sfmt)
+    cbar_12 = fig_12.colorbar(sm_2, ax = axis_12, ticks = list(ax_ticks_2),  format= sfmt2)
     
     
     cbar_1.set_label(r'$\alpha$')
@@ -608,7 +633,10 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     cbar_6.set_label(r'$\alpha$')
     cbar_7.set_label(r'$\alpha$') 
     cbar_8.set_label(r'$\alpha$')
-    cbar_9.set_label(r'$\alpha$')  
+    cbar_9.set_label(r'$\alpha$') 
+    cbar_10.set_label(r'$\alpha$')
+    cbar_11.set_label(r'$\alpha$') 
+    cbar_12.set_label(r'Tip Mach')   
     
     fig_1_name = "Rotor_Twist_Compairson_" + str(int(design_thrust))  + '_N' 
     fig_2_name = "Rotor_Chord_Compairson_" + str(int(design_thrust))  + '_N' 
@@ -619,6 +647,9 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     fig_7_name = 'Rotor_Total_SPL_Comparison'
     fig_8_name = 'Rotor_Harmonic_Noise_Comparison'
     fig_9_name = 'Rotor_Broadband_Noise_Comparison'  
+    fig_10_name = 'Rotor_Thrust_Comparison'+ str(int(design_thrust))  + '_N'
+    fig_11_name = 'Rotor_Torque_Comparison' + str(int(design_thrust))  + '_N'
+    fig_12_name = 'Rotor_RPM_Comparison' + str(int(design_thrust))  + '_N'
     
     fig_1.tight_layout()
     fig_2.tight_layout()
@@ -628,7 +659,10 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
     fig_6.tight_layout()
     fig_7.tight_layout()
     fig_8.tight_layout()
-    fig_9.tight_layout()   
+    fig_9.tight_layout() 
+    fig_10.tight_layout()
+    fig_11.tight_layout()  
+    fig_12.tight_layout()    
     
     if save_figures:
         fig_1.savefig(fig_1_name  + '.pdf')               
@@ -639,7 +673,10 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
         fig_6.savefig(fig_6_name  + '.pdf')        
         fig_7.savefig(fig_7_name  + '.pdf')               
         fig_8.savefig(fig_8_name  + '.pdf')               
-        fig_9.savefig(fig_9_name  + '.pdf')     
+        fig_9.savefig(fig_9_name  + '.pdf')               
+        fig_10.savefig(fig_10_name  + '.pdf')               
+        fig_11.savefig(fig_11_name  + '.pdf')            
+        fig_12.savefig(fig_12_name  + '.pdf')    
     
     
     return   
@@ -803,13 +840,16 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP,save_figures):
 # ------------------------------------------------------------------ 
 # Plot Propeller Comparison Results
 # ------------------------------------------------------------------ 
-def propeller_geoemtry_comparison_plots(rotor,outputs,AXES,color,PP,idx,label_name = 'prop'):  
+def propeller_geoemtry_comparison_plots(rotor,outputs,AXES,color,color2,PP,idx,label_name = 'prop'):  
     axis_1  = AXES[0] 
     axis_2  = AXES[1] 
     axis_3  = AXES[2] 
     axis_4  = AXES[3] 
     axis_5  = AXES[4] 
-    axis_6  = AXES[5]          
+    axis_6  = AXES[5]  
+    axis_10  = AXES[9] 
+    axis_11  = AXES[10] 
+    axis_12  = AXES[11]            
     axis_1.plot(rotor.radius_distribution/rotor.tip_radius, rotor.twist_distribution/Units.degrees,
                 color      = color,
                 marker     = PP.markers[idx%9],
@@ -851,6 +891,26 @@ def propeller_geoemtry_comparison_plots(rotor,outputs,AXES,color,PP,idx,label_na
                 linewidth  = PP.line_width,
                 markersize = PP.marker_size,
                 label      = label_name) 
+     
+    axis_10.plot(rotor.radius_distribution/rotor.tip_radius, outputs.blade_thrust_distribution[0],
+                color      = color,
+                marker     = PP.markers[idx%9],
+                linestyle  = PP.line_styles[2],
+                linewidth  = PP.line_width,
+                markersize = PP.marker_size,
+                label      = label_name) 
+    axis_11.plot(rotor.radius_distribution/rotor.tip_radius, outputs.blade_torque_distribution[0],
+                color      = color,
+                marker     = PP.markers[idx%9],
+                linestyle  = PP.line_styles[2],
+                linewidth  = PP.line_width,
+                markersize = PP.marker_size,
+                label      = label_name)     
+    axis_12.scatter(rotor.design_power/1E3, rotor.design_SPL_dBA,
+                   color  = color2,
+                   marker = 'o',
+                   s      = 150,
+                   label  = label_name )   
 
     return  
 # ------------------------------------------------------------------ 
@@ -877,7 +937,7 @@ def set_up_axes(PP,design_thrust):
     fig_2.set_size_inches(PP.figure_width,PP.figure_height) 
     axis_2 = fig_2.add_subplot(1,1,1)  
     axis_2.set_ylabel('c (m)') 
-    axis_1.set_xlabel('r')    
+    axis_2.set_xlabel('r')    
     axis_2.minorticks_on()    
 
     # ------------------------------------------------------------------
@@ -888,7 +948,7 @@ def set_up_axes(PP,design_thrust):
     fig_3.set_size_inches(PP.figure_width,PP.figure_height) 
     axis_3 = fig_3.add_subplot(1,1,1)  
     axis_3.set_ylabel('t (m)') 
-    axis_1.set_xlabel('r')    
+    axis_3.set_xlabel('r')    
     axis_3.minorticks_on()  
 
     # ------------------------------------------------------------------
@@ -933,7 +993,7 @@ def set_up_axes(PP,design_thrust):
     fig_7.set_size_inches(PP.figure_width, PP.figure_height) 
     axis_7 = fig_7.add_subplot(1,1,1)    
     axis_7.set_xscale('log') 
-    axis_7.set_ylabel(r'SPL$_{1/3}$ (dB)')
+    axis_7.set_ylabel(r'SPL$_{1/3}$ (dBA)')
     axis_7.set_xlabel('Frequency (Hz)') 
     axis_7.set_ylim([0,100])
 
@@ -961,9 +1021,43 @@ def set_up_axes(PP,design_thrust):
     axis_9.set_xlabel('Frequency (Hz)') 
     axis_9.set_ylim([0,100])
     
+
+    # ------------------------------------------------------------------
+    # Thrust Comparison
+    # ------------------------------------------------------------------      
+    fig_10 = plt.figure('Rotor_Thrust_Comparison')    
+    fig_10.set_size_inches(PP.figure_width, PP.figure_height) 
+    axis_10 = fig_10.add_subplot(1,1,1)    
+    axis_10.set_ylabel(r'T (N)') 
+    axis_10.set_xlabel('r')    
+    #axis_10.set_ylim([0,100])
+     
+
+    # ------------------------------------------------------------------
+    # Torque Comparison
+    # ------------------------------------------------------------------          
+    fig_11 = plt.figure('Rotor_Torque_Comparison')    
+    fig_11.set_size_inches(PP.figure_width, PP.figure_height) 
+    axis_11 = fig_11.add_subplot(1,1,1)    
+    axis_11.set_ylabel(r'Q (N-m)') 
+    axis_11.set_xlabel('r')    
+    #axis_11.set_ylim([0,100])
+     
+
+    # ------------------------------------------------------------------
+    #  Thickness Distribution
+    # ------------------------------------------------------------------ 
+    fig_12_name = "Rotor_Power_RPM_Pareto_" + str(int(design_thrust))  + '_N'
+    fig_12 = plt.figure(fig_12_name)     
+    fig_12.set_size_inches(PP.figure_width,PP.figure_height) 
+    axis_12 = fig_12.add_subplot(1,1,1)  
+    axis_12.set_xlabel('Power (kW)') 
+    axis_12.set_ylabel('SPL (dBA)')    
+    axis_12.minorticks_on()  
     
-    AXES    = [axis_1,axis_2,axis_3,axis_4,axis_5,axis_6,axis_7,axis_8,axis_9]
-    FIGURES = [fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9]
+    
+    AXES    = [axis_1,axis_2,axis_3,axis_4,axis_5,axis_6,axis_7,axis_8,axis_9,axis_10,axis_11,axis_12]
+    FIGURES = [fig_1,fig_2,fig_3,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_10,fig_11,fig_12]
     return AXES , FIGURES
 
 def define_plot_parameters(): 
@@ -1010,6 +1104,11 @@ def load_blade_geometry(filename):
         rotor = pickle.load(file) 
     return rotor
 
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap
 
 if __name__ == '__main__': 
     main() 

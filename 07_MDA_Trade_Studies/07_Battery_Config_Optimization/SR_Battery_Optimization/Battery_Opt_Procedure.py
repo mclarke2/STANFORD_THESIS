@@ -57,12 +57,13 @@ def modify_vehicle(nexus):
     vehicle = nexus.vehicle_configurations.base
     net     = vehicle.networks.lift_cruise
     bat     = net.battery 
-
-    total_cells                          = 140*100  
+  
+    total_cells                          = 140*100
+    bat.pack_config.series               = int(np.ceil(bat.pack_config.series))
     bat.pack_config.parallel             = int(total_cells/bat.pack_config.series)
     initialize_from_circuit_configuration(bat)    
     net.voltage                          = bat.max_voltage  
-    bat.module_config.number_of_modules  = 16 # CHANGE IN OPTIMIZER 
+    bat.module_config.number_of_modules  = int(np.ceil(bat.module_config.number_of_modules))
     bat.module_config.total              = int(np.ceil(bat.pack_config.total/bat.module_config.number_of_modules))
     bat.module_config.voltage            = net.voltage/bat.module_config.number_of_modules # must be less than max_module_voltage/safety_factor  
     bat.module_config.normal_count       = int(bat.module_config.total**(bat.module_config.layout_ratio))
@@ -88,21 +89,19 @@ def finalize(nexus):
 
 def post_process(nexus):
  
-    res  = nexus.results.mission  
+    res     = nexus.results.mission  
+    summary = nexus.summary   
+    vehicle = nexus.vehicle_configurations.base  
+    bat     = vehicle.networks.battery_propeller.battery 
 
     num_ctrl_pts   = len(res.segments[0].conditions.frames.inertial.time[:,0] )
     num_segments   = len(res.segments.keys()) 
     data_dimension = num_ctrl_pts*num_segments 
     
-    PD                 = Data() 
-    PD.energy          = np.zeros(data_dimension) 
-    PD.C_rating        = np.zeros(data_dimension)  
-    PD.pack_temp       = np.zeros(data_dimension)   
-    
-    PD.aircraft_pos =  np.zeros((data_dimension,3)) 
-    dim_segs        = len(res.segments)    
-    PD.num_segments = dim_segs
-    PD.num_ctrl_pts = num_ctrl_pts
+               
+    energy          = np.zeros(data_dimension) 
+    C_rating        = np.zeros(data_dimension)  
+    pack_temp       = np.zeros(data_dimension)  
      
     for i in range(num_segments):    
         energy          = res.segments[i].conditions.propulsion.battery_energy[:,0]*0.000277778 
@@ -112,12 +111,24 @@ def post_process(nexus):
         battery_amp_hr  = (energy)/volts 
         C_rating        = current /battery_amp_hr      
                   
-        PD.energy[i*num_ctrl_pts:(i+1)*num_ctrl_pts]          = energy   
-        PD.pack_temp[i*num_ctrl_pts:(i+1)*num_ctrl_pts]       = pack_temp  
-        PD.C_rating[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = C_rating  
+        energy[i*num_ctrl_pts:(i+1)*num_ctrl_pts]          = energy   
+        pack_temp[i*num_ctrl_pts:(i+1)*num_ctrl_pts]       = pack_temp  
+        C_rating[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = C_rating  
   
-    # Pack up
-    summary = nexus.summary
-    summary.max_C_rate           = max(PD.C_rating)
-    summary.max_pack_temperature = max(PD.pack_temp)
+    max_module_voltage = 50
+    safety_factor      = 1.5 
+    voltage_residual   = max_module_voltage/safety_factor - bat.module_config.voltage
+    
+    # Pack up 
+    summary.max_module_temperature      = max(pack_temp)
+    summary.max_module_voltage_residual = voltage_residual
+    summary.max_C_rate                  = max(C_rating)
+    
+    # -------------------------------------------------------
+    # PRINT ITERATION PERFOMRMANCE
+    # -------------------------------------------------------                 
+    print("Max Module Temperature : " + str(summary.max_module_temperature))  
+    print("Module Voltage         : " + str(summary.max_module_voltage_residual))  
+    print("Max C-Rate             : " + str(summary.max_C_rate))  
+    
     return nexus 

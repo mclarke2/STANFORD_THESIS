@@ -39,7 +39,7 @@ def main():
      
     # COMPARE TWO ROTORS 
     alpha_weights     = np.array([1.0,1.0])  # low blade solidity reduces thickness noise 
-    beta_weights      =  np.array([0.1,0.9])
+    beta_weights      = np.array([0.1,0.9])
     
     
 
@@ -122,8 +122,7 @@ def TW_prop_rotor_single_design_point(alpha_weights,beta_weights,use_pyoptsparse
 def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_flag,PP,save_figures): 
 
     design_thrust_hover  = (2300*9.81/(8))    
-    design_thrust_cruise = 1410/8 
-    
+    design_thrust_cruise = 1410/8
 
     alpha_0 = str(alpha_weights[0])
     alpha_0 = alpha_0.replace('.','_')    
@@ -133,11 +132,8 @@ def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
     alpha_1 = alpha_1.replace('.','_')    
     beta_1  = str(beta_weights[1])
     beta_1  = beta_1.replace('.','_')       
-  
 
-    
     rotor_comparison = '_A' + alpha_0 + '_B' +  beta_0 + '_A' + alpha_1 + '_B'+  beta_1
-    
     
     fig_1_name = "Thrust_TW_Rotor_Comparison" + rotor_comparison
     fig_2_name = "Torque_TW_Rotor_Comparison" + rotor_comparison
@@ -174,13 +170,11 @@ def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
     axis_4.set_ylim([-5,35])
     axis_4.set_xlabel('r')
         
-    
     fig_5 = plt.figure(fig_5_name)    
     fig_5.set_size_inches(PP.figure_width, PP.figure_height)  
     axis_5 = fig_5.add_subplot(1,1,1)  
     axis_5.set_ylabel(r'SPL$_{1/3}$ (dBA)')
     axis_5.set_xlabel('Frequency (Hz)') 
-    
         
     fig_6 = plt.figure(fig_6_name)
     fig_6.set_size_inches(PP.figure_width, PP.figure_height)     
@@ -212,7 +206,7 @@ def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator  
     angles               = np.array([135]) 
-    folder               = 'Data' 
+    folder               = 'Rotor_Designs' 
     
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'

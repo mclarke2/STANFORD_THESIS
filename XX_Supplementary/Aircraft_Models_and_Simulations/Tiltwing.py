@@ -185,6 +185,7 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
     for i in range(len(X_LIM)-1):
         for j in range(len(Y_LIM)-1): 
             print('Running Quardant:' + str(Q_idx))
+            ti_quad  = time.time() 
             min_x = X_LIM[i]
             max_x = X_LIM[i+1]
             min_y = Y_LIM[j]
@@ -203,9 +204,13 @@ def run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft
             analyses.finalize()      
             noise_mission     = analyses.missions.base
             noise_results     = noise_mission.evaluate()   
-            filename          = 'Tiltwing_Approach_Departure_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)
+            filename          = 'Tiltwing_Approach_Departure_Noise_Q' + str(Q_idx) + '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) 
+
+            tf_quad = time.time() 
+            print ('time taken: '+ str(round(((tf_quad-ti_quad)/60),3)) + ' mins') 
+            
             save_results(noise_results,filename)  
-            Q_idx += 1 
+            Q_idx += 1             
         
     if plot_mission: 
         plot_results(noise_results,run_noise_model)       
@@ -760,7 +765,7 @@ def configs_setup(vehicle):
     config.tag                                        = 'vertical_transition_1'
     for prop in config.networks.battery_propeller.propellers: 
         prop.orientation_euler_angles                 = [0,vector_angle,0]
-        prop.inputs.pitch_command                     = -8.  * Units.degrees
+        prop.inputs.pitch_command                     = -5.  * Units.degrees
     config.wings.main_wing.twists.root                = vector_angle
     config.wings.main_wing.twists.tip                 = vector_angle
     config.wings.canard_wing.twists.root              = vector_angle
