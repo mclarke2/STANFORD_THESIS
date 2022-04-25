@@ -38,7 +38,7 @@ def main():
     N_gm_x           = 10
     N_gm_y           = 5 
 
-    alpha_weights    = np.array([1.0]) # ,0.74,0.5,0.25,0.0])
+    alpha_weights    = np.array([0.5,0.0]) # ,1.0 ,0.74,0.5,0.25,0.02, completed 1.0,0.5,0.0
     
     for a_i in range(len(alpha_weights)):
         alpha             = alpha_weights[a_i]  
@@ -129,10 +129,10 @@ def modify_vehicle(vehicle,alpha):
     rel_path             = os.path.dirname(ospath) + separator  
     
     optimizer             = 'SLSQP'
-    design_thrust         = (2700*9.81/(12))      
+    design_thrust         = 19E3/12 # (2700*9.81/(12))      
     alpha_opt_weight      = str(alpha)
     alpha_opt_weight      = alpha_opt_weight.replace('.','_')     
-    file_name             = rel_path +  '../07_Rotor_Blade_Optimization/Lift_Rotor_Design/Rotor_Designs' + separator +  'Rotor_T_' + str(int(design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
+    file_name             = rel_path +  '../07_Rotor_Blade_Optimization/Lift_Rotor_Design/Rotor_Designs_2' + separator +  'Rotor_T_' + str(int(design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
     
     
     rotor                 = load_blade_geometry(file_name)  
@@ -162,28 +162,6 @@ def modify_vehicle(vehicle,alpha):
         lift_rotor.tag      = 'rot_' + str(ii+1)
         lift_rotor.origin   = [origins[ii]]
         net.lift_rotors.append(lift_rotor)    
-    
-    
-    # delete prop-rotors 
-    for rotor_motor in net.lift_rotor_motors:
-        del net.lift_rotor_motors[rotor_motor.tag]    
-     
-
-    # Rotor (Lift) Motor     
-    lift_rotor_motor                         = SUAVE.Components.Energy.Converters.Motor()
-    lift_rotor_motor.efficiency              = 0.9
-    lift_rotor_motor.nominal_voltage         = bat.max_voltage *0.75
-    lift_rotor_motor.origin                  = rotor.origin 
-    lift_rotor_motor.propeller_radius        = rotor.tip_radius   
-    lift_rotor_motor.no_load_current         = 0.01 
-    lift_rotor_motor                         = size_optimal_motor(lift_rotor_motor,rotor)
-    lift_rotor_motor.mass_properties.mass    = nasa_motor(lift_rotor_motor.design_torque)    
-
-    # Appending motors with different origins
-    for _ in range(12):
-        motor = deepcopy(lift_rotor_motor)
-        motor.tag = 'motor_' + str(ii+1)
-        net.lift_rotor_motors.append(motor)   
          
     return vehicle
 

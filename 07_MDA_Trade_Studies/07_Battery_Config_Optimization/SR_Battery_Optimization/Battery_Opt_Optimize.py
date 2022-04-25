@@ -31,7 +31,7 @@ def main():
         output = pyoptsparse_setup.Pyoptsparse_Solve(optimization_problem,solver='SNOPT',FD='parallel',
                                                       sense_step= 1E-3) 
     else: 
-        output = scipy_setup.SciPy_Solve(optimization_problem,solver=solver_name, sense_step = 1E-4,
+        output = scipy_setup.SciPy_Solve(optimization_problem,solver=solver_name, sense_step = 1E-1,
                                          tolerance = 1E-3)    
     tf           = time.time()
     elapsed_time = round((tf-ti)/60,2)
@@ -57,7 +57,7 @@ def problem_setup():
     # Inputs
     # -------------------------------------------------------------------   
     inputs = []
-    inputs.append([ 'cell_in_series'    , 140  , 120  , 160  , 100.0 ,  1*Units.less])
+    inputs.append([ 'cell_in_series'    , 140  , 120  , 160  , 10.0 ,  1*Units.less])
     inputs.append([ 'number_of_modules' , 16   , 10   , 20   , 10.0  ,  1*Units.less])
     inputs.append([ 'layout_ratio'      , 0.5  , 0.3  , 0.7  , 1.0   ,  1*Units.less]) 
     problem.inputs = np.array(inputs,dtype=object)   
@@ -67,7 +67,7 @@ def problem_setup():
     # ------------------------------------------------------------------- 
     problem.objective = np.array([ 
                                # [ tag         , scaling, units ]
-                                 [  'max_module_temperature'  ,  1.0   ,    1*Units.less] 
+                                 [  'battery_energy'  ,  1.0   ,    1*Units.less] 
     ],dtype=object)
     
     # -------------------------------------------------------------------
@@ -82,9 +82,10 @@ def problem_setup():
     #  Aliases
     # ------------------------------------------------------------------- 
     aliases = []
-    aliases.append([ 'cell_in_series'               , 'vehicle_configurations.*.networks.battery_propeller.battery.pack_config.series' ])
-    aliases.append([ 'number_of_modules'            , 'vehicle_configurations.*.networks.battery_propeller.battery.module_config.number_of_modules' ])
-    aliases.append([ 'layout_ratio'                 , 'vehicle_configurations.*.networks.battery_propeller.battery.module_config.layout_ratio' ])  
+    aliases.append([ 'cell_in_series'               , 'vehicle_configurations.*.networks.lift_cruise.battery.pack_config.series' ])
+    aliases.append([ 'number_of_modules'            , 'vehicle_configurations.*.networks.lift_cruise.battery.module_config.number_of_modules' ])
+    aliases.append([ 'layout_ratio'                 , 'vehicle_configurations.*.networks.lift_cruise.battery.module_config.layout_ratio' ])  
+    aliases.append([ 'battery_energy'               , 'summary.battery_energy' ])
     aliases.append([ 'max_module_temperature'       , 'summary.max_module_temperature' ])  
     aliases.append([ 'max_module_voltage_residual'  , 'summary.max_module_voltage_residual' ])  
     aliases.append([ 'max_C_rate'                   , 'summary.max_C_rate' ])  

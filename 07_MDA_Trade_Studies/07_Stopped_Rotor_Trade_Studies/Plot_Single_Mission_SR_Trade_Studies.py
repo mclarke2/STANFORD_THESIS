@@ -21,79 +21,89 @@ import pickle
 def main(): 
     plt.rcParams['axes.linewidth'] = 2.
     plt.rcParams["font.family"] = "Times New Roman"
-    parameters = {'axes.labelsize': 32,
-                  'xtick.labelsize': 28,
-                  'ytick.labelsize': 28,
-                  'axes.titlesize': 32}
+    parameters = {'axes.labelsize': 28,
+                  'xtick.labelsize': 22,
+                  'ytick.labelsize': 22,
+                  'axes.titlesize': 28}
     plt.rcParams.update(parameters)
     plot_parameters                  = Data()
     plot_parameters.line_width       = 2 
     plot_parameters.line_style       = ['-','--']
-    plot_parameters.figure_width     = 10 
-    plot_parameters.figure_height    = 7 
+    plot_parameters.figure_width     = 12 
+    plot_parameters.figure_height    = 5 
     plot_parameters.marker_size      = 10 
     plot_parameters.legend_font_size = 20 
     plot_parameters.plot_grid        = True   
     plot_parameters.markers          = ['s','^','X','o','P','D','X','*']
-    plot_parameters.colors           = ['black','mediumblue','darkgreen','firebrick']   
-    plot_parameters.colors2          = ['grey','darkcyan','green','red']   
+    plot_parameters.colors           = ['black','darkmagenta','mediumblue','darkgreen','darkgoldenrod','darkred']   
+    plot_parameters.colors2          = ['grey','orchid','darkcyan','green','orange','red']   
     plot_parameters.lw               = 2                              # line_width                
     plot_parameters.legend_font      = 20                             # legend_font_size       
     plot_parameters.marker_size      = 14   
-     
-
-    N_gm_x = 10 
-    N_gm_y = 5  
-    header =  '../../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
-    alpha_weights = np.array([1.0,0.5,0.0])
-    vehicle_name  = 'SR'
-    alpha_opt_weight = 'None'
-    spider_plot_max_SPL             = []
-    spider_plot_maxiumum_power      = []
-    spider_plot_energy_consumption  = []
-    spider_plot_tip_mach            = []
-    spider_plot_bat_temperature     = []
-       
     
-    # ------------------------------------------------------------------------------------------------------
-    # STORE RESULTS FOR ADKINS AND LEIBECK   
-    # ------------------------------------------------------------------------------------------------------
-    sr_noise_filename_Q1       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)   
-    sr_noise_filename_Q2       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)   
-    sr_noise_filename_Q3       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)   
-    sr_noise_filename_Q4       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)    
-    sr_noise_results_raw_Q1    = load_results(sr_noise_filename_Q1)
-    sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
-    sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
-    sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4) 
-    sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name)
-    sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name)
-    sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name)
-    sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name)
-    plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name,alpha_opt_weight) 
-  
-    # append spider plot data 
-    segment_no          = 4
-    cpts                = sr_noise_res_Q4.num_ctrl_pts 
-    max_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
-                
-    start = (segment_no)*cpts
-    end   = (segment_no+1)*cpts 
-    spider_plot_max_SPL.append(np.max(max_SPL))
-    spider_plot_maxiumum_power.append(np.max(-sr_noise_res_Q1.power[start:end]))
-    spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end])
-    spider_plot_tip_mach.append(np.max(sr_noise_res_Q1.rtm[start:end]))
-    spider_plot_bat_temperature.append(np.max(sr_noise_res_Q1.pack_temp[start:end]))          
+    '''
+    0 - descent
+    1 - approach trasition
+    2 - vertical trasition
+    3 - vertical descent
+    4 - vertical climb
+    5 - vertical transition
+    6 - climb transition
+    7 - climb
+    ''' 
+    N_gm_x                          = 10 
+    N_gm_y                          = 5  
+    header                          = '../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
+    alpha_weights                   = np.array([1.0,0.0]) # np.array([1.0,0.74,0.5,0.25,0.02])
+    vehicle_name                    = 'SR'
+    alpha_opt_weight                = 'None'
+    spider_plot_max_SPL             = np.zeros((8,2))
+    spider_plot_maxiumum_power      = np.zeros((8,2))
+    spider_plot_energy_consumption  = np.zeros((8,2))
+    spider_plot_tip_mach            = np.zeros((8,2))
+    spider_plot_bat_temperature     = np.zeros((8,2))
        
+    axes_1,axes_2, axes_3,axes_4,axes_5,axes_6,fig_1,fig_2, fig_3,fig_4,fig_5,fig_6  = set_up_axes(plot_parameters.figure_width,plot_parameters.figure_height)
+    
+    ## ------------------------------------------------------------------------------------------------------
+    ## STORE RESULTS FOR ADKINS AND LEIBECK   
+    ## ------------------------------------------------------------------------------------------------------
+    #sr_noise_filename_Q1       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)   
+    #sr_noise_filename_Q2       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)   
+    #sr_noise_filename_Q3       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)   
+    #sr_noise_filename_Q4       = header + 'Stopped_Rotor_Approach_Departure_Noise_Q4'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y)    
+    #sr_noise_results_raw_Q1    = load_results(sr_noise_filename_Q1)
+    #sr_noise_results_raw_Q2    = load_results(sr_noise_filename_Q2)
+    #sr_noise_results_raw_Q3    = load_results(sr_noise_filename_Q3)
+    #sr_noise_results_raw_Q4    = load_results(sr_noise_filename_Q4) 
+    #sr_noise_res_Q1            = process_results(sr_noise_results_raw_Q1,N_gm_x ,N_gm_y,vehicle_name)
+    #sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name)
+    #sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name)
+    #sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name)
+    ##plot_flight_profile_noise_contours(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name,alpha_opt_weight) 
+  
+    ## append spider plot data 
+    #cpts                     = sr_noise_res_Q4.num_ctrl_pts 
+    #aircraft_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
+    #rotor_name = 'A. & L.'  
+    #plot_results(sr_noise_res_Q1,aircraft_SPL,axes_1,axes_2,axes_3,axes_4,axes_5,axes_6,plot_parameters,0,rotor_name)       
+         
+    #for seg in range(8): 
+        #start   = (seg)*cpts
+        #end     = (seg+1)*cpts - 1
+        #spider_plot_max_SPL[seg,0]            = np.max(np.max(np.max(aircraft_SPL[start:end],axis = 1),axis = 1))
+        #spider_plot_maxiumum_power[seg,0]     = np.max(-sr_noise_res_Q1.power[start:end]) 
+        #spider_plot_energy_consumption[seg,0] = sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end] 
+        #spider_plot_tip_mach[seg,0]           = np.max(sr_noise_res_Q1.rtm[start:end])
+        #spider_plot_bat_temperature[seg,0]    = np.max(sr_noise_res_Q1.pack_temp[start:end])  
 
     # ------------------------------------------------------------------------------------------------------    
     # STORE RESULTS FOR CLARKE 
     # ------------------------------------------------------------------------------------------------------ 
     for a_i in range(len(alpha_weights)): 
-
-        alpha             = alpha_weights[a_i]  
-        alpha_opt_weight  = str(alpha)
-        alpha_opt_weight  = alpha_opt_weight.replace('.','_')       
+ 
+        alpha_opt_weight           = str(alpha_weights[a_i])
+        alpha_opt_weight           = alpha_opt_weight.replace('.','_')       
         sr_noise_filename_Q1       = 'Stopped_Rotor_Approach_Departure_Noise_Q1'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
         sr_noise_filename_Q2       = 'Stopped_Rotor_Approach_Departure_Noise_Q2'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
         sr_noise_filename_Q3       = 'Stopped_Rotor_Approach_Departure_Noise_Q3'+ '_Nx' + str(N_gm_x) + '_Ny' + str(N_gm_y) + '_alpha' + alpha_opt_weight   
@@ -106,38 +116,41 @@ def main():
         sr_noise_res_Q2            = process_results(sr_noise_results_raw_Q2,N_gm_x ,N_gm_y,vehicle_name)
         sr_noise_res_Q3            = process_results(sr_noise_results_raw_Q3,N_gm_x ,N_gm_y,vehicle_name)
         sr_noise_res_Q4            = process_results(sr_noise_results_raw_Q4,N_gm_x ,N_gm_y,vehicle_name)
-        plot_flight_profile_noise_contours(1,sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name,alpha_opt_weight) 
+        #plot_flight_profile_noise_contours(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4,plot_parameters,vehicle_name,alpha_opt_weight) 
   
-  
-        # append spider plot data 
-        segment_no          = 4
-        cpts                = sr_noise_res_Q4.num_ctrl_pts 
-        max_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
-                    
-        start   = (segment_no)*cpts
-        end     = (segment_no+1)*cpts
-        max_SPL = np.nan_to_num(max_SPL)
-        spider_plot_max_SPL.append(np.max(max_SPL))
-        spider_plot_maxiumum_power.append(np.max(-sr_noise_res_Q1.power[start:end]))
-        spider_plot_energy_consumption.append(sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end])
-        spider_plot_tip_mach.append(np.max(sr_noise_res_Q1.rtm[start:end]))
-        spider_plot_bat_temperature.append(np.max(sr_noise_res_Q1.pack_temp[start:end]))          
-    
-    
+        # append spider plot data  
+        cpts                     = sr_noise_res_Q4.num_ctrl_pts 
+        aircraft_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(sr_noise_res_Q1,sr_noise_res_Q2, sr_noise_res_Q3,sr_noise_res_Q4)        
+        rotor_name = r'$\alpha$ = ' +  str(alpha_weights[a_i])
+        plot_results(sr_noise_res_Q1,aircraft_SPL,axes_1,axes_2,axes_3,axes_4,axes_5,axes_6,plot_parameters,a_i+1,rotor_name)
+        
+        for seg in range(8): 
+            start   = (seg)*cpts
+            end     = (seg+1)*cpts - 1
+            spider_plot_max_SPL[seg,a_i]            = np.max(np.max(np.max(aircraft_SPL[start:end],axis = 1),axis = 1))
+            spider_plot_maxiumum_power[seg,a_i]     = np.max(-sr_noise_res_Q1.power[start:end]) 
+            spider_plot_energy_consumption[seg,a_i] = sr_noise_res_Q1.energy[start]-sr_noise_res_Q1.energy[end] 
+            spider_plot_tip_mach[seg,a_i]           = np.max(sr_noise_res_Q1.rtm[start:end])
+            spider_plot_bat_temperature[seg,a_i]    = np.max(sr_noise_res_Q1.pack_temp[start:end])     
     
     # ------------------------------------------------------------------------------------------------------    
     # PLOT RESULTS  
-    # ------------------------------------------------------------------------------------------------------     
+    # ------------------------------------------------------------------------------------------------------   
     spider_res = Data(
-        maximum_SPL        = 100*(spider_plot_max_SPL/spider_plot_max_SPL[0]),
-        maxiumum_power     = 100*(spider_plot_maxiumum_power/spider_plot_maxiumum_power[0]),
-        energy_consumption = 100*(spider_plot_energy_consumption/spider_plot_energy_consumption[0]),
-        maximum_tip_mach   = 100*(spider_plot_tip_mach/spider_plot_tip_mach[0]),
-        bat_temperature    = 100*(spider_plot_bat_temperature/spider_plot_bat_temperature[0]))
+        maximum_SPL        = 100*(spider_plot_max_SPL/np.tile(spider_plot_max_SPL[:,0][:,None],(1,2))),
+        maxiumum_power     = 100*(spider_plot_maxiumum_power/np.tile(spider_plot_maxiumum_power[:,0][:,None],(1,2))),
+        energy_consumption = 100*(spider_plot_energy_consumption/np.tile(spider_plot_energy_consumption[:,0][:,None],(1,2))),
+        maximum_tip_mach   = 100*(spider_plot_tip_mach/np.tile(spider_plot_tip_mach[:,0][:,None],(1,2))),
+        bat_temperature    = 100*(spider_plot_bat_temperature/np.tile(spider_plot_bat_temperature[:,0][:,None],(1,2))))
     
     plot_spider_diagram(spider_res,plot_parameters)   
        
-       
+    axes_1.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})  
+    axes_2.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font}) 
+    axes_3.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})         
+    axes_4.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})         
+    axes_5.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})          
+    axes_6.legend(loc='upper center', ncol= 4, prop={'size': plot_parameters.legend_font})        
     return
  
 # ------------------------------------------------------------------
@@ -166,6 +179,7 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name ):
     PD.cl              = np.zeros(data_dimension) 
     PD.cd              = np.zeros(data_dimension) 
     PD.aoa             = np.zeros(data_dimension) 
+    PD.airspeed        = np.zeros(data_dimension) 
     PD.l_d             = np.zeros(data_dimension) 
     PD.eta             = np.zeros(data_dimension) 
     PD.energy          = np.zeros(data_dimension) 
@@ -215,6 +229,7 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name ):
         cl              = res.segments[i].conditions.aerodynamics.lift_coefficient[:,0] 
         cd              = res.segments[i].conditions.aerodynamics.drag_coefficient[:,0] 
         aoa             = res.segments[i].conditions.aerodynamics.angle_of_attack[:,0] / Units.deg
+        airspeed        = res.segments[i].conditions.freestream.velocity[:,0]  
         l_d             = cl/cd         
         eta             = res.segments[i].conditions.propulsion.throttle[:,0]  
         energy          = res.segments[i].conditions.propulsion.battery_energy[:,0]*0.000277778 
@@ -235,7 +250,8 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name ):
         PD.altitude[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = altitude       
         PD.cl[i*num_ctrl_pts:(i+1)*num_ctrl_pts]              = cl             
         PD.cd[i*num_ctrl_pts:(i+1)*num_ctrl_pts]              = cd             
-        PD.aoa[i*num_ctrl_pts:(i+1)*num_ctrl_pts]             = aoa            
+        PD.aoa[i*num_ctrl_pts:(i+1)*num_ctrl_pts]             = aoa  
+        PD.airspeed[i*num_ctrl_pts:(i+1)*num_ctrl_pts]        = airspeed
         PD.l_d[i*num_ctrl_pts:(i+1)*num_ctrl_pts]             = l_d            
         PD.eta[i*num_ctrl_pts:(i+1)*num_ctrl_pts]             = eta            
         PD.energy[i*num_ctrl_pts:(i+1)*num_ctrl_pts]          = energy   
@@ -310,61 +326,70 @@ def process_results(res,N_gm_x ,N_gm_y,vehicle_name ):
 # ------------------------------------------------------------------
 # Plot Flight Profile Noise Contours 
 # ------------------------------------------------------------------
-def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicle_name,alpha_weight):     
-          
-    # figure parameters
-    filename      = 'Noise_Contour' + vehicle_name + '_Alpha_' + alpha_weight
-    fig           = plt.figure(filename) 
-    fig.set_size_inches(PP.figure_width ,PP.figure_height)   
+def plot_flight_profile_noise_contours(res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicle_name,alpha_weight):      
 
-    gs            = gridspec.GridSpec(8, 8)
-    axes_21       = fig.add_subplot(gs[2:,:]) # contour 
-    axes_22       = fig.add_subplot(gs[:2,:]) # altitude 
-      
-    #   Altitude  
-    axes_22.set_ylabel('Alt (ft)')  
-    axes_22.axes.xaxis.set_visible(False)
-    axes_22.plot(res_Q1.aircraft_pos[:,0]/Units.nmi,  -res_Q1.aircraft_pos[:,2]/Units.feet , color = PP.colors[idx], linestyle = PP.line_style[0], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth= PP.line_width) 
+    num_cpts     = res_Q1.num_ctrl_pts*res_Q1.num_segments
     
-    max_mi  = np.max(res_Q1.aircraft_pos[:,0]/Units.nmi) 
-    axes_22.set_xlim(0, max_mi)   
-    axes_22.set_ylim(0, 500)     
-    axes_22.minorticks_on()   
-
-    # set size of matrices  
-    max_SPL,gm_mic_loc  = compute_max_SPL_and_michrophone_locations(res_Q1,res_Q2,res_Q3,res_Q4) 
-    
-    Range_x    = gm_mic_loc[:,0,0]/Units.nmi
-    Range_y    = gm_mic_loc[0,:,1]/Units.nmi 
-    Y, X       = np.meshgrid(Range_y, Range_x)
-    levs       = np.linspace(40,80,17)    
-    
-    # post processing  
-    #max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=1.5, order=0) # SMOOTHING 
-    
-    CS         = axes_21.contourf(X , Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both') 
-    CS         = axes_21.contourf(X ,-Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both')
+    for fig_idx in range(num_cpts):
+        # figure parameters
+        filename      = 'Noise_Contour_SR_Alpha_' + alpha_weight +  '_Frame_{:03d}'.format(fig_idx)
         
-    xi, yi = np.meshgrid(np.linspace(np.min(Range_x),np.max(Range_x), 10),np.linspace(-np.max(Range_y ),np.max(Range_y), 5) )
-    axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
-    axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
-         
-    fig.subplots_adjust(right=0.8)
-    axes_23 = fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
-    cbar    = fig.colorbar(CS, ax=axes_23)
-    cbar.ax.set_ylabel('SPL$_{Amax}$ (dBA)', rotation =  90)     
-    axes_21.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
-    axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
-    plt.axis('off')	
-    plt.grid(None)      
+        
+        fig           = plt.figure(filename) 
+        fig.set_size_inches(PP.figure_width ,PP.figure_height)    
+        axes_21       = fig.add_subplot(1,1,1) # contour  
     
+        y_line = np.linspace(0,500,100)
+        x_line = np.ones_like(y_line)*res_Q1.aircraft_pos[fig_idx,0]/Units.nmi
+         
+    
+        # set size of matrices 
+        N_gm_x       = res_Q1.N_gm_x
+        N_gm_y       = res_Q1.N_gm_y 
+        num_cpts     = res_Q1.num_ctrl_pts*res_Q1.num_segments
+        aircraft_SPL = np.zeros((num_cpts,2*N_gm_x, 2*N_gm_y))
+        gm_mic_loc   = np.zeros((2*N_gm_x, 2*N_gm_y,3)) 
+        
+        aircraft_SPL[:,0:N_gm_x,0:N_gm_y] = res_Q1.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)
+        aircraft_SPL[:,0:N_gm_x,N_gm_y:]  = res_Q2.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
+        aircraft_SPL[:,N_gm_x:,0:N_gm_y]  = res_Q3.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
+        aircraft_SPL[:,N_gm_x:,N_gm_y:]   = res_Q4.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)   
+        
+        gm_mic_loc[0:N_gm_x,0:N_gm_y,:]   = res_Q1.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
+        gm_mic_loc[0:N_gm_x,N_gm_y:,:]    = res_Q2.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
+        gm_mic_loc[N_gm_x:,0:N_gm_y,:]    = res_Q3.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
+        gm_mic_loc[N_gm_x:,N_gm_y:,:]     = res_Q4.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)   
+        
+        Range_x    = gm_mic_loc[:,0,0]/Units.nmi
+        Range_y    = gm_mic_loc[0,:,1]/Units.nmi 
+        Y, X       = np.meshgrid(Range_y, Range_x)
+        y_line_2 = np.linspace(-0.5,0.5,100)
+        levs       = np.linspace(30,80,11)     
+        max_SPL    = aircraft_SPL[fig_idx]    
+        CS         = axes_21.contourf(X , Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both') 
+        CS         = axes_21.contourf(X ,-Y,max_SPL, levels = levs, cmap=plt.cm.jet, extend='both')
+            
+        xi, yi = np.meshgrid(np.linspace(np.min(Range_x),np.max(Range_x), 10),np.linspace(-np.max(Range_y ),np.max(Range_y), 5) )
+        axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
+        axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
+        axes_21.plot(x_line,y_line_2,color = 'red', linestyle = PP.line_style[0],linewidth= PP.line_width)
+        #fig.subplots_adjust(right=0.8)
+        #axes_23 = fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
+        cbar    = fig.colorbar(CS, ax=axes_21)
+        cbar.ax.set_ylabel('SPL$_{Amax}$ (dBA)', rotation =  90)     
+        axes_21.set_ylabel('Spanwise $x_{fp}$ (nmi)',labelpad = 15)
+        axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
+        #plt.axis('off')	
+        #plt.grid(None)      
+        plt.tight_layout()
+        plt.savefig(filename + '.png')    
     return 
   
 # ------------------------------------------------------------------
 # Plot Flight Profile Noise Contours 
 # ------------------------------------------------------------------
-def compute_max_SPL_and_michrophone_locations(res_Q1,res_Q2,res_Q3,res_Q4):      
-
+def compute_max_SPL_and_michrophone_locations(res_Q1,res_Q2,res_Q3,res_Q4):       
+    
     N_gm_x       = res_Q1.N_gm_x
     N_gm_y       = res_Q1.N_gm_y  
     gm_mic_loc   = np.zeros((2*N_gm_x, 2*N_gm_y,3))   
@@ -384,96 +409,240 @@ def compute_max_SPL_and_michrophone_locations(res_Q1,res_Q2,res_Q3,res_Q4):
     
 
     aircraft_SPL = np.nan_to_num(aircraft_SPL)    
-    max_SPL      = np.max(aircraft_SPL,axis=0)    
     
-    return max_SPL,gm_mic_loc
+    return aircraft_SPL,gm_mic_loc
   
 
 # ------------------------------------------------------------------ 
 # Plot Figures
 # ------------------------------------------------------------------ 
 def plot_spider_diagram(spider_res,PP):   
-     
-    # Set data
-    df = pd.DataFrame({
-    #'group': ['A. & L.','Alpha_1_0','Alpha_0_5','Alpha_0_0'],
-    'group': ['A. & L.','Alpha_0_0','Alpha_0_5','Alpha_1_0'],
-    'SPL$_{Max.}$': spider_res.maximum_SPL,
-    'Power$_{Max.}$': spider_res.maxiumum_power,
-    'Total Energy \n Consump.': spider_res.energy_consumption,
-    'Max Tip Mach':  spider_res.maximum_tip_mach,
-    'Battery \n Temp.$_{Max.}$': spider_res.bat_temperature, 
-    })
     
-    # ------- PART 1: Create background
-    
-    # number of variable
-    categories=list(df)[1:]
-    N = len(categories)
-    
-    # What will be the angle of each axis in the plot? (we divide the plot / number of variable)
-    angles = [n / float(N) * 2 * pi for n in range(N)]
-    angles += angles[:1]
-    
-    fig = plt.figure()
-    fig.set_size_inches(8, 10)
-    plt.rcParams["font.family"] = "Times New Roman"
-    plt.rcParams['axes.linewidth'] = 2. 
-    
-    # Initialise the spider plot
-    ax = plt.subplot(111, polar=True)
-    
-    # If you want the first axis to be on top:
-    ax.set_theta_offset(pi / 2)
-    ax.set_theta_direction(-1)
-    
-    # Draw one axe per variable + add labels labels yet
-    plt.xticks(angles[:-1], categories, size= 20)
-    ax.tick_params(axis="x" , pad= 40)
-    plt.box(on=None)
-    
-    # Draw ylabels
-    ax.set_rlabel_position(0)
-    plt.yticks([90,95,100,105,110], ["90","95","100","105","110"], color="black", size=16)
-    plt.ylim(90,105) 
-    
-    # ------- PART 2: Add plots 
-    # Ind1
-    lw = 4 
-    
-    values=df.loc[0].drop('group').values.flatten().tolist()
-    values += values[:1]
-    ax.plot(angles, values, color='blue', linewidth=lw, linestyle='solid', label='A. & L.')  
-    ax.fill(angles, values, color='blue', alpha=0.2)
-    
-    # Ind2
-    values=df.loc[1].drop('group').values.flatten().tolist()
-    values += values[:1]
-    ax.plot(angles, values, color='red', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
-    ax.fill(angles, values, color='red', alpha=0.2)
-    
-    # Ind2
-    values=df.loc[2].drop('group').values.flatten().tolist()
-    values += values[:1]
-    ax.plot(angles, values, color='green', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.5')  
-    ax.fill(angles, values, color='green', alpha=0.2) 
-    
-    ## Ind2
-    #values=df.loc[3].drop('group').values.flatten().tolist()
-    #values += values[:1]
-    #ax.plot(angles, values, color='orange', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
-    #ax.fill(angles, values, color='orange', alpha=0.2)
-
-    
-    # Add legend
-    plt.tight_layout()
-    plt.legend(loc='upper right', prop={'size': PP.legend_font}, bbox_to_anchor=(1.2, 1.3)) 
-    #plt.legend(loc='center left', prop={'size': PP.legend_font}) 
-   
-       
+    segment_names = ['D','AT','LT','VD','VC','DT','CT','C']
+    for seg_no in range(8):
+        
+        fig_name = 'Spider_Chart_'+ segment_names[seg_no]
+        
+        # Set data
+        df = pd.DataFrame({ 
+        'group': ['Alpha_1_0','Alpha_0_0'], 
+        'SPL$_{Max.}$': spider_res.maximum_SPL[seg_no],
+        'Power$_{Max.}$': spider_res.maxiumum_power[seg_no],
+        'Total Energy \n Consump.': spider_res.energy_consumption[seg_no],
+        'Max Tip Mach':  spider_res.maximum_tip_mach[seg_no],
+        'Battery \n Temp.$_{Max.}$': spider_res.bat_temperature[seg_no], 
+        })
+        
+        # ------- PART 1: Create background
+        
+        # number of variable
+        categories=list(df)[1:]
+        N = len(categories)
+        
+        # What will be the angle of each axis in the plot? (we divide the plot / number of variable)
+        angles = [n / float(N) * 2 * pi for n in range(N)]
+        angles += angles[:1]
+        
+        fig = plt.figure(fig_name)
+        fig.set_size_inches(9, 10)
+        plt.rcParams["font.family"] = "Times New Roman"
+        plt.rcParams['axes.linewidth'] = 2. 
+        
+        # Initialise the spider plot
+        ax = plt.subplot(111, polar=True)
+        
+        # If you want the first axis to be on top:
+        ax.set_theta_offset(pi / 2)
+        ax.set_theta_direction(-1)
+        
+        # Draw one axe per variable + add labels labels yet
+        plt.xticks(angles[:-1], categories, size= 20)
+        ax.tick_params(axis="x" , pad= 40)
+        plt.box(on=None)
+        
+        # Draw ylabels
+        ax.set_rlabel_position(0)
+        plt.yticks([70,80,90,100,110,120], ["70","80","90","100","110","120"], color="black", size=16)
+        plt.ylim(70,120) 
+        
+        # ------- PART 2: Add plots 
+        # Ind1
+        lw = PP.line_width
+        
+        values=df.loc[0].drop('group').values.flatten().tolist()
+        values += values[:1]
+        ax.plot(angles, values, color='black', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 1.0')  
+        ax.fill(angles, values, color='black', alpha=0.2)
+         
+        # Ind2
+        values=df.loc[1].drop('group').values.flatten().tolist()
+        values += values[:1]
+        ax.plot(angles, values, color='darkred', linewidth=lw, linestyle='solid', label=r'$\alpha$ = 0.0')  
+        ax.fill(angles, values, color='darkred', alpha=0.2)
+             
+        # Add legend
+        plt.legend(loc='upper right', prop={'size': PP.legend_font}, bbox_to_anchor=(1.5, 1.2))  
+        plt.tight_layout() 
+        plt.savefig( fig_name + '.png')
+        
     return  
   
+
+# ------------------------------------------------------------------ 
+# Plot Figures
+# ------------------------------------------------------------------ 
+def plot_results(res,SPL_aircraft,axes_1,axes_2,axes_3,axes_4,axes_5,axes_6,PP,idx,rotor_name):
+   
+    line_width = PP.line_width
+    ms         = PP.marker_size 
+    col        = PP.colors[idx]
+    col2       = PP.colors2[idx]
+    m          = PP.markers[idx]
+    ls1        = PP.line_style[0]
+    ls2        = PP.line_style[1] 
     
+    # ------------------------------------------------------------------
+    #   Electronic Conditions FLight Noise
+    # ------------------------------------------------------------------ 
+    axes_1.plot(res.time_normalized, np.max(SPL_aircraft[:,:,0],axis = 1) ,  color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=rotor_name)   
+     
+    
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - Rotor Angle
+    # ------------------------------------------------------------------   
+    prop_blade_angle  = res.aoa 
+    rotor_blade_angle = res.aoa + 90
+    axes_2.plot(res.time_normalized,prop_blade_angle , color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label= rotor_name + r' $_{prop}$')
+    axes_2.plot(res.time_normalized,rotor_blade_angle, color = col2  , linestyle = ls2, marker = m , markersize = ms , linewidth= line_width ,label=rotor_name + r' $_{rot}$')     
+  
+    
+    # ------------------------------------------------------------------
+    #   Propeller Performance - Tip Mach 
+    # ------------------------------------------------------------------    
+
+    axes_3.plot(res.time_normalized, res.ptm, color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=rotor_name + r' $_{prop}$' )
+    axes_3.plot(res.time_normalized, res.rtm, color = col2  , linestyle = ls2, marker = m , markersize = ms , linewidth= line_width,label=rotor_name + r' $_{rot}$' )        
+ 
+
+    axes_4.plot(res.time_normalized, res.altitude, color = col , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=rotor_name)    
+
+    axes_5.plot(res.time_normalized, res.airspeed, color = col , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=rotor_name)     
+    
+
+    # ------------------------------------------------------------------
+    #   Propeller Performance Thrust 
+    # ------------------------------------------------------------------      
+    axes_6.plot(res.time_normalized, res.prop_thrust/1000 , color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label= rotor_name + r' $_{prop}$')
+    axes_6.plot(res.time_normalized, res.rotor_thrust/1000, color = col2  , linestyle = ls2, marker = m , markersize = ms , linewidth= line_width ,label=rotor_name + r' $_{rot}$')       
+    
+    return 
+
+
+
+# ------------------------------------------------------------------ 
+# Setup Axes 
+# ------------------------------------------------------------------ 
+def set_up_axes(figure_width,figure_height): 
+     
+
+    # ------------------------------------------------------------------
+    #   Flight Conditions - Altitude 
+    # ------------------------------------------------------------------
+    fig_1 = plt.figure("Flight_Noise")
+    fig_1.set_size_inches(figure_width,figure_height) 
+    axes_1 = fig_1.add_subplot(1,1,1)
+    axes_1.set_ylabel(r'SPL$_{Max}$ (dBA')  
+    axes_1.set_xlabel(r'$\hat{t}$')            
+    axes_1.set_ylim(30, 100)
+    axes_1.minorticks_on()      
+    # ------------------------------------------------------------------
+    #   Propeller Performance _ RPM 
+    # ------------------------------------------------------------------
+ 
+    fig_2 = plt.figure("Rotor_Angle")
+    fig_2.set_size_inches(figure_width,figure_height)   
+    axes_2 = fig_2.add_subplot(1,1,1)  
+    axes_2.set_ylabel('Disc Angle $\degree$')    
+    axes_2.minorticks_on()  
+    axes_2.set_ylim(-100, 200)
+    axes_2.set_xlabel(r'$\hat{t}$')     
+    
+    # ------------------------------------------------------------------
+    #   Propeller Performance - Tip Mach 
+    # ------------------------------------------------------------------   
+    fig_3 = plt.figure("Rotor_Tip_Mach")
+    fig_3.set_size_inches(figure_width,figure_height) 
+    axes_3 = fig_3.add_subplot(1,1,1)        
+    axes_3.set_xlabel(r'$\hat{t}$')
+    axes_3.set_ylabel('M$_{tip}$')  
+    axes_3.set_ylim(0, 1.0)  
+    axes_3.minorticks_on()      
+    
+
+    # ------------------------------------------------------------------
+    #   Flight Conditions - Altitude 
+    # ------------------------------------------------------------------
+    fig_4 = plt.figure("Flight_Conditions_Altitude")
+    fig_4.set_size_inches(figure_width,figure_height)
+    axes_4 = fig_4.add_subplot(1,1,1)
+    axes_4.set_ylabel('Altitude (ft)')  
+    axes_4.set_xlabel('$\hat{t}$')         
+    axes_4.set_ylim(0,500)   
+    axes_4.minorticks_on()    
+    
+
+    #   Flight Conditions - Airspeed
+    # ------------------------------------------------------------------
+    fig_5 = plt.figure("Flight_Conditions_Airspeed")
+    fig_5.set_size_inches(figure_width,figure_height)
+    axes_5 = fig_5.add_subplot(1,1,1)
+    axes_5.set_ylabel('Velocity (m/s)')  
+    axes_5.set_xlabel('$\hat{t}$')         
+    axes_5.set_ylim(0,100)   
+    axes_5.minorticks_on()    
+    
+
+    # ------------------------------------------------------------------
+    #   Propeller Performance Thrust 
+    # ------------------------------------------------------------------    
+    fig_6 = plt.figure("Propeller_Performance_T")
+    fig_6.set_size_inches(figure_width,figure_height)   
+    axes_6 = fig_6.add_subplot(1,1,1) 
+    axes_6.set_ylabel('T (kN)') 
+    axes_6.minorticks_on()  
+    axes_6.set_ylim(0,45) 
+    axes_6.set_xlabel(r'$\hat{t}$') 
+        
+        
+        
+    return axes_1,axes_2, axes_3,axes_4,axes_5,axes_6,fig_1,fig_2, fig_3,fig_4,fig_5,fig_6
+
+
+  
+# ------------------------------------------------------------------ 
+# Save Figures
+# ------------------------------------------------------------------ 
+def save_figures(fig_1,fig_2,fig_3,fig_4,fig_5):
+     
+    fig_1.savefig("Flight_Noise.pdf")  
+    fig_2.savefig("Rotor_Angle.pdf")  
+    fig_3.savefig("Rotor_Tip_Mach.pdf")   
+    fig_4.savefig("Aircraft_Altitude.pdf")   
+    fig_5.savefig("Aircraft_Airspeed.pdf")   
+    
+    return  
+
+
+# ----------------------------------------------------------------------
+#  Add Grid Lines 
+# ----------------------------------------------------------------------
+def add_grid_lines(axes): 
+
+    axes.minorticks_on() 
+        
+    return 
+
+
 # ----------------------------------------------------------------------
 #  Load results
 # ----------------------------------------------------------------------     

@@ -35,7 +35,7 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = False
-    control_points   = 10
+    control_points   = 20
     N_gm_x           = 10
     N_gm_y           = 5
     
@@ -763,11 +763,11 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             # ------------------------------------------------------------------
         
             segment                           = Segments.Cruise.Constant_Acceleration_Constant_Altitude(base_segment)
-            segment.tag                       = "Decent_Transition" + "_F_" + str(flight_no) + "_D" + str (day) 
+            segment.tag                       = "Ascent_Transition" + "_F_" + str(flight_no) + "_D" + str (day) 
             segment.analyses.extend( analyses.descent_transition) 
             segment.altitude                  = 40.  * Units.ft + starting_elevation
-            segment.air_speed_start           = 35.  * Units['mph'] 
-            segment.air_speed_end             = 300. * Units['ft/min']
+            segment.air_speed_start           = 300. * Units['ft/min']
+            segment.air_speed_end             = 35.  * Units['mph']  
             segment.acceleration              = -0.5307 
             segment.pitch_initial             = 1. * Units.degrees
             segment.pitch_final               = 2. * Units.degrees       

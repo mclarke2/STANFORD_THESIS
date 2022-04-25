@@ -32,8 +32,8 @@ def main():
     plot_parameters.marker_size      = 10 
     plot_parameters.legend_font_size = 20 
     plot_parameters.plot_grid        = True   
-    plot_parameters.markers          = ['s','^','X','o','P','D','X','*']
-    plot_parameters.colors           = ['black','mediumblue','darkgreen','firebrick']   
+    plot_parameters.markers          = ['s','^','o','o','P','D','X','*'] # ['s','^','X','o','P','D','X','*']
+    plot_parameters.colors           = ['black','mediumblue','black','firebrick']    # ['black','mediumblue','darkgreen','firebrick']   
     plot_parameters.colors2          = ['grey','darkcyan','green','red']   
     plot_parameters.lw               = 2                              # line_width               
     plot_parameters.m                = 14                             # markersize               
@@ -45,7 +45,7 @@ def main():
 
     plot_ECTOL_results = False
     plot_SR_results    = False
-    plot_TW_results    = False
+    plot_TW_results    = True
     plot_MR_results    = False
     
     
@@ -78,21 +78,25 @@ def main():
     axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
                axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
                fig_1,fig_2,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
-               fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20     =  set_up_axes(plot_parameters.figure_width,plot_parameters.figure_height)
+               fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20,axes_22,fig_22    =  set_up_axes(plot_parameters.figure_width,plot_parameters.figure_height)
     
     
+    if plot_ECTOL_results:
+        plot_results(ectol_full_res ,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                     axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,axes_22,plot_parameters,0,vehicle_name = 'ECTOL')    
     
-    plot_results(ectol_full_res ,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,plot_parameters,0,vehicle_name = 'ECTOL')    
+    if plot_SR_results :
+        plot_results(sr_full_res ,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                     axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,axes_22,plot_parameters,1,vehicle_name = 'SR')   
     
-    plot_results(sr_full_res ,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,plot_parameters,1,vehicle_name = 'SR')   
+
+    if plot_TW_results:    
+        plot_results(tw_full_res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                     axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,axes_22,plot_parameters,2,vehicle_name = 'TW')    
     
-    plot_results(tw_full_res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,plot_parameters,2,vehicle_name = 'TW')    
-    
-    plot_results(mr_full_res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,plot_parameters,3,vehicle_name = 'MR')          
+    if plot_MR_results :   
+        plot_results(mr_full_res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
+                     axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,axes_22,plot_parameters,3,vehicle_name = 'MR')          
      
 
     mark_inset(axes_1, axins_1, loc1=2, loc2=4, fc="none", ec="0.5")  
@@ -117,6 +121,7 @@ def main():
     axes_18.legend(loc='upper center', ncol=  5, prop={'size':  plot_parameters.legend_font})     
     axes_19.legend(loc='upper center', ncol=  5, prop={'size':  plot_parameters.legend_font})   
     axes_20.legend(loc='upper center', ncol=  5 , prop={'size': plot_parameters.legend_font}) 
+    axes_22.legend(loc='upper center', ncol=  4 , prop={'size': plot_parameters.legend_font}) 
 
     fig_1.tight_layout()
     fig_2.tight_layout()
@@ -138,18 +143,19 @@ def main():
     fig_18.tight_layout()
     fig_19.tight_layout()
     fig_20.tight_layout()
+    fig_22.tight_layout()
     
     
     save_figures(fig_1,fig_2,fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
                      fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
-                     fig_17,fig_18,fig_19,fig_20)  
+                     fig_17,fig_18,fig_19,fig_20,fig_22)  
     
     
     
-    ectol_reserve_full_mission_filename    =  header +'ECTOL_Full_Mission_Reserve'
-    ectol_reserve_full_mission_results_raw = load_results(ectol_reserve_full_mission_filename)
-    ectol_reserve_full_res                 = process_results(ectol_reserve_full_mission_results_raw,vehicle_name = 'ECTOL' ) 
-    plot_reserve_mission_results(ectol_reserve_full_res)
+    #ectol_reserve_full_mission_filename    =  header +'ECTOL_Full_Mission_Reserve'
+    #ectol_reserve_full_mission_results_raw = load_results(ectol_reserve_full_mission_filename)
+    #ectol_reserve_full_res                 = process_results(ectol_reserve_full_mission_results_raw,vehicle_name = 'ECTOL' ) 
+    #plot_reserve_mission_results(ectol_reserve_full_res)
     
     return
  
@@ -313,7 +319,7 @@ def process_results(res,vehicle_name ):
 # Plot Figures
 # ------------------------------------------------------------------ 
 def plot_results(res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,
-                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,PP,idx,vehicle_name):
+                 axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,axes_22,PP,idx,vehicle_name):
    
     line_width = PP.line_width
     ms         = PP.marker_size 
@@ -322,6 +328,13 @@ def plot_results(res,axes_1,axins_1,axes_2,axes_4,axes_5,axes_6,axes_7,axes_8,ax
     m          = PP.markers[idx]
     ls1        = PP.line_style[0]
     ls2        = PP.line_style[1] 
+    
+    # ------------------------------------------------------------------
+    #   Electronic Conditions - SOC
+    # ------------------------------------------------------------------ 
+    axes_22.plot(res.time_normalized, res.pack_temp -273.15 ,  color = col  , linestyle = ls1, marker = m , markersize = ms , linewidth= line_width ,label=vehicle_name)   
+    
+        
                      
     # ------------------------------------------------------------------
     #   Flight Conditions - Altitude 
@@ -526,6 +539,18 @@ def set_up_axes(figure_width,figure_height):
     axins_1.indicate_inset([0.2, 0.05, 0.5, 0.5],edgecolor = 'black', alpha=1.0,linewidth =2)    
     axins_1.set_aspect('auto')   
     
+
+    # ------------------------------------------------------------------
+    #   Flight Conditions - Altitude 
+    # ------------------------------------------------------------------
+    fig_22 = plt.figure("Battery_Pack_Temperature")
+    fig_22.set_size_inches(figure_width,figure_height) 
+    axes_22 = fig_22.add_subplot(1,1,1)
+    axes_22.set_ylabel(r'Cell Temperature ($\degree$C)')  
+    axes_22.set_xlabel(r'$\hat{t}$')            
+    axes_22.set_ylim(12,35)   
+    axes_22.minorticks_on()     
+    
     # ------------------------------------------------------------------
     #   Flight Conditions - Altitude 
     # ------------------------------------------------------------------
@@ -590,7 +615,7 @@ def set_up_axes(figure_width,figure_height):
     fig_8 = plt.figure("Battery_Pack_Performance_E")
     fig_8.set_size_inches(figure_width,figure_height) 
     axes_8 = fig_8.add_subplot(1,1,1)   
-    axes_8.set_ylabel('$E_{bat}$ (kW-hr)')
+    axes_8.set_ylabel('E$_{bat}$ (kW-hr)')
     axes_8.minorticks_on()  
     axes_8.set_ylim(0, 750)       
     axes_8.set_xlabel(r'$\hat{t}$') 
@@ -601,7 +626,7 @@ def set_up_axes(figure_width,figure_height):
     fig_9 = plt.figure("Battery_Pack_Performance_V")
     fig_9.set_size_inches(figure_width,figure_height)  
     axes_9 = fig_9.add_subplot(1,1,1)
-    axes_9.set_ylabel('$V_{OC}$ (V)')   
+    axes_9.set_ylabel('V$_{OC}$ (V)')   
     axes_9.minorticks_on()  
     axes_9.set_xlabel(r'$\hat{t}$')     
     axes_9.set_ylim(400, 900)         
@@ -612,7 +637,7 @@ def set_up_axes(figure_width,figure_height):
     fig_21 = plt.figure("Battery_Pack_Performance_Vul")
     fig_21.set_size_inches(figure_width,figure_height)  
     axes_21 = fig_21.add_subplot(1,1,1)
-    axes_21.set_ylabel('$V_{UL}$ (V)')   
+    axes_21.set_ylabel('V$_{UL}$ (V)')   
     axes_21.minorticks_on()  
     axes_21.set_xlabel(r'$\hat{t}$')     
     axes_21.set_ylim(400, 900)         
@@ -623,7 +648,7 @@ def set_up_axes(figure_width,figure_height):
     fig_10 = plt.figure("Battery_Pack_Performance_DL")
     fig_10.set_size_inches(figure_width,figure_height)  
     axes_10 = fig_10.add_subplot(1,1,1)
-    axes_10.set_ylabel('$DL$ $(N/m^2)$') 
+    axes_10.set_ylabel('DL $(N/m^2)$') 
     axes_10.minorticks_on()  
     axes_10.set_xlabel(r'$\hat{t}$')     
     axes_10.set_ylim(0, 900)        
@@ -634,7 +659,7 @@ def set_up_axes(figure_width,figure_height):
     fig_11 = plt.figure("Battery_Pack_Performance_PL")
     fig_11.set_size_inches(figure_width,figure_height)  
     axes_11 = fig_11.add_subplot(1,1,1) 
-    axes_11.set_ylabel('$PL$ (N/W)')   
+    axes_11.set_ylabel('PL (N/W)')   
     axes_11.minorticks_on()  
     axes_11.set_xlabel(r'$\hat{t}$')     
     axes_11.set_ylim(0, 0.15)         
@@ -645,7 +670,7 @@ def set_up_axes(figure_width,figure_height):
     fig_12 = plt.figure("Battery_Pack_Performance_C_rate")
     fig_12.set_size_inches(figure_width,figure_height) 
     axes_12 = fig_12.add_subplot(1,1,1) 
-    axes_12.set_ylabel('C ($hr^{-1}$)')  
+    axes_12.set_ylabel('C-rate ($hr^{-1}$)')  
     axes_12.set_xlabel(r'$\hat{t}$')     
     axes_12.set_ylim(0, 8)      
     axes_12.minorticks_on()      
@@ -747,14 +772,14 @@ def set_up_axes(figure_width,figure_height):
     fig_20.set_size_inches(figure_width,figure_height) 
     axes_20 = fig_20.add_subplot(1,1,1)        
     axes_20.set_xlabel(r'$\hat{t}$')
-    axes_20.set_ylabel('$M_{tip}$')  
+    axes_20.set_ylabel('M$_{tip}$')  
     axes_20.set_ylim(0, 1.0)  
     axes_20.minorticks_on()      
     
     return axes_1,axins_1,axes_2, axes_4,axes_5,axes_6,axes_7,axes_8,axes_9,axes_11,axes_10,\
            axes_12,axins_12,axes_13,axes_14,axes_15,axes_16,axes_17,axes_18,axes_19,axes_20,axes_21,\
            fig_1,fig_2, fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,fig_21,fig_10,fig_11,fig_12,fig_13,\
-           fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20 
+           fig_14,fig_15,fig_16,fig_17,fig_18,fig_19,fig_20,axes_22,fig_22
 
 
 
@@ -841,7 +866,7 @@ def plot_reserve_mission_results(res,PP):
 # ------------------------------------------------------------------ 
 def save_figures(fig_1,fig_2, fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
                  fig_21,fig_10,fig_11,fig_12,fig_13,fig_14,fig_15,fig_16,\
-                 fig_17,fig_18,fig_19,fig_20):
+                 fig_17,fig_18,fig_19,fig_20,fig_22):
     
     fig_1.savefig("Flight_Conditions_Altitude.pdf") 
     fig_2.savefig("Flight_Conditions_Range.pdf")  
@@ -863,6 +888,7 @@ def save_figures(fig_1,fig_2, fig_4,fig_5,fig_6,fig_7,fig_8,fig_9,\
     fig_19.savefig("Propeller_Performance_Mot_eff.pdf") 
     fig_20.savefig("Propeller_Performance_Mach_Tip.pdf")  
     fig_21.savefig("Battery_Pack_Performance_Vul.pdf") 
+    fig_22.savefig("Battery_Pack_Temperature.pdf")
     
     return  
 

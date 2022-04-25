@@ -46,8 +46,8 @@ def main():
     recharge_battery = False
     run_analysis     = True
     plot_mission     = True
-    control_points   = 20
-    N_gm_x           = 20
+    control_points   = 22
+    N_gm_x           = 22
     N_gm_y           = 5
 
     run_noise_model   = False 
@@ -1016,7 +1016,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
     mission.airport    = airport     
     
     atmosphere    = SUAVE.Analyses.Atmospheric.US_Standard_1976() 
-    atmo_data     = atmosphere.compute_values(altitude = 0,temperature_deviation= 0.)    
+    atmo_data          = atmosphere.compute_values(altitude = airport.altitude,temperature_deviation= 1.)   
 
     # unpack Segments module
     Segments = SUAVE.Analyses.Mission.Segments 
@@ -1060,6 +1060,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.state.unknowns.time       = 10.            
             segment.altitude                  = 0.0 
             segment.state.unknowns.velocity_x = 0.5* Vstall * ones_row(1)  
+            segment.battery_pack_temperature  = atmo_data.temperature[0,0]
             if (day == 0) and (f_idx == 0):        
                 segment.battery_energy                               = vehicle.networks.battery_propeller.battery.max_energy   
                 segment.initial_battery_resistance_growth_factor     = 1

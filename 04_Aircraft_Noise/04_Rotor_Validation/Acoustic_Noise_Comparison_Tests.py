@@ -78,7 +78,7 @@ def main():
 
     ti                = time.time()      
     
-    save_figures = False 
+    save_figures = True
     #Harmonic_Spectrum_Shape_Sensitivity(plot_parameters,save_figures)
     #Harmonic_Stength_Validation(plot_parameters,save_figures)
     #Harmonic_Directivty_Validation(plot_parameters,save_figures) 
@@ -86,8 +86,8 @@ def main():
     #Broadband_Noise_Validation(plot_parameters,save_figures)
     #Broadband_Spectrum_Validation(plot_parameters,save_figures) 
     #Broadband_Spectrum_Shape_Sensitivity(plot_parameters,save_figures) 
-    #High_Fidelity_Validation_1(plot_parameters,save_figures) 
-    #High_Fidelity_Validation_2(plot_parameters,save_figures)  
+    High_Fidelity_Validation_1(plot_parameters,save_figures) 
+    High_Fidelity_Validation_2(plot_parameters,save_figures)  
     #Skew_function(plot_parameters,save_figures)  
     #Total_Rotor_Spenctrum_Sensitivity_Validation(plot_parameters,save_figures) 
     #ANOPP2_Validation(plot_parameters,save_figures) 
@@ -671,6 +671,7 @@ def Harmonic_Stength_Validation(PP,save_figures):
     axes.plot(harmonics, Exp_Test_Case_3_60deg , color = PP.Elc[0] , linestyle = PP.Els, marker = PP.Elm,  markersize = PP.m , linewidth = PP.lw,  label = r'Exp.')   
     axes.plot(harmonics, SUAVE_SPL_Case_3_60deg, color = PP.Slc[0] , linestyle = PP.Sls, marker = PP.Slm,  markersize = PP.m , linewidth = PP.lw,  label = r'SUAVE')       
     axes.set_ylabel('SPL (dB)') 
+    axes.set_xlabel('Harmonic no.')
     axes.legend(loc='lower left', prop={'size': PP.legend_font}) 
 
     fig36 = plt.figure('Harmonic_Validation_Case_3_90')

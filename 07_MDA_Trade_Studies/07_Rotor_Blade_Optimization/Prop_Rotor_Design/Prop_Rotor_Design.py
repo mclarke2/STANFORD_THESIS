@@ -248,17 +248,24 @@ def TW_prop_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
         SPL_dBA_1_3_cruise = rotor.design_acoustics_cruise.SPL_1_3_spectrum_dBA  
         RPM_cruise         = rotor.angular_velocity_cruise/Units.rpm
         PM_cruise          = rotor.inputs.pitch_command_cruise 
-    
+        
+        
+        TM_cruise = rotor.angular_velocity_cruise*rotor.tip_radius/343    
+        TM_hover = rotor.angular_velocity_hover*rotor.tip_radius/343    
         # ----------------------------------------------------------------------------
         # 2D - Plots     
         # ----------------------------------------------------------------------------  
-        rotor_label  = r'$\alpha$ = ' +  str(alpha_weights[i]) + r', $\beta$ = ' + str(beta_weights[i])
-        hover_text   = r'Hover : RPM = ' + str(int(RPM_hover)) +  r', Pitch Command = ' + str(int(PM_hover/Units.degrees)) + r' degrees '    
-        cruise_text  = r'Cruise: RPM = ' + str(int(RPM_cruise)) + r', Pitch Command = ' + str(int(PM_cruise/Units.degrees)) + r' degrees ' 
-        SPL_text     =  'SPL   : ' + str(rotor.design_SPL_dBA_hover)
+        rotor_label         = r'$\alpha$ = ' +  str(alpha_weights[i]) + r', $\beta$ = ' + str(beta_weights[i])
+        hover_text          = r'Hover        : RPM = ' + str(int(RPM_hover)) + ' TM = ' + str(TM_hover) +  r', Pitch Command = ' + str(int(PM_hover/Units.degrees)) + r' degrees '    
+        cruise_text         = r'Cruise       : RPM = ' + str(int(RPM_cruise)) + ' TM = ' + str(TM_cruise)  + r', Pitch Command = ' + str(int(PM_cruise/Units.degrees)) + r' degrees ' 
+        SPL_text            =  'SPL          : ' + str(rotor.design_SPL_dBA_hover)
+        cruise_Pow_text     =  'Cruise Power : ' + str(rotor.design_performance_cruise.power[0][0])
+        hover_Pow_text      =  'Hover Power  : ' + str(rotor.design_performance_hover.power[0][0])
         print('Alpha = ' +  str(alpha_weights[i]) + ', Beta = ' + str(beta_weights[i]))
         print(hover_text)   
+        print(hover_Pow_text)
         print(cruise_text) 
+        print(cruise_Pow_text)
         print(SPL_text)
         
         hover_label  = r'Hover: ' + rotor_label

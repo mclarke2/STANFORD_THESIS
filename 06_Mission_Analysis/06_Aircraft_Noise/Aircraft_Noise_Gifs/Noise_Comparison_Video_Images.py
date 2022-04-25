@@ -47,7 +47,7 @@ def main():
     axes.set_xlabel(r'$\hat{t}$') 
     axes.minorticks_on()   
      
-    N_gm_x = 20 # 12
+    N_gm_x = 22 # 12
     N_gm_y = 5 # 4
     header =  '../../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
     
@@ -188,7 +188,7 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     
     for fig_idx in range(num_cpts):
         # figure parameters
-        filename      = 'Noise_Contour' + vehicle_name + '_Frame_' + str(fig_idx)
+        filename      = 'Noise_Contour' + vehicle_name + '_Frame_{:03d}'.format(fig_idx)
         
         
         fig           = plt.figure(filename) 
@@ -205,10 +205,7 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
         axes_22.axes.xaxis.set_visible(False)
         axes_22.plot(res_Q1.aircraft_pos[:,0]/Units.nmi,  -res_Q1.aircraft_pos[:,2]/Units.feet , color = PP.colors[idx], linestyle = PP.line_style[0], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth= PP.line_width) 
         axes_22.plot(x_line,y_line,color = 'red', linestyle = PP.line_style[0],linewidth= PP.line_width)
-        max_mi  = np.max(res_Q1.aircraft_pos[:,0]/Units.nmi) 
-        axes_22.set_xlim(0, max_mi)   
-        axes_22.set_ylim(0, 500)     
-        axes_22.minorticks_on()   
+        
     
         # set size of matrices 
         N_gm_x       = res_Q1.N_gm_x
@@ -254,7 +251,12 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
         axes_21.set_xlabel('Streamwise $x_{fp}$ (nmi)')  
         plt.axis('off')	
         plt.grid(None)      
-         
+        
+
+        axes_22.set_xlim(0, np.max(X))   
+        axes_22.set_ylim(0, 500)     
+        axes_22.minorticks_on()   
+        
         plt.savefig(filename + '.png')    
     return 
   

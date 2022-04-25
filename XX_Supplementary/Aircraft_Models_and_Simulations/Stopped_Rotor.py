@@ -41,7 +41,7 @@ def main():
     simulated_days   = 1
     flights_per_day  = 1 
     aircraft_range   = 70 *Units.nmi
-    reserve_segment  = False 
+    reserve_segment  = True
     plot_geometry    = False
     recharge_battery = False
     run_analysis     = True
@@ -57,11 +57,11 @@ def main():
                      control_points,N_gm_x,N_gm_y) 
     
 
-    run_noise_model   = True 
-    hover_noise_test  = False   
-    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y)
+    #run_noise_model   = True 
+    #hover_noise_test  = False   
+    #run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y)
     
 
     #run_noise_model   = True 
@@ -1425,7 +1425,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.altitude_end                             = 100. * Units.ft  + starting_elevation 
     segment.climb_rate                               = -300.  * Units['ft/min']
     segment.air_speed_start                          = 175.  * Units['mph'] 
-    segment.battery_energy                         = vehicle.networks.lift_cruise.battery.max_energy   
+    segment.battery_energy                           = vehicle.networks.lift_cruise.battery.max_energy   
     segment.air_speed_end                            = 1.1*Vstall    
     segment.state.unknowns.throttle                  = 0.8   *  ones_row(1)  
     segment = vehicle.networks.lift_cruise.add_cruise_unknowns_and_residuals_to_segment(segment,initial_prop_power_coefficient = 0.016)    
@@ -1646,29 +1646,155 @@ def missions_setup(base_mission):
 #   Plot Results
 # ----------------------------------------------------------------------
 def plot_results(results,run_noise_model,line_style='bo-'): 
+    # Universal Plot Settings 
+    plt.rcParams['axes.linewidth'] = 2.
+    plt.rcParams["font.family"] = "Times New Roman"
+    parameters = {'axes.labelsize': 24,
+                  'xtick.labelsize': 20,
+                  'ytick.labelsize': 20,
+                  'axes.titlesize': 24}
+    plt.rcParams.update(parameters)
+    plot_parameters                  = Data()
+    plot_parameters.line_width       = 3 
+    plot_parameters.line_style       = '-' 
+    plot_parameters.figure_width     = 12 
+    plot_parameters.figure_height    = 6 
+    plot_parameters.marker_size      = 10 
+    plot_parameters.legend_font_size = 20 
+    plot_parameters.plot_grid        = True   
+    plot_parameters.markers          = ['o','v','s','P','p','^','D','X','*']
+    plot_parameters.colors           = cm.viridis(np.linspace(0,1,5))     
+    plot_parameters.lw               = 3                              # line_width               
+    plot_parameters.m                = 14                             # markersize               
+    plot_parameters.legend_font      = 20                             # legend_font_size         
+    plot_parameters.Slc              = ['black','dimgray','silver' ]  # SUAVE_line_colors        
+    plot_parameters.Slm              = '^'                            # SUAVE_line_markers       
+    plot_parameters.Sls              = '-'                            # SUAVE_line_styles        
+    plot_parameters.Elc              = ['firebrick','red','tomato']  # Experimental_line_colors 
+    plot_parameters.Elm              = 's'                            # Experimental_line_markers
+    plot_parameters.Els              = '-'                            # Experimental_line_styles 
+    plot_parameters.Rlc              = ['mediumblue','blue','cyan']   # Ref_Code_line_colors     
+    plot_parameters.Rlm              = 'o'                            # Ref_Code_line_markers    
+    plot_parameters.Rls              = '--'                           # Ref_Code_line_styles     
     
-    # Plot Flight Conditions 
-    plot_flight_conditions(results, line_style) 
+    plot_paper_results(results,plot_parameters)
     
-    # Plot Aerodynamic Coefficients
-    plot_aerodynamic_coefficients(results, line_style)  
+    ## Plot Flight Conditions 
+    #plot_flight_conditions(results, line_style) 
     
-    # Plot Aircraft Flight Speed
-    plot_aircraft_velocities(results, line_style) 
     
-    # Plot Electric Motor and Propeller Efficiencies  of Lift Cruise Network
-    plot_lift_cruise_network(results, line_style)   
+    ## Plot Aerodynamic Coefficients
+    #plot_aerodynamic_coefficients(results, line_style)  
+    
+    ## Plot Aircraft Flight Speed
+    #plot_aircraft_velocities(results, line_style) 
+    
+    ## Plot Electric Motor and Propeller Efficiencies  of Lift Cruise Network
+    #plot_lift_cruise_network(results, line_style)   
 
-    # Plot Battery Degradation  
-    plot_battery_degradation(results, line_style)    
+    ## Plot Battery Degradation  
+    #plot_battery_degradation(results, line_style)    
 
-    if run_noise_model:     
-        # Plot noise level
-        plot_ground_noise_levels(results)
+    #if run_noise_model:     
+        ## Plot noise level
+        #plot_ground_noise_levels(results)
         
-        # Plot noise contour
-        plot_flight_profile_noise_contours(results) 
+        ## Plot noise contour
+        #plot_flight_profile_noise_contours(results) 
     return     
+
+def plot_paper_results(results,PP):  
+    file_type = ".png"
+    
+    save_filename_1 = "SR_Altitude"
+    save_filename_2 = "SR_CL"
+    save_filename_3 = "SR_RPM"
+    fig_1 = plt.figure(save_filename_1)
+    fig_1.set_size_inches(PP.figure_width, PP.figure_height) 
+    fig_2 = plt.figure(save_filename_2)
+    fig_2.set_size_inches(PP.figure_width, PP.figure_height) 
+    fig_3 = plt.figure(save_filename_3)
+    fig_3.set_size_inches(PP.figure_width, PP.figure_height) 
+    
+    size = 12
+    axes_1 = fig_1.add_subplot(1,1,1)
+    axes_2 = fig_2.add_subplot(1,1,1)
+    axes_3 = fig_3.add_subplot(1,1,1)
+    i = 0
+    for segment in results.segments.values(): 
+        time     = segment.conditions.frames.inertial.time[:,0] / Units.min 
+        altitude = segment.conditions.freestream.altitude[:,0]/Units.feet  
+        cl       = segment.conditions.aerodynamics.lift_coefficient[:,0,None]
+        prop_rpm     = segment.conditions.propulsion.propeller_rpm[:,0]  
+        lift_rotor_rpm    = segment.conditions.propulsion.lift_rotor_rpm[:,0]  
+            
+                
+        axes_1.plot(time, altitude, color = 'blue', marker = 'o', markersize = size, linewidth = PP.lw)
+        axes_1.set_ylabel('Altitude (ft)')
+        axes_1.set_xlabel('Time (min)')
+        
+        
+        axes_2.plot( time , cl, color = 'blue', marker = 'o', markersize = size , linewidth = PP.lw)
+        axes_2.set_ylabel('C$_{L}$' )
+        axes_2.set_xlabel('Time (min)')
+         
+      
+        axes_3.plot(time, prop_rpm , color = 'blue', marker = 'o', markersize = size , linewidth = PP.lw,label='Propeller')
+        axes_3.plot(time, lift_rotor_rpm, color = 'red', marker = '^', markersize = size , linewidth = PP.lw ,label='Lift-Rotor')
+        axes_3.set_ylabel('RPM')
+        axes_3.set_xlabel('Time (min)')
+        if i == 0:
+            axes_3.legend(loc='upper right', prop={'size': PP.legend_font})  
+        i+= 1
+        
+    axes_1.set_ylim([0,3000])
+    axes_2.set_ylim([0,1.5])
+    axes_3.set_ylim([0,2000])
+    set_axes(axes_1) 
+    set_axes(axes_2)   
+    set_axes(axes_3)      
+    
+    fig_1.tight_layout()  
+    fig_2.tight_layout()  
+    fig_3.tight_layout()  
+    fig_1.savefig(save_filename_1 + file_type)
+    fig_2.savefig(save_filename_2 + file_type)
+    fig_3.savefig(save_filename_3 + file_type)
+        
+    return
+
+# ------------------------------------------------------------------
+#   Set Axis Parameters 
+# ------------------------------------------------------------------
+## @ingroup Plots
+def set_axes(axes):
+    """This sets the axis parameters for all plots
+
+    Assumptions:
+    None
+
+    Source:
+    None
+
+    Inputs
+    axes
+        
+    Outputs: 
+    axes
+
+    Properties Used:
+    N/A	
+    """   
+    
+    axes.minorticks_on()
+    axes.grid(which='major', linestyle='-', linewidth=0.5, color='grey')
+    axes.grid(which='minor', linestyle=':', linewidth=0.5, color='grey')      
+    axes.grid(True)   
+    axes.get_yaxis().get_major_formatter().set_scientific(False)
+    axes.get_yaxis().get_major_formatter().set_useOffset(False)        
+
+    return  
+
 
 # ----------------------------------------------------------------------
 #   Save Results

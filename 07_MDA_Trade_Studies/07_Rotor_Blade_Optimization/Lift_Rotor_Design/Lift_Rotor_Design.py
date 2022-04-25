@@ -22,24 +22,52 @@ import pickle
 # ----------------------------------------------------------------------
 #   Main
 # ---------------------------------------------------------------------- 
-def main(): 
+def main():  
+
+    rotor_0                            = Lift_Rotor() 
+    rotor_0.tag                        = 'rotor'
+    rotor_0.orientation_euler_angles   = [0, 95*Units.degrees,0]
+    rotor_0.tip_radius                 = 1.15
+    rotor_0.hub_radius                 = 0.15 * rotor_0.tip_radius  
+    rotor_0.number_of_blades           = 3
+    rotor_0.design_tip_mach_range      = [0.3,0.7]   
+    rotor_0.design_tip_mach            = 0.53 # 0.65   
+    rotor_0.inflow_ratio               = 0.06   
+    rotor_0.design_Cl                  = 0.7
+    rotor_0.design_altitude            = 40 * Units.feet 
+    rotor_0.design_microphone_angle    = 175 * Units.degrees
+    rotor_0.design_thrust              = 19E3/12 # (2700*9.81)/(12)  
+    rotor_0.angular_velocity           = rotor_0.design_tip_mach* 343 /rotor_0.tip_radius 
+    rotor_0.design_velocity_vector     = np.array([52,0,-0.9]) 
+    rotor_0.design_disc_plane          = 95 * Units.degrees
+    #rotor_0.design_velocity           = np.sqrt(rotor_0.design_thrust/(2*1.2*np.pi*(rotor_0.tip_radius**2))) # IDEAL POWER 
+    #rotor_0.design_velocity           = rotor_0.inflow_ratio*rotor_0.angular_velocity*rotor_0.tip_radius  #INFLOW RATIO
+     
     
     plot_parameters = define_plot_parameters() 
     
-    #SR_lift_rotor_Adkins_Leibeck()   
-
-    alpha_weights                      = np.linspace(0.0,1.0,101) # np.array([0.8,0.85])  # np.linspace(0.0,1.0,5) # np.array([1.0])  
-    plot_rotor_geomery_and_performance = False
+    #SR_lift_rotor_Adkins_Leibeck(rotor_0)   
+    
+    # ROTOR OPTIMIZATIONS
+    '''
+    for final analysis    - np.linspace(0.0,1.0,101)
+    for running on server - np.linspace(0.0,0.2,21)  
+    for single analysis   - np.array([0.2])
+    '''
+    alpha_weights                      = np.array([0.5]) #np.array([1.0,0.75,0.5,0.25,0.0]) #  np.linspace(0.0,0.2,21)    
+    plot_rotor_geomery_and_performance = True
     use_pyoptsparse                    = False
     save_figures                       = False 
-    #SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters,save_figures)
+    SR_lift_rotor_single_design_point(rotor_0,alpha_weights,use_pyoptsparse,plot_rotor_geomery_and_performance,plot_parameters,save_figures)
     
-    SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse,plot_parameters,save_figures)
+    # PLOT ROTORS PARETO
+    #SR_lift_rotor_designs_and_pareto_fronteir(rotor_0.design_thrust,alpha_weights,use_pyoptsparse,plot_parameters,save_figures)
 
-    # COMPARE TWO ROTORS 
-    #alpha_weights     = np.array([1.0,0.5])    
-    #SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse,plot_parameters)
+    # COMPARE ROTORS DESIGNS
+    #alpha_weights     = np.array([1.0,0.72,0.5,0.25,0.02])    
+    #SR_lift_rotor_design_comparisons(alpha_weights,use_pyoptsparse,plot_parameters)
     
+    # ROTOR DIRECTIVITY
     #alpha = 1.0
     #SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse, plot_rotor_geomery_and_performance,plot_parameters)
      
@@ -49,7 +77,7 @@ def main():
 # ------------------------------------------------------------------ 
 # Stopped-Rotor Lift Rotor Singe Point Design Point Analysis
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters,save_figures): 
+def SR_lift_rotor_single_design_point(rotor_0,alpha_weights,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters,save_figures): 
      
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
@@ -61,16 +89,17 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         # DEFINE ROTOR OPERATING CONDITIONS 
         rotor                            = Lift_Rotor() 
         rotor.tag                        = 'rotor'
-        rotor.tip_radius                 = 1.15
-        rotor.hub_radius                 = 0.15 * rotor.tip_radius  
-        rotor.number_of_blades           = 3
-        rotor.design_tip_mach_range      = [0.3,0.7]  
-        #rotor.design_tip_mach            = .6
-        rotor.inflow_ratio               = 0.06   
-        rotor.design_Cl                  = 0.7
-        rotor.design_altitude            = 20 * Units.feet                     
-        rotor.design_thrust              = (2700*9.81)/(12)
-        rotor.freestream_velocity        = np.sqrt(rotor.design_thrust/(2*1.2*np.pi*(rotor.tip_radius**2)))
+        rotor.tip_radius                 = rotor_0.tip_radius            
+        rotor.hub_radius                 = rotor_0.hub_radius            
+        rotor.number_of_blades           = rotor_0.number_of_blades      
+        rotor.design_tip_mach_range      = rotor_0.design_tip_mach_range 
+        rotor.inflow_ratio               = rotor_0.inflow_ratio          
+        rotor.design_Cl                  = rotor_0.design_Cl             
+        rotor.design_altitude            = rotor_0.design_altitude       
+        rotor.design_thrust              = rotor_0.design_thrust       
+        rotor.design_microphone_angle    = rotor_0.design_microphone_angle  
+        rotor.design_velocity_vector     = rotor_0.design_velocity_vector  
+        rotor.orientation_euler_angles   = rotor_0.orientation_euler_angles 
         rotor.variable_pitch             = True   
         rotor.airfoil_geometry           = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
         rotor.airfoil_polars             = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
@@ -86,8 +115,7 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         opt_params.aeroacoustic_weight   = alpha_weights[i]   # 1 means only perfomrance optimization 0.5 to weight noise equally
         
         # DESING ROTOR 
-        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
-        #rotor                            = rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)  
+        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)   
       
         # save rotor geomtry
         opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
@@ -98,17 +126,13 @@ def SR_lift_rotor_single_design_point(alpha_weights,use_pyoptsparse_flag, plot_r
         if  plot_rotor_geomery_and_performance: 
             plot_geoemtry_and_performance(rotor,name,plot_parameters,save_figures) 
     return
-
-
-
-
+ 
 
 # ------------------------------------------------------------------ 
 # Stopped-Rotor Lift Rotor Singe Point Design Point Analysis
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters): 
-
-    design_thrust     = (2700*9.81/(12))          
+def SR_lift_rotor_directivity_hemisphere(design_thrust,alpha,use_pyoptsparse_flag, plot_rotor_geomery_and_performance,plot_parameters): 
+        
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
     else: 
@@ -207,29 +231,30 @@ def SR_lift_rotor_directivity_hemisphere(alpha,use_pyoptsparse_flag, plot_rotor_
 # ------------------------------------------------------------------ 
 # Stopped-Rotors Adkins and Liebeck
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_Adkins_Leibeck():
+def SR_lift_rotor_Adkins_Leibeck(rotor_0):
     
 
-    rotor                            = Lift_Rotor()
-    rotor.tip_radius                 = 1.15
-    rotor.hub_radius                 = 0.15 * rotor.tip_radius  
-    rotor.number_of_blades           = 3
-    rotor.design_tip_mach            = 0.65   
-    rotor.inflow_ratio               = 0.06 
-    rotor.angular_velocity           = rotor.design_tip_mach* 343 /rotor.tip_radius   
-    rotor.freestream_velocity        = rotor.inflow_ratio*rotor.angular_velocity*rotor.tip_radius 
-    rotor.design_Cl                  = 0.7
-    rotor.design_altitude            = 20 * Units.feet                     
-    rotor.design_thrust              = (2700*9.81)/(12)
-    rotor.variable_pitch                  = True       
-    rotor.airfoil_geometry                 = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
-    rotor.airfoil_polars                   = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
-                                               '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_100000.txt',
-                                               '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_200000.txt',
-                                               '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_500000.txt',
-                                               '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt']]   
-    rotor.airfoil_polar_stations           = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]       
-    rotor                                  = propeller_design(rotor,number_of_airfoil_section_points=100)   
+    rotor                         = Lift_Rotor() 
+    rotor.tip_radius              = rotor_0.tip_radius            
+    rotor.hub_radius              = rotor_0.hub_radius            
+    rotor.number_of_blades        = rotor_0.number_of_blades      
+    rotor.design_tip_mach_range   = rotor_0.design_tip_mach_range 
+    rotor.inflow_ratio            = rotor_0.inflow_ratio          
+    rotor.design_Cl               = rotor_0.design_Cl             
+    rotor.design_altitude         = rotor_0.design_altitude       
+    rotor.design_thrust           = rotor_0.design_thrust      
+    rotor.angular_velocity        = rotor_0.angular_velocity
+    rotor.freestream_velocity     = np.linalg.norm(rotor_0.design_velocity_vector)
+    rotor.design_microphone_angle = rotor_0.design_microphone_angle
+    rotor.variable_pitch          = True       
+    rotor.airfoil_geometry        = [ '../../../XX_Supplementary/Airfoils/NACA_4412.txt']
+    rotor.airfoil_polars          = [['../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_50000.txt',
+                                      '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_100000.txt',
+                                      '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_200000.txt',
+                                      '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_500000.txt',
+                                      '../../../XX_Supplementary/Airfoils/Polars/NACA_4412_polar_Re_1000000.txt']]   
+    rotor.airfoil_polar_stations  = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]       
+    rotor                         = propeller_design(rotor,number_of_airfoil_section_points=100)   
  
     net                          = Battery_Propeller()
     net.number_of_rotor_engines  = 1                              
@@ -298,71 +323,52 @@ def SR_lift_rotor_Adkins_Leibeck():
 
 
 # ------------------------------------------------------------------ 
-# Tiltwing Prop-Rotor Design Comparisons
+# Stopped-Rotor Design Comparisons
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_flag,PP,save_figures):   
+def SR_lift_rotor_design_comparisons(alpha_weights,use_pyoptsparse_flag,PP,save_figures):   
     
+
     ospath               = os.path.abspath(__file__)
     separator            = os.path.sep
     rel_path             = os.path.dirname(ospath) + separator  
-    angles               = np.array([90,112.5,135])
+    angles               = np.array(1,179,19)
     
     
     fig_1 = plt.figure('Blade_Thurst_Distribution')
-    fig_1.set_size_inches(PP.figure_width, PP.figure_height)     
+    fig_1.set_size_inches(PP.figure_width, PP.figure_height) 
     axis_1 = fig_1.add_subplot(1,1,1)   
     axis_1.set_xlabel('r')
     axis_1.set_ylabel('T (N)')    
     
     fig_2 = plt.figure('Blade_Torque_Distribution') 
-    fig_2.set_size_inches(PP.figure_width, PP.figure_height)  
-    axis_2 = fig_2.add_subplot(1,1,1)    
+    fig_2.set_size_inches(PP.figure_width, PP.figure_height)      
+    axis_2 = fig_2.add_subplot(1,1,1)  
     axis_2.set_xlabel('r')
     axis_2.set_ylabel('Q (N-m)') 
     
     fig_3 = plt.figure('Blade_Re_Distribution')      
-    fig_3.set_size_inches(PP.figure_width, PP.figure_height)  
+    fig_3.set_size_inches(PP.figure_width, PP.figure_height)    
     axis_3 = fig_3.add_subplot(1,1,1) 
     axis_3.set_xlabel('r')
     axis_3.set_ylabel(r'Re.')  
 
     fig_4 = plt.figure('Blade_AoA_Distribution')   
-    fig_4.set_size_inches(PP.figure_width, PP.figure_height)    
+    fig_4.set_size_inches(PP.figure_width, PP.figure_height)  
     axis_4 = fig_4.add_subplot(1,1,1)   
     axis_4.set_ylabel(r'AoA$_{eff}$ ($\degree$)') 
     axis_4.set_ylim([-5,35])
     axis_4.set_xlabel('r')
     
     fig_5 = plt.figure('Blade_SPL_dBA')    
-    fig_5.set_size_inches(PP.figure_width, PP.figure_height)  
-    axis_5 = fig_5.add_subplot(1,1,1)  
-    axis_5.set_ylabel(r'SPL$_{1/3}$ (dBA)')
-    axis_5.set_xlabel('Frequency (Hz)') 
-    
-        
-    fig_6 = plt.figure('Twist_Distribution')
-    fig_6.set_size_inches(PP.figure_width, PP.figure_height)     
-    axis_6 = fig_6.add_subplot(1,1,1)  
-    axis_6.set_ylabel(r'$\beta$ ($\degree$)') 
-    axis_6.set_xlabel('r')      
-    
-    fig_7 = plt.figure('Chord_Distribution')
-    fig_7.set_size_inches(PP.figure_width, PP.figure_height)   
-    axis_7 = fig_7.add_subplot(1,1,1)
-    axis_7.set_ylabel('c (m)') 
-    axis_7.set_xlabel('r')    
-    
-    fig_8 = plt.figure('Thickness_Distribution')
-    fig_8.set_size_inches(PP.figure_width, PP.figure_height)       
-    axis_8 = fig_8.add_subplot(1,1,1)
-    axis_8.set_ylabel('t (m)')  
-    axis_8.set_xlabel('r')   
-    
-    fig_9 = plt.figure('MCA_Distribution')
-    fig_9.set_size_inches(PP.figure_width, PP.figure_height)       
-    axis_9 = fig_9.add_subplot(1,1,1)  
-    axis_9.set_ylabel('M.C.A (m)')  
-    axis_9.set_xlabel('r')   
+    fig_5.set_size_inches(PP.figure_width, PP.figure_height)    
+    axis_51 = fig_5.add_subplot(131, projection='polar') 
+    axis_51.set_title('Total Noise')  
+    axis_52 = fig_5.add_subplot(132, projection='polar') 
+    axis_52.set_title('Harmonic Noise')  
+    axis_53 = fig_5.add_subplot(133, projection='polar') 
+    axis_53.set_title('Broadband Noise')   
+      
+            
     
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
@@ -375,123 +381,113 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
         alpha_opt_weight = str(alpha_weights[i])
         alpha_opt_weight = alpha_opt_weight.replace('.','_')     
         file_name        = rel_path +  'Data' + separator +  'Rotor_T_' + str(int(rotor.design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
-        rotor            = load_blade_geometry(file_name)
-        rotor_name       =  'Rotor_T_' + str(int(rotor.design_thrust))  + '_Alpha_' + alpha_opt_weight + '_Opt_' + optimizer
- 
-        c    = rotor.chord_distribution
-        beta = rotor.twist_distribution
-        MCA  = rotor.mid_chord_alignment
-        r    = rotor.radius_distribution/rotor.tip_radius
-        t    = rotor.max_thickness_distribution
-     
-        T_hover           = rotor.design_performance.blade_thrust_distribution[0] 
-        Q_hover           = rotor.design_performance.blade_torque_distribution[0] 
-        Re_hover          = rotor.design_performance.blade_reynolds_number_distribution[0]  
-        AoA_hover         = rotor.design_performance.blade_effective_angle_of_attack[0]/Units.degrees
-        SPL_dBA_1_3_hover = rotor.design_acoustics.SPL_1_3_spectrum_dBA 
-        frequency         = rotor.design_acoustics.one_third_frequency_spectrum   
-        
+        rotor            = load_blade_geometry(file_name)  
     
+        network                                 = SUAVE.Components.Energy.Networks.Battery_Propeller()
+        network.number_of_lift_rotor_engines    = 1
+        network.identical_lift_rotors           = True  
+        network.lift_rotors.append(rotor)    
+                
+        r              = rotor.radius_distribution
+        alt            = rotor.design_altitude
+        omega          = rotor.angular_velocity
+        V              = rotor.freestream_velocity
+        T_hover        = rotor.design_performance.blade_thrust_distribution[0] 
+        Q_hover        = rotor.design_performance.blade_torque_distribution[0] 
+        Re_hover       = rotor.design_performance.blade_reynolds_number_distribution[0]  
+        AoA_hover      = rotor.design_performance.blade_effective_angle_of_attack[0]/Units.degrees 
+        
+        # Calculate atmospheric properties
+        atmosphere     = SUAVE.Analyses.Atmospheric.US_Standard_1976()
+        atmo_data      = atmosphere.compute_values(alt)   
+        T              = atmo_data.temperature[0]
+        rho            = atmo_data.density[0]
+        a              = atmo_data.speed_of_sound[0]
+        mu             = atmo_data.dynamic_viscosity[0]  
+        ctrl_pts       = 1  
+        
+        # Run Conditions     
+        theta  = np.array(1,179,19)*Units.degrees  
+        S      = np.maximum(alt , 20*Units.feet) 
+    
+        # microphone locations
+        positions  = np.zeros(( len(theta),3))
+        for i in range(len(theta)):
+            positions [i][:] = [0.0 , S*np.sin(theta[i])  ,S*np.cos(theta[i])]   
+    
+        # Set up for Propeller Model
+        rotor.inputs.omega                                     = np.atleast_2d(omega).T
+        conditions                                             = Aerodynamics()   
+        conditions.freestream.density                          = np.ones((ctrl_pts,1)) * rho
+        conditions.freestream.dynamic_viscosity                = np.ones((ctrl_pts,1)) * mu
+        conditions.freestream.speed_of_sound                   = np.ones((ctrl_pts,1)) * a 
+        conditions.freestream.temperature                      = np.ones((ctrl_pts,1)) * T  
+        conditions.frames.inertial.velocity_vector             = np.array([[0, 0. ,V]])
+        conditions.propulsion.throttle                         = np.ones((ctrl_pts,1))*1.0
+        conditions.frames.body.transform_to_inertial           = np.array([[[1., 0., 0.],[0., 1., 0.],[0., 0., -1.]]]) 
+        
+        # Run Propeller model 
+        thrust , torque, power, Cp  , noise_data , etap        = rotor.spin(conditions)
+    
+        # Prepare Inputs for Noise Model  
+        conditions.noise.total_microphone_locations            = np.repeat(positions[ np.newaxis,:,: ],1,axis=0)
+        conditions.aerodynamics.angle_of_attack                = np.ones((ctrl_pts,1))* 0. * Units.degrees 
+        segment                                                = Segment() 
+        segment.state.conditions                               = conditions
+        segment.state.conditions.expand_rows(ctrl_pts) 
+    
+        # Store Noise Data 
+        noise                                                  = SUAVE.Analyses.Noise.Fidelity_One() 
+        settings                                               = noise.settings   
+        num_mic                                                = len(conditions.noise.total_microphone_locations[0])  
+        conditions.noise.number_of_microphones                 = num_mic   
+    
+        propeller_noise   = propeller_mid_fidelity(network.lift_rotors,noise_data,segment,settings)   
         # ----------------------------------------------------------------------------
         # 2D - Plots     
         # ----------------------------------------------------------------------------  
         rotor_label  = r'$\alpha$ = ' +  str(alpha_weights[i])   
   
-        axis_1.plot(r , T_hover ,color = PP.colors[0][i]  , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = rotor_label )            
-  
-        axis_2.plot(r , Q_hover , color = PP.colors[0][i]  , markersize = PP.marker_size ,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)           
-  
-        axis_3.plot(r , Re_hover ,color = PP.colors[0][i] , markersize = PP.marker_size ,marker =PP.markers[2],linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)       
+        axis_1.plot(r , T_hover ,color = PP.colors_1[i]  , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2], linewidth = PP.line_width, label = rotor_label )    
+        axis_2.plot(r , Q_hover , color = PP.colors_1[i]  , markersize = PP.marker_size ,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)    
+        axis_3.plot(r , Re_hover  ,color = PP.colors_1[i] , markersize = PP.marker_size ,marker =PP.markers[2],linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)       
+        axis_4.plot(r , AoA_hover  ,color = PP.colors_1[i] , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label )     
+        axis_51.plot(angles , propeller_noise.SPL_dBA[0,:] ,color = PP.colors_1[i]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label )   
+        axis_52.plot(angles , propeller_noise.SPL_harmonic[0,:] ,color = PP.colors_1[i]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label )     
+        axis_53.plot(angles , propeller_noise.SPL_broadband[0,:] ,color = PP.colors_1[i]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label )         
  
-        axis_4.plot(r , AoA_hover ,color = PP.colors[0][i] , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label )        
-       
-        mic = 1
-        hover_noise_label  = rotor_label + r'Hover: $\theta_{mic}$ = ' + str(int(angles[mic])) + r' $\degree$'  
-        axis_5.semilogx(frequency , SPL_dBA_1_3_hover[0,mic] ,color = PP.colors[0][i]   , markersize = PP.marker_size,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = hover_noise_label )      
-   
-        axis_6.plot(r, beta/Units.degrees,color = PP.colors[0][i] , markersize = PP.marker_size ,marker = PP.markers[2], linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)  
-  
-        axis_7.plot(r, c ,color = PP.colors[0][i]  ,marker = PP.markers[2] , markersize = PP.marker_size, linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)    
-    
-        axis_8.plot(r , t,color = PP.colors[0][i]  ,marker = PP.markers[2] , markersize = PP.marker_size, linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)     
-        
-        axis_9.plot(r, MCA,color = PP.colors[0][i]  ,marker = PP.markers[2] , markersize = PP.marker_size, linestyle = PP.line_styles[2],linewidth = PP.line_width, label = rotor_label)  
-   
-
-        # ----------------------------------------------------------------------------
-        # 3D - Plots     
-        # ----------------------------------------------------------------------------    
-        fig_0 = plt.figure('Rotor_3D') 
-        fig_0.set_size_inches(12,12) 
-        axis_0 = plt.axes(projection='3d') 
-        axis_0.view_init(elev= 45, azim= 30)   
-        axis_0.set_xlim(-1,1)
-        axis_0.set_ylim(-1,1)
-        axis_0.set_zlim(-1,1) 
-        axis_0.grid(False)  
-        plt.axis('off')
-        
-        # append a network for origin and thrust angle default values
-        network = Battery_Propeller() 
-        
-        # plot propeller geometry
-        plot_propeller_geometry(axis_0,rotor,network,rotor.tag)   
-    
-        fig_0_name = "3D_" + rotor_name
-        if save_figures:
-            fig_0.savefig(fig_0_name  + '.pdf')  
-        
     
     axis_1.set_ylim([-40,250]) 
     axis_2.set_ylim([-20,40]) 
     axis_3.set_ylim([35E3,35E5])   
     axis_4.set_ylim([-20,10])  
-    axis_5.set_ylim([0,120]) 
-    axis_6.set_ylim([-10,60]) 
-    axis_7.set_ylim([0.0,0.30]) 
-    axis_8.set_ylim([0.0,0.04]) 
-    axis_9.set_ylim([-0.04,0.02]) 
+    axis_51.set_ylim([0,120])
+    axis_52.set_ylim([0,120]) 
+    axis_53.set_ylim([0,120]) 
     
     axis_1.legend(loc='upper left')    
     axis_2.legend(loc='upper left')    
     axis_3.legend(loc='upper left')  
-    axis_4.legend(loc='lower right')     
-    axis_5.legend(loc='upper right') 
-    axis_6.legend(loc='upper right')     
-    axis_7.legend(loc='upper right') 
-    axis_8.legend(loc='upper right')     
-    axis_9.legend(loc='upper right')   
+    axis_4.legend(loc='lower right')      
     
     fig_1_name = "Thrust_TW_Rotor_Comparison" 
     fig_2_name = "Torque_TW_Rotor_Comparison" 
     fig_3_name = "Blade_Re_TW_Rotor_Comparison"  
     fig_4_name = "Blade_AoA_TW_Rotor_Comparison" 
-    fig_5_name = 'SPL_TW_Rotor_Comparison'  
-    fig_6_name = "Twist_TW_Rotor_Comparison"  
-    fig_7_name = "Chord_TW_Rotor_Comparison"  
-    fig_8_name = "Thickness_TW_Rotor_Comparison"  
-    fig_9_name = "MCA_TW_Rotor_Comparison"  
+    fig_5_name = 'SPL_TW_Rotor_Comparison'   
     
     fig_1.tight_layout()
     fig_2.tight_layout()
     fig_3.tight_layout(rect= (0.05,0,1,1))
     fig_4.tight_layout()
-    fig_5.tight_layout()
-    fig_6.tight_layout()
-    fig_7.tight_layout(rect= (0.05,0,1,1))
-    fig_8.tight_layout(rect= (0.05,0,1,1))
-    fig_9.tight_layout(rect= (0.05,0,1,1))   
+    fig_5.tight_layout() 
     
     if save_figures:
         fig_1.savefig(fig_1_name  + '.pdf')               
         fig_2.savefig(fig_2_name  + '.pdf')               
         fig_3.savefig(fig_3_name  + '.pdf')               
         fig_4.savefig(fig_4_name  + '.pdf')              
-        fig_5.savefig(fig_5_name  + '.pdf')       
-        fig_6.savefig(fig_6_name  + '.pdf')        
-        fig_7.savefig(fig_7_name  + '.pdf')               
-        fig_8.savefig(fig_8_name  + '.pdf')               
-        fig_9.savefig(fig_9_name  + '.pdf')   
+        fig_5.savefig(fig_5_name  + '.pdf')         
         
     return   
 
@@ -499,12 +495,11 @@ def SR_lift_rotor_design_comparisons(alpha_weights,beta_weights,use_pyoptsparse_
 # ------------------------------------------------------------------ 
 # Plot Results and Pareto Fronteir
 # ------------------------------------------------------------------ 
-def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag,PP,save_figures):    
+def SR_lift_rotor_designs_and_pareto_fronteir(design_thrust,alpha_weights,use_pyoptsparse_flag,PP,save_figures):    
      
-    PP.colors            = cm.hot(np.linspace(0,1,len(alpha_weights)+25))  
-    ranges               = np.linspace(0.45,0.7,len(alpha_weights))  
-    folder               = 'Rotor_Designs'
-    design_thrust        = (2700*9.81/(12))     
+    PP.colors            = cm.hot(np.linspace(0,1,101+25))   # cm.hot(np.linspace(0,1,len(alpha_weights)+25))  
+    ranges               = np.linspace(0.45,0.7,101)   #np.linspace(0.45,0.7,len(alpha_weights))  
+    folder               = 'Rotor_Designs_2'   
     if use_pyoptsparse_flag:
         optimizer = 'SNOPT'
     else: 
@@ -568,20 +563,25 @@ def SR_lift_rotor_designs_and_pareto_fronteir(alpha_weights,use_pyoptsparse_flag
             Broadband_1_3      = rotor_noise_data.SPL_broadband_1_3_spectrum_dBA 
             One_Third_Spectrum = rotor_noise_data.one_third_frequency_spectrum 
             
-            
-            col_idx = np.abs(ranges-rotor.design_tip_mach).argmin()
+            TM = rotor.angular_velocity*rotor.tip_radius/343       
+            col_idx = np.abs(ranges-TM).argmin()
             Pow = rotor.design_power/1E3 
-            if Pow>62: 
-                if rotor.design_SPL_dBA>61:
-                    a = 1
-                    pass
+            print(idx)
+            print(TM)
+            print(Pow)
+            print(np.mean(rotor_noise_data.SPL_dBA))
+            #if Pow>62: 
+                #if rotor.design_SPL_dBA>61:
+                    #a = 1
+                    #pass
                 
             if idx == 0:
-                rotor.design_SPL_dBA = np.mean(rotor_noise_data.SPL_dBA)  
-                axis_7.plot(One_Third_Spectrum , Total_SPL_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
-                axis_8.plot(One_Third_Spectrum , Harmonic_1_3[0,0]  , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
-                axis_9.plot(One_Third_Spectrum , Broadband_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)  
-                propeller_geoemtry_comparison_plots(rotor,rotor_aero_data,AXES,'black','black',PP,idx, rotor_name)  
+                pass
+                #rotor.design_SPL_dBA = np.mean(rotor_noise_data.SPL_dBA)  
+                #axis_7.plot(One_Third_Spectrum , Total_SPL_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
+                #axis_8.plot(One_Third_Spectrum , Harmonic_1_3[0,0]  , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
+                #axis_9.plot(One_Third_Spectrum , Broadband_1_3[0,0] , color = 'black' , linestyle = PP.line_styles[2], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)  
+                #propeller_geoemtry_comparison_plots(rotor,rotor_aero_data,AXES,'black','black',PP,idx, rotor_name)  
             
             else: 
                 axis_7.plot(One_Third_Spectrum , Total_SPL_1_3[0,0] , color = PP.colors[idx-1] , linestyle = PP.line_styles[2], marker = PP.markers[(idx-1)%9] , markersize = PP.marker_size , linewidth = PP.line_width,  label = rotor_tag)      
@@ -694,7 +694,7 @@ def plot_geoemtry_and_performance(rotor,rotor_name,PP,save_figures):
   
     T_hover           = rotor.design_performance.blade_thrust_distribution[0] 
     Q_hover           = rotor.design_performance.blade_torque_distribution[0] 
-    Re_hover          = rotor.design_performance.blade_reynolds_number_distribution[0]  
+    Re_hover          = rotor.design_performance.blade_reynolds_number[0]  
     AoA_hover         = rotor.design_performance.blade_effective_angle_of_attack[0]/Units.degrees
     SPL_dBA_1_3_hover = rotor.design_acoustics.SPL_1_3_spectrum_dBA 
     frequency         = rotor.design_acoustics.one_third_frequency_spectrum    
@@ -877,7 +877,7 @@ def propeller_geoemtry_comparison_plots(rotor,outputs,AXES,color,color2,PP,idx,l
                    s      = 150,
                    label  = label_name )     
     
-    axis_5.plot(rotor.radius_distribution/rotor.tip_radius, outputs.blade_reynolds_number_distribution[0],
+    axis_5.plot(rotor.radius_distribution/rotor.tip_radius, outputs.blade_reynolds_number[0],
                 color      = color,
                 marker     = PP.markers[idx%9],
                 linestyle  = PP.line_styles[2],
@@ -1082,7 +1082,9 @@ def define_plot_parameters():
     plot_parameters.colors           = [['black','firebrick','darkblue'],
                                         ['dimgray','red','blue'], 
                                         ['darkgray','salmon','deepskyblue']]  
-     
+
+    plot_parameters.colors_1           = ['black','darkmagenta','mediumblue','darkgreen','darkgoldenrod','darkred']   
+    plot_parameters.colors_2          = ['grey','orchid','darkcyan','green','orange','red']        
     plot_parameters.markers          = ['o','v','s','P','p','^','D','X','*']   
     
     return plot_parameters

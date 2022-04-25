@@ -42,12 +42,12 @@ def main():
     fig = plt.figure("Flight_Conditions_Noise")
     fig.set_size_inches(10,7)
     axes = fig.add_subplot(1,1,1)   
-    axes.set_ylim(30,75)   
+    axes.set_ylim(30,90)   
     axes.set_ylabel('SPL$_{Amax}$ (dBA)')  
     axes.set_xlabel(r'$\hat{t}$') 
     axes.minorticks_on()   
      
-    N_gm_x = 20 # 12
+    N_gm_x = 22 # 12
     N_gm_y = 5 # 4
     header =  '../../XX_Supplementary/Aircraft_Models_and_Simulations/' 
     
@@ -233,12 +233,7 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     axes_22.set_ylabel('Alt (ft)')  
     axes_22.axes.xaxis.set_visible(False)
     axes_22.plot(res_Q1.aircraft_pos[:,0]/Units.nmi,  -res_Q1.aircraft_pos[:,2]/Units.feet , color = PP.colors[idx], linestyle = PP.line_style[0], marker = PP.markers[idx] , markersize = PP.marker_size , linewidth= PP.line_width) 
-    
-    max_mi  = np.max(res_Q1.aircraft_pos[:,0]/Units.nmi) 
-    axes_22.set_xlim(0, max_mi)   
-    axes_22.set_ylim(0, 500)     
-    axes_22.minorticks_on()   
-
+   
     # set size of matrices 
     N_gm_x       = res_Q1.N_gm_x
     N_gm_y       = res_Q1.N_gm_y 
@@ -273,7 +268,12 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
     xi, yi = np.meshgrid(np.linspace(np.min(Range_x),np.max(Range_x), 10),np.linspace(-np.max(Range_y ),np.max(Range_y), 5) )
     axes_21.plot(xi, yi, 'k--', lw=1, alpha=0.5)
     axes_21.plot(xi.T, yi.T, 'k--', lw=1, alpha=0.5)
-         
+        
+
+    axes_22.set_xlim(0, np.max(X))   
+    axes_22.set_ylim(0, 500)     
+    axes_22.minorticks_on()   
+    
     fig.subplots_adjust(right=0.8)
     axes_23 = fig.add_axes([0.72, 0.0, 0.14, 1.0]) # left , heigh from base, width , height
     cbar    = fig.colorbar(CS, ax=axes_23)
@@ -292,27 +292,33 @@ def plot_flight_profile_noise_contours(idx,res_Q1,res_Q2,res_Q3,res_Q4,PP,vehicl
 # ------------------------------------------------------------------ 
 def plot_results(idx,res_Q1,res_Q2,res_Q3,res_Q4,axes,PP,vehicle_name):   
     
-    # set size of matrices 
+    # set size of matrices  
     N_gm_x       = res_Q1.N_gm_x
     N_gm_y       = res_Q1.N_gm_y 
     num_cpts     = res_Q1.num_ctrl_pts*res_Q1.num_segments
     aircraft_SPL = np.zeros((num_cpts,2*N_gm_x, 2*N_gm_y))
-    gm_mic_loc   = np.zeros((2*N_gm_x, 2*N_gm_y,3))
-    
+    gm_mic_loc   = np.zeros((2*N_gm_x, 2*N_gm_y,3)) 
     
     aircraft_SPL[:,0:N_gm_x,0:N_gm_y] = res_Q1.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)
     aircraft_SPL[:,0:N_gm_x,N_gm_y:]  = res_Q2.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
     aircraft_SPL[:,N_gm_x:,0:N_gm_y]  = res_Q3.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
-    aircraft_SPL[:,N_gm_x:,N_gm_y:]   = res_Q4.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y) 
-
+    aircraft_SPL[:,N_gm_x:,N_gm_y:]   = res_Q4.SPL_contour.reshape(num_cpts,N_gm_x ,N_gm_y)   
+    
     gm_mic_loc[0:N_gm_x,0:N_gm_y,:]   = res_Q1.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
     gm_mic_loc[0:N_gm_x,N_gm_y:,:]    = res_Q2.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
     gm_mic_loc[N_gm_x:,0:N_gm_y,:]    = res_Q3.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)
-    gm_mic_loc[N_gm_x:,N_gm_y:,:]     = res_Q4.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)    
+    gm_mic_loc[N_gm_x:,N_gm_y:,:]     = res_Q4.gm_mic_loc.reshape(N_gm_x ,N_gm_y,3)   
   
-    Range      = gm_mic_loc[:,0,0]/Units.nmi
-    max_SPL    = np.max(aircraft_SPL,axis=0)      
-    axes.plot(Range/max(Range),max_SPL[:,1], color = PP.colors[idx] , linestyle = PP.line_style[0],
+      
+    # post processing 
+    max_SPL    = np.max(aircraft_SPL,axis=0)   
+    if vehicle_name == 'ECTOL':
+        max_SPL    = ndimage.gaussian_filter(max_SPL, sigma=0.5, order=0) # SMOOTHING  
+        
+   
+    Range       = gm_mic_loc[:,0,0]/Units.nmi
+    max_SPL_y0  = max_SPL[:,0]
+    axes.plot(Range/max(Range),max_SPL_y0, color = PP.colors[idx] , linestyle = PP.line_style[0],
               marker = PP.markers[idx] , markersize = PP.marker_size , linewidth= PP.line_width ,label=vehicle_name)   
     return  
   

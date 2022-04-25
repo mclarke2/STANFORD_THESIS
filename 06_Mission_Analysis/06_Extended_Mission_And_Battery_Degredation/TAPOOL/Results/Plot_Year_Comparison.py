@@ -100,8 +100,14 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     ls            = 24 # legend font size 
     
     cases = 9    
-    col1  =  cm.viridis(np.linspace(0,1,cases)) # ['black','darkblue','darkgreen','firebrick','goldenrod']  
-    col2  =  cm.viridis(np.linspace(0,1,cases)) # ['grey','blue','green','red','orange']
+    #col1  =  cm.viridis(np.linspace(0,1,cases)) # ['black','darkblue','darkgreen','firebrick','goldenrod']  
+    #col2  =  cm.viridis(np.linspace(0,1,cases)) # ['grey','blue','green','red','orange']
+    
+
+    col1  =  cm.jet(np.flip(np.linspace(0,1,cases))) # ['black','darkblue','darkgreen','firebrick','goldenrod']  
+    col2  =  cm.jet(np.flip(np.linspace(0,1,cases))) # ['grey','blue','green','red','orange']    
+    colormap_style = 'jet'
+    colormap_style_rev = 'jet_r'
     ls1   = ['-']*cases
     ls2   = ['--']*cases  
     m1    = ['o']*cases 
@@ -186,7 +192,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
                   linestyle = ls1[i], marker = m1[i] , markersize = ms1 , linewidth= line_width ,label= range_label)     
         axis2.set_ylabel('Cell Temperature (K)')    
         axis2.set_xlabel('Time (day)')  
-        axis2.set_ylim(300,340) 
+        axis2.set_ylim(10,50) 
         axis2.set_xlim(0,370)
         axis2.legend(loc='upper center', prop={'size': ls}, ncol = 3)
         format_axis(axis2) 
@@ -258,7 +264,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     c_bar_discretization = 20 
     levs6  = np.linspace(0.5,1,c_bar_discretization)
     levs7  = np.linspace(1,3,c_bar_discretization)
-    levs8  = np.linspace(300,340,c_bar_discretization)
+    levs8  = np.linspace(10,50,c_bar_discretization)
     levs9  = np.linspace(0,15,c_bar_discretization)
     levs10 = np.linspace(0,15000,c_bar_discretization)
     levs11 = np.linspace(20,250,c_bar_discretization)   
@@ -269,7 +275,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     sfmt = ticker.ScalarFormatter(useMathText=True) 
     sfmt = ticker.FormatStrFormatter('%.2f')    
     sfmt2 = ticker.FormatStrFormatter('%.0f')    
-    CS6    = axis6.contourf(Days_2D,Range_2D,Capacity_Fade_contour ,lw=3, levels = levs6,extend='both',corner_mask=True )   
+    CS6    = axis6.contourf(Days_2D,Range_2D,Capacity_Fade_contour ,lw=3, levels = levs6, cmap= colormap_style_rev ,extend='both',corner_mask=True )   
     cbar6  =  fig6.colorbar(CS6   , ax = axis6 , format= sfmt ) 
     cbar6.ax.set_ylabel('E/E$_{0}$' , labelpad=20) 
     add_hash_background(axis6)
@@ -280,7 +286,7 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     # ---------------------------------------
     # Plot 7 : Interal Resitance
     # ---------------------------------------    
-    CS7           = axis7.contourf(Days_2D,Range_2D,Resistance_Growth_contour ,lw=3, levels = levs7,extend='both',corner_mask=True)
+    CS7           = axis7.contourf(Days_2D,Range_2D,Resistance_Growth_contour ,lw=3, levels = levs7, cmap= colormap_style,extend='both',corner_mask=True)
     cbar7  =  fig7.colorbar(CS7   , ax = axis7 , format= sfmt)
     cbar7.ax.set_ylabel('R/R$_{0}$' , labelpad=20) 
     add_hash_background(axis7)
@@ -291,9 +297,9 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     # ---------------------------------------
     # Plot 8 : Cell Temperature
     # ---------------------------------------  
-    CS8           = axis8.contourf(Days_2D,Range_2D,Max_Temp_contour ,lw=3, levels = levs8,extend='both',corner_mask=True)
+    CS8           = axis8.contourf(Days_2D,Range_2D,Max_Temp_contour-273.15 ,lw=3, levels = levs8, cmap= colormap_style,extend='both',corner_mask=True)
     cbar8  =  fig8.colorbar(CS8   , ax = axis8 , format= sfmt2)
-    cbar8.ax.set_ylabel('Cell Temperature (K)' , labelpad=20)
+    cbar8.ax.set_ylabel('Cell Temperature ($\degree$C)' , labelpad=20)
     add_hash_background(axis8)  
     fig8.tight_layout()
     save_filename_8 =   vehicle_name + "_Battery_Temperature_Contour_1Yr" + '.pdf'
@@ -302,9 +308,9 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     # ---------------------------------------
     # Plot 9 : Daily Max Instantaneous C-Rate
     # ---------------------------------------  
-    CS9    = axis9.contourf(Days_2D,Range_2D,Charge_TP_contour,lw=3, levels = levs9,extend='both',corner_mask=True) 
+    CS9    = axis9.contourf(Days_2D,Range_2D,Charge_TP_contour,lw=3, levels = levs9, cmap= colormap_style,extend='both',corner_mask=True) 
     cbar9  = fig9.colorbar(CS9 , ax = axis9 , format= sfmt)
-    cbar9.ax.set_ylabel('Max C-Rate (1/hr)' , labelpad=20)  
+    cbar9.ax.set_ylabel('Max C-rate (1/hr)' , labelpad=20)  
     add_hash_background(axis9)
     fig9.tight_layout()
     save_filename_9 =   vehicle_name + "_C_Rate_Contour_1Yr" + '.pdf'
@@ -313,9 +319,9 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     # ---------------------------------------
     # Plot 10 : Charge Throughput
     # ---------------------------------------  
-    CS10    = axis10.contourf(Days_2D,Range_2D,Max_C_rate_contour ,lw=3, levels = levs10,extend='both',corner_mask=True)
+    CS10    = axis10.contourf(Days_2D,Range_2D,Max_C_rate_contour ,lw=3, levels = levs10, cmap= colormap_style ,extend='both',corner_mask=True)
     cbar10  =  fig10.colorbar(CS10   , ax = axis10 , format= sfmt)
-    cbar10.ax.set_ylabel('Charge Throughput(Ah)' , labelpad=20)
+    cbar10.ax.set_ylabel('Charge Throughput (Ah)' , labelpad=20)
     add_hash_background(axis10)  
     fig10.tight_layout()
     save_filename_10 =   vehicle_name + "_Charge_Contour_1Yr" + '.pdf'
@@ -325,9 +331,9 @@ def plot_results(vehicle_name,filenames,ranges,E,W,L_D,V):
     # ---------------------------------------
     # Plot 11 : Battery Energy (kWh)
     # ---------------------------------------  
-    CS11    = axis11.contourf(Days_2D,Range_2D,Bat_Energy_contour,lw=3, levels = levs11,extend='both',corner_mask=True) 
+    CS11    = axis11.contourf(Days_2D,Range_2D,Bat_Energy_contour,lw=3, levels = levs11, cmap= colormap_style_rev,extend='both',corner_mask=True) 
     cbar11  = fig11.colorbar(CS11 , ax = axis11 , format= sfmt)
-    cbar11.ax.set_ylabel('Battery Energy (kWh)' , labelpad=20)
+    cbar11.ax.set_ylabel('Battery Energy (kW-hr)' , labelpad=20)
     add_hash_background(axis11)  
     fig11.tight_layout()
     save_filename_11 =  vehicle_name + "_Energy_Contour_1Yr" + '.pdf'
@@ -750,4 +756,4 @@ def format_axis(axis):
  
 if __name__ == '__main__': 
     main()    
-    plt.show()
+    #plt.show()
