@@ -54,7 +54,7 @@ def main():
     for running on server - np.linspace(0.0,0.2,21)  
     for single analysis   - np.array([0.2])
     '''
-    alpha_weights                      = np.array([0.5]) #np.array([1.0,0.75,0.5,0.25,0.0]) #  np.linspace(0.0,0.2,21)    
+    alpha_weights                      = np.array([1.0]) #np.array([1.0,0.75,0.5,0.25,0.0]) #  np.linspace(0.0,0.2,21)    
     plot_rotor_geomery_and_performance = True
     use_pyoptsparse                    = False
     save_figures                       = False 
@@ -115,7 +115,7 @@ def SR_lift_rotor_single_design_point(rotor_0,alpha_weights,use_pyoptsparse_flag
         opt_params.aeroacoustic_weight   = alpha_weights[i]   # 1 means only perfomrance optimization 0.5 to weight noise equally
         
         # DESING ROTOR 
-        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100,use_pyoptsparse=use_pyoptsparse_flag)   
+        rotor                            = lift_rotor_design(rotor,number_of_airfoil_section_points=100)   
       
         # save rotor geomtry
         opt_weight = str(rotor.optimization_parameters.aeroacoustic_weight)
