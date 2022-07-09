@@ -25,6 +25,8 @@ from SUAVE.Methods.Geometry.Two_Dimensional.Planform             import segment_
 from SUAVE.Methods.Weights.Buildups.eVTOL.empty                  import empty  
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_segmented_planform import wing_segmented_planform
 
+from SUAVE.Methods.Weights.Buildups.eVTOL.converge_evtol_weight    import converge_evtol_weight  
+
 try:
     import vsp 
     from SUAVE.Input_Output.OpenVSP.vsp_write import write 
@@ -56,10 +58,10 @@ def main():
                      control_points,N_gm_x,N_gm_y)
                      
  
-    run_noise_model   = True 
-    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y) 
+    #run_noise_model   = True 
+    #run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y) 
     
 
     #run_noise_model   = True 
@@ -104,7 +106,7 @@ def run_full_mission(simulated_days,flights_per_day,aircraft_range,reserve_segme
 
     # weight plot breakdown 
     print('WEIGHT BREAKDOWN')
-    breakdown = empty(configs.base,contingency_factor=1.0)
+    breakdown = empty(configs.base)
     print(breakdown)
 
     # plot geoemtry 
@@ -349,17 +351,17 @@ def vehicle_setup():
     # ------------------------------------------------------------------
 
     # mass properties
-    vehicle.mass_properties.max_takeoff   = 2850. * Units.pounds
-    vehicle.mass_properties.takeoff       = 2850. * Units.pounds
-    vehicle.mass_properties.max_zero_fuel = 2850. * Units.pounds 
+    vehicle.mass_properties.max_takeoff   = 1900 # 2850. * Units.pounds
+    vehicle.mass_properties.takeoff       = 1900 #2850. * Units.pounds
+    vehicle.mass_properties.max_zero_fuel = 1900 #2850. * Units.pounds 
     vehicle.envelope.ultimate_load        = 5.7
     vehicle.envelope.limit_load           = 3.8 
     vehicle.reference_area                = 14.76
-    vehicle.passengers                    = 4
+    vehicle.passengers                    = 6
     vehicle.systems.control               = "fully powered"
     vehicle.systems.accessories           = "commuter"    
     
-    cruise_speed                          = 135.*Units['mph']    
+    cruise_speed                          = 175.*Units['mph']    
     altitude                              = 2500. * Units.ft
     atmo                                  = SUAVE.Analyses.Atmospheric.US_Standard_1976()
     freestream                            = atmo.compute_values (0.)
@@ -376,13 +378,13 @@ def vehicle_setup():
     wing.sweeps.quarter_chord             = 0.0 * Units.deg
     wing.thickness_to_chord               = 0.12
     wing.areas.reference                  = 14.76
-    wing.spans.projected                  = 11.4 
-    wing.chords.root                      = 1.46
-    wing.chords.tip                       = 0.92
+    wing.spans.projected                  = 11.2 
+    wing.chords.root                      = 1.2 #1.46
+    wing.chords.tip                       = 0.9# 0.92
     wing.chords.mean_aerodynamic          = 1.19
     wing.taper                            = wing.chords.root/wing.chords.tip 
     wing.aspect_ratio                     = wing.spans.projected**2. / wing.areas.reference 
-    wing.twists.root                      = 1.0 * Units.degrees
+    wing.twists.root                      = 0.0 * Units.degrees
     wing.twists.tip                       = 0.0 * Units.degrees 
     wing.origin                           = [[2.93, 0., 1.01]]
     wing.aerodynamic_center               = [3., 0., 1.01] 
@@ -402,7 +404,7 @@ def vehicle_setup():
     segment                               = SUAVE.Components.Wings.Segment()
     segment.tag                           = 'inboard'
     segment.percent_span_location         = 0.0 
-    segment.twist                         = 1. * Units.degrees   
+    segment.twist                         = 0. * Units.degrees   
     segment.root_chord_percent            = 1. 
     segment.dihedral_outboard             = 0.  
     segment.sweeps.quarter_chord          = 0.
@@ -413,7 +415,7 @@ def vehicle_setup():
     segment                               = SUAVE.Components.Wings.Segment()
     segment.tag                           = 'outboard'
     segment.percent_span_location         = 0.5438
-    segment.twist                         = 0.5* Units.degrees 
+    segment.twist                         = 0.0* Units.degrees 
     segment.root_chord_percent            = 1. 
     segment.dihedral_outboard             = 0. 
     segment.sweeps.quarter_chord          = 0.
@@ -426,7 +428,7 @@ def vehicle_setup():
     segment.tag                           = 'winglet'
     segment.percent_span_location         = 0.98
     segment.twist                         = 0.  * Units.degrees 
-    segment.root_chord_percent            = 0.630
+    segment.root_chord_percent            = 0.60
     segment.dihedral_outboard             = 75. * Units.degrees 
     segment.sweeps.quarter_chord          = 82. * Units.degrees 
     segment.thickness_to_chord            = 0.12 
@@ -730,7 +732,7 @@ def vehicle_setup():
     prop = SUAVE.Components.Energy.Converters.Propeller()
     prop.tag                    = 'propeller_1'
     prop.number_of_blades       = 3.0
-    prop.freestream_velocity    = 150.  * Units.knots
+    prop.freestream_velocity    = 175.*Units['mph']  # 150.  * Units.knots
     prop.angular_velocity       = 2700. * Units.rpm
     prop.tip_radius             = 1.72/2  
     prop.hub_radius             = 10.     * Units.inches
@@ -762,12 +764,12 @@ def vehicle_setup():
     net.propellers.append(prop)
     net.propellers.append(prop_left) 
    
-    total_cells                          = 120*60
+    total_cells                          = 140*80                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     max_module_voltage                   = 50
     safety_factor                        = 1.5
                
     bat                                  = SUAVE.Components.Energy.Storages.Batteries.Constant_Mass.Lithium_Ion_LiNiMnCoO2_18650() 
-    bat.pack_config.series               = 120  # CHANGE IN OPTIMIZER 
+    bat.pack_config.series               = 140  # CHANGE IN OPTIMIZER 
     bat.pack_config.parallel             = int(total_cells/bat.pack_config.series)
     initialize_from_circuit_configuration(bat)    
     net.voltage                          = bat.max_voltage  
@@ -790,9 +792,9 @@ def vehicle_setup():
     motor.origin                  = [[2.,  2.5, 0.784]]
     motor.nominal_voltage         = bat.max_voltage 
     motor.propeller_radius        = prop.tip_radius
-    motor.no_load_current         = 0.001
+    motor.no_load_current         = 0.1
     motor                         = size_optimal_motor(motor,prop)
-    motor.mass_properties.mass    = 10. * Units.kg 
+    motor.mass_properties.mass    = 50. * Units.kg 
     
     # append right motor
     net.propeller_motors.append(motor)
@@ -813,8 +815,16 @@ def vehicle_setup():
     avionics.power_draw = 20. # Watts
     net.avionics        = avionics
 
+    motor_origins = np.array([[2., -2.5, 0.784],[2., 2.5, 0.784]])
+    vehicle.wings['main_wing'].motor_spanwise_locations   = motor_origins[:,1]/ vehicle.wings['main_wing'].spans.projected
+    
     # add the solar network to the vehicle
     vehicle.append_component(net)
+    
+    converge_evtol_weight(vehicle)
+
+    breakdown = empty(vehicle,contingency_factor = 1.1 )
+    print(breakdown)    
  
     return vehicle
 
@@ -915,7 +925,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.air_speed_end                                    = Vstall 
     segment.climb_rate                                       = -300 * Units['ft/min'] 
     segment.state.unknowns.throttle                          =  0.8 * ones_row(1)  
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3  )  
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
     mission.append_segment(segment)   
  
     # ------------------------------------------------------------------
@@ -931,7 +941,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.altitude                  = 0.0 
     segment.throttle                  = 0.3 * ones_row(1)  
     segment.state.unknowns.velocity_x = 0.1* Vstall * ones_row(1)   
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.02)          
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )          
     # add to misison
     mission.append_segment(segment)   
     
@@ -949,7 +959,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.state.unknowns.time       = 10.            
     segment.altitude                  = 0.0 
     segment.state.unknowns.velocity_x = 0.5* Vstall * ones_row(1)    
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )          
     # add to misison
     mission.append_segment(segment) 
      
@@ -965,7 +975,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.air_speed_end                                    = Vstall*1.1        
     segment.climb_rate                                       = 600 * Units['ft/min']  
     segment.state.unknowns.throttle                          = 0.9 * ones_row(1)  
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )  
     mission.append_segment(segment)  
                 
     # ------------------------------------------------------------------
@@ -980,7 +990,7 @@ def approach_departure_mission_setup(analyses,vehicle,simulated_days,flights_per
     segment.air_speed_end                                    = Vstall*1.2  
     segment.climb_rate                                       = 600 * Units['ft/min']  
     segment.state.unknowns.throttle                          = 0.85 * ones_row(1)  
-    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.05)  
+    segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )  
     mission.append_segment(segment) 
                
     
@@ -1065,7 +1075,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.battery_energy                               = vehicle.networks.battery_propeller.battery.max_energy   
                 segment.initial_battery_resistance_growth_factor     = 1
                 segment.initial_battery_capacity_fade_factor         = 1
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)          
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)          
             # add to misison
             mission.append_segment(segment) 
              
@@ -1081,7 +1091,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                                    = Vstall*1.1        
             segment.climb_rate                                       = 600 * Units['ft/min']  
             segment.state.unknowns.throttle                          = 0.9 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
             mission.append_segment(segment)  
                         
             # ------------------------------------------------------------------
@@ -1096,7 +1106,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                                    = Vstall*1.2  
             segment.climb_rate                                       = 600 * Units['ft/min']  
             segment.state.unknowns.throttle                          = 0.85 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.05)  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
             mission.append_segment(segment) 
                     
             # ------------------------------------------------------------------
@@ -1111,7 +1121,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                                    = 175.* Units['mph']    
             segment.climb_rate                                       = 500* Units['ft/min']  
             segment.state.unknowns.throttle                          = 0.85 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
             mission.append_segment(segment)  
             
             # ------------------------------------------------------------------
@@ -1121,10 +1131,10 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.tag = 'Cruise'  + "_F_" + str(flight_no) + "_D" + str (day) 
             segment.analyses.extend(analyses.base) 
             segment.air_speed                                        = 175.* Units['mph']        
-            cruise_distance                                          = aircraft_range - 25.2615*Units.nmi  
+            cruise_distance                                          = aircraft_range - 31.5615*Units.nmi  
             segment.distance                                         = cruise_distance 
             segment.state.unknowns.throttle                          = 0.8 * ones_row(1)              
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.005)  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
             mission.append_segment(segment)  
             
             # ------------------------------------------------------------------
@@ -1139,7 +1149,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                                    = Vstall*1.3
             segment.climb_rate                                       = -300 * Units['ft/min']  
             segment.state.unknowns.throttle                          = 0.8 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.1)  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
             mission.append_segment(segment)  
              
         
@@ -1154,7 +1164,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.distance                                         =  6000 * Units.feet
             segment.acceleration                                     = -0.05 * Units['m/s/s']   
             segment.state.unknowns.throttle                          = 0.7 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.01)  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
             mission.append_segment(segment)       
             
             if reserve_segment:
@@ -1170,7 +1180,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.air_speed_end                                    = 150.* Units['mph']   
                 segment.climb_rate                                       = 500* Units['ft/min']  
                 segment.state.unknowns.throttle                          = 0.85 * ones_row(1)  
-                segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3)  
+                segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
                 mission.append_segment(segment)   
                 
                 # ------------------------------------------------------------------
@@ -1182,7 +1192,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.air_speed                                        = 150.* Units['mph']   
                 segment.distance                                         = cruise_distance*0.1 + 2.0*Units.nmi
                 segment.state.unknowns.throttle                          = 0.8 * ones_row(1)  
-                segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.12)  
+                segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
                 mission.append_segment(segment)   
               
                 # ------------------------------------------------------------------
@@ -1197,7 +1207,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
                 segment.air_speed_end                                    = Vstall*1.2  
                 segment.climb_rate                                       = -300 * Units['ft/min']  
                 segment.state.unknowns.throttle                          = 0.8 * ones_row(1)  
-                segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.1)  
+                segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment)  
                 mission.append_segment(segment)   
              
             # ------------------------------------------------------------------
@@ -1212,7 +1222,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                                    = Vstall*1.1  
             segment.climb_rate                                       = -300 * Units['ft/min']
             segment.state.unknowns.throttle                          =  0.7 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3  )  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )  
             mission.append_segment(segment)   
         
             # ------------------------------------------------------------------
@@ -1230,7 +1240,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.air_speed_end                                    = Vstall 
             segment.climb_rate                                       = -300 * Units['ft/min'] 
             segment.state.unknowns.throttle                          =  0.8 * ones_row(1)  
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.3  )  
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )  
             mission.append_segment(segment)   
             
         
@@ -1247,7 +1257,7 @@ def full_mission_setup(analyses,vehicle,simulated_days,flights_per_day,aircraft_
             segment.altitude                  = 0.0 
             segment.throttle                  = 0.3 * ones_row(1)  
             segment.state.unknowns.velocity_x = 0.1* Vstall * ones_row(1)   
-            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment,  initial_power_coefficient = 0.02)          
+            segment = vehicle.networks.battery_propeller.add_unknowns_and_residuals_to_segment(segment )          
             # add to misison
             mission.append_segment(segment)   
   
@@ -1295,9 +1305,7 @@ def plot_results(results,run_noise_model,line_style = 'bo-'):
     
     
     plot_flight_conditions(results, line_style) 
-    
-    # Plot Flight Conditions 
-    plot_flight_conditions(results, line_style) 
+     
     
     # Plot Aerodynamic Coefficients
     plot_aerodynamic_coefficients(results, line_style)  

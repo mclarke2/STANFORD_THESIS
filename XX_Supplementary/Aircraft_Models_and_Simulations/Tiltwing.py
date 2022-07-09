@@ -13,10 +13,14 @@ from SUAVE.Methods.Weights.Correlations.Propulsion                        import
 from SUAVE.Methods.Propulsion                                             import propeller_design
 from SUAVE.Plots.Geometry                                                 import *
 from SUAVE.Plots.Performance.Mission_Plots                                import *
-from SUAVE.Methods.Weights.Buildups.eVTOL.empty                           import empty
+from SUAVE.Methods.Weights.Buildups.eVTOL.empty                       import empty
 from SUAVE.Methods.Center_of_Gravity.compute_component_centers_of_gravity import compute_component_centers_of_gravity
 from SUAVE.Methods.Noise.Fidelity_One.Noise_Tools.generate_microphone_points import generate_building_microphone_points
 from SUAVE.Methods.Geometry.Two_Dimensional.Planform.wing_planform import wing_planform
+
+
+from SUAVE.Methods.Weights.Buildups.eVTOL.converge_evtol_weight    import converge_evtol_weight  
+
 from copy import deepcopy
 import numpy as np
 import os
@@ -40,7 +44,7 @@ def main():
     
     simulated_days   = 1
     flights_per_day  = 1 
-    aircraft_range   = 70 *Units.nmi
+    aircraft_range   = 50 *Units.nmi
     reserve_segment  = False 
     plot_geometry    = False
     recharge_battery = False
@@ -56,11 +60,11 @@ def main():
                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
                      control_points,N_gm_x,N_gm_y) 
 
-    run_noise_model   = True
-    hover_noise_test  = False   
-    run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
-                      hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
-                      control_points,N_gm_x,N_gm_y) 
+    #run_noise_model   = True
+    #hover_noise_test  = False   
+    #run_approach_departure_noise_mission(simulated_days,flights_per_day,aircraft_range,reserve_segment,run_noise_model,
+                      #hover_noise_test,plot_geometry,recharge_battery,run_analysis,plot_mission,
+                      #control_points,N_gm_x,N_gm_y) 
 
     #run_noise_model   = True
     #hover_noise_test  = False        
@@ -295,7 +299,7 @@ def base_analysis(vehicle,N_gm_x,N_gm_y,min_y,max_y,min_x,max_x,aircraft_range,r
     #  Aerodynamics Analysis
     aerodynamics = SUAVE.Analyses.Aerodynamics.Fidelity_Zero()
     aerodynamics.geometry = vehicle 
-    #aerodynamics.settings.model_fuselage = True 
+    aerodynamics.settings.model_fuselage = True 
     analyses.append(aerodynamics)
 
         
@@ -346,9 +350,9 @@ def vehicle_setup():
     #   Vehicle-level Properties
     # ------------------------------------------------------------------    
     # mass properties
-    vehicle.mass_properties.takeoff             = 2300
-    vehicle.mass_properties.operating_empty     = 2300
-    vehicle.mass_properties.max_takeoff         = 2300
+    vehicle.mass_properties.takeoff             = 2900
+    vehicle.mass_properties.operating_empty     = 2900
+    vehicle.mass_properties.max_takeoff         = 2900
     vehicle.mass_properties.center_of_gravity   = [[ 2.0144,   0.  ,  0.]] 
     vehicle.passengers                          = 6
     vehicle.envelope.ultimate_load              = 5.7
@@ -363,8 +367,9 @@ def vehicle_setup():
     wing.sweeps.quarter_chord                   = 0.0
     wing.thickness_to_chord                     = 0.16 
     wing.taper                                  = 1.  
-    wing.spans.projected                        = 9.2
-    chord                                       = 0.85
+    span                                        = 9.2
+    wing.spans.projected                        = span 
+    chord                                       = 1.05 #0.85
     wing.chords.root                            = chord
     wing.total_length                           = chord
     wing.chords.tip                             = chord
@@ -389,7 +394,7 @@ def vehicle_setup():
     wing.sweeps.quarter_chord                   = 0.0
     wing.thickness_to_chord                     = 0.16 
     wing.taper                                  = 1.  
-    wing.spans.projected                        = 9.2
+    wing.spans.projected                        = span 
     wing.chords.root                            = chord
     wing.total_length                           = chord 
     wing.chords.tip                             = chord
@@ -404,10 +409,12 @@ def vehicle_setup():
     wing.aerodynamic_center                     = [0., 0., 0.]     
     wing.winglet_fraction                       = 0.0  
     wing.symmetric                              = True 
-    
-    # compute reference properties  
-    vehicle.reference_area                     = wing.areas.reference*2   
-        
+
+    # compute reference properties 
+    wing_planform(wing) 
+    wing = wing_planform(wing)
+    vehicle.reference_area = wing.areas.reference*2   
+     
     # add to vehicle 
     vehicle.append_component(wing)      
     
@@ -539,7 +546,7 @@ def vehicle_setup():
     sys.mass_properties.mass       = 5 # kg      
     
     # Component 5 the Battery       
-    total_cells                          = 140*80
+    total_cells                          = 140*130   
     max_module_voltage                   = 50
     safety_factor                        = 1.5
      
@@ -565,39 +572,39 @@ def vehicle_setup():
     Lift                           = vehicle.mass_properties.takeoff*9.81
 
     # Create propeller geometry
-    prop                          = SUAVE.Components.Energy.Converters.Propeller()  
-    prop.tip_radius               = 1.25  
-    prop.hub_radius               = 0.15 * prop.tip_radius   
-    prop.design_tip_mach          = 0.65 # gives better noise results and more realistic blade 
-    prop.number_of_blades         = 3  
-    prop.freestream_velocity      = 130 * Units.mph  # 10  
-    prop.angular_velocity         = prop.design_tip_mach*speed_of_sound/prop.tip_radius      
-    prop.design_Cl                = 0.7
-    prop.design_altitude          = 500 * Units.feet                   
-    prop.design_thrust            = Lift/(net.number_of_propeller_engines) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
+    prop_rotor                          = SUAVE.Components.Energy.Converters.Lift_Rotor()  
+    prop_rotor.tip_radius               = 1.25  
+    prop_rotor.hub_radius               = 0.15 * prop_rotor.tip_radius   
+    prop_rotor.design_tip_mach          = 0.6 # gives better noise results and more realistic blade 
+    prop_rotor.number_of_blades         = 3  
+    prop_rotor.freestream_velocity      = 130 * Units.mph  # 10  
+    prop_rotor.angular_velocity         = prop_rotor.design_tip_mach*speed_of_sound/prop_rotor.tip_radius      
+    prop_rotor.design_Cl                = 0.7
+    prop_rotor.design_altitude          = 500 * Units.feet                   
+    prop_rotor.design_thrust            = Lift/(net.number_of_propeller_engines) # contingency for one-engine-inoperative condition and then turning off off-diagonal rotor
     ospath    = os.path.abspath(__file__)
     separator = os.path.sep
     rel_path  = os.path.dirname(ospath) + separator 
-    prop.airfoil_geometry         =  [ rel_path + '../Airfoils/NACA_4412.txt']
-    prop.airfoil_polars           = [[ rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
+    prop_rotor.airfoil_geometry         =  [ rel_path + '../Airfoils/NACA_4412.txt']
+    prop_rotor.airfoil_polars           = [[ rel_path + '../Airfoils/Polars/NACA_4412_polar_Re_50000.txt' ,
                                        rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_100000.txt' ,
                                        rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_200000.txt' ,
                                        rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_500000.txt' ,
                                        rel_path +  '../Airfoils/Polars/NACA_4412_polar_Re_1000000.txt' ]]  
-    prop.airfoil_polar_stations   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    prop                          = propeller_design(prop)   
-    prop.variable_pitch           = True 
-    prop.rotation                 = 1 
+    prop_rotor.airfoil_polar_stations   = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    prop_rotor                          = propeller_design(prop_rotor)   
+    prop_rotor.variable_pitch           = True 
+    prop_rotor.rotation                 = 1 
 
     # Rotors Locations  
     origins   = [[-0.3, 2.0, 0.0], [-0.3, 4.8, 0.0],[-0.3, -2.0, 0.0], [-0.3, -4.8, 0.0],\
                [4.7, 2.0 ,1.4], [4.7, 4.8, 1.4],[4.7, -2.0, 1.4], [4.7, -4.8, 1.4]]      
 
     for ii in range(8):
-        lift_prop          = deepcopy(prop)
-        lift_prop.tag      = 'prop_' + str(ii+1)
-        lift_prop.origin   = [origins[ii]]
-        net.propellers.append(lift_prop) 
+        tw_prop_rotor          = deepcopy(prop_rotor)
+        tw_prop_rotor.tag      = 'prop_' + str(ii+1)
+        tw_prop_rotor.origin   = [origins[ii]]
+        net.propellers.append(tw_prop_rotor) 
         
     
     # Nacelles 
@@ -674,12 +681,12 @@ def vehicle_setup():
     # Design Motors
     #------------------------------------------------------------------
     motor                           = SUAVE.Components.Energy.Converters.Motor() 
-    motor.origin                    = prop.origin  
+    motor.origin                    = prop_rotor.origin  
     motor.efficiency                = 0.9  
     motor.nominal_voltage           = bat.max_voltage *0.8  
-    motor.propeller_radius          = prop.tip_radius 
+    motor.propeller_radius          = prop_rotor.tip_radius 
     motor.no_load_current           = 0.01  
-    motor                           = size_optimal_motor(motor,prop) 
+    motor                           = size_optimal_motor(motor,prop_rotor) 
     motor.mass_properties.mass      = nasa_motor(motor.design_torque)  
 
     for ii in range(8):
@@ -715,9 +722,16 @@ def vehicle_setup():
     vehicle.wings['canard_wing'].motor_spanwise_locations = motor_origins_front[:,1]/ vehicle.wings['canard_wing'].spans.projected
     vehicle.wings['main_wing'].motor_spanwise_locations   = motor_origins_rear[:,1]/ vehicle.wings['main_wing'].spans.projected
 
-    vehicle.append_component(net)
+    vehicle.append_component(net)  
+    
+    converge_evtol_weight(vehicle,contingency_factor = 1.0 ,print_iterations = True)
+    
 
-    vehicle.weight_breakdown  = empty(vehicle)
+    breakdown = empty(vehicle,contingency_factor = 1.0 )
+    print(breakdown)
+    
+    vehicle.weight_breakdown  =breakdown
+    
     compute_component_centers_of_gravity(vehicle)
     vehicle.center_of_gravity()
 
